@@ -12,7 +12,7 @@ environment
 
 ### <<project\_name>>=
 ```{#project_name}
-test_project
+example
 ```
 
 ### <<project\_name_recurse>>=
@@ -42,7 +42,7 @@ mkdir -p <<project_name()>>
 
 ## Dockerfile
 
-```{#dockerfile .Dockerfile tangle="Dockerfile"}
+```{#dockerfile .Dockerfile tangle="<<project_name()>>/Dockerfile"}
 FROM ubuntu:22.04
 
 RUN apt-get update && \
@@ -59,7 +59,7 @@ WORKDIR /home/build_user
 
 ## Docker Build
 
-```{#build_container .bash .runnable}
+```{#build_container .bash .runnable dir="<<project_name()>>"}
 docker build -t <<docker_image_name()>> .
 ```
 
@@ -80,9 +80,16 @@ docker stop <<docker_container_name()>>
 
 ## Run something in the container
 
-```{#testing .bash .runnable docker=<<docker_container_name()>> dir="<<project_name()>>"}
+```{#in_container .bash .runnable docker=<<docker_container_name()>> dir="<<project_name()>>"}
 pwd
-ls -al test_project
+ls -al <<project_name()>>
+```
+
+## Run something outside a container
+
+```{#out_container .bash .runnable dir="<<project_name()>>"}
+pwd
+ls -al <<project_name()>>
 ```
 
 ## Build

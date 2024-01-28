@@ -116,11 +116,11 @@ class CodeBlock:
             cmd = self.code_blocks.expand(self.code)
             docker_container = self.code_blocks.expand(self.docker_container)
             cwd = self.code_blocks.expand(self.cwd)
-            if self.docker_container is not None:
+            if self.docker_container is None:
+                subprocess.call(cmd, shell=True, cwd=cwd)
+            else:
                 cmd = f'docker exec {docker_container} /bin/bash -c "cd {cwd} && {cmd}"'
                 subprocess.call(cmd, shell=True)
-            else:
-                subprocess.call(cmd, shell=True, cwd=self.cwd)
         else:
             print(f"Unsupported language: {self.lang}")
 
