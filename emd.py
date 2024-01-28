@@ -53,30 +53,32 @@ class CodeBlocks:
                 return block
         return None
 
-    # indent holds the character to prefix each line after the first with
+    def add_prefix(self, prefix, code):
+        lines = code.split('\n')
+        for i, line in enumerate(lines):
+            if i > 0:      # line one already has the prefix
+                lines[i] = prefix + line
+        return '\n'.join(lines)
+
+    def expand_line(self, line):
+        pattern = re.compile("<<.*?\(\)>>")
+
+        match = re.search(pattern, line)
+        while (match):
+            prefix = line[:match.start()]
+
+            block = self.get_code_block(strip_emd_ref(match.group()))
+            if block is not None:
+                line = line[:match.start()] + self.add_prefix(prefix, self.expand(block.code)) + line[match.end():]
+
+            match = re.search(pattern, line)
+        return line
+
     def expand(self, text):
         if text is None:
             return ""
 
-        t_lines = text.split("\n")
-        for t_i, t_line in enumerate(t_lines):
-            pattern = re.compile("<<.*?\(\)>>")
-
-            match = re.search(pattern, t_lines[t_i])
-            while (match):
-                line_prefix = t_line[:match.start()]
-
-                block = self.get_code_block(strip_emd_ref(match.group()))
-                r_lines = []
-                if block is not None:
-                    r_lines = self.expand(block.code).split('\n')
-                    for r_i, r_line in enumerate(r_lines):
-                        if r_i > 0:      # line one already has the prefix
-                            r_lines[r_i] = line_prefix + r_line
-
-                t_lines[t_i] = t_lines[t_i][:match.start()] + '\n'.join(r_lines) + t_lines[t_i][match.end():]
-                match = re.search(pattern, t_lines[t_i])
-        return '\n'.join(t_lines)
+        return '\n'.join([self.expand_line(x) for x in text.split('\n')])
 
     def run(self, name):
         block = self.get_code_block(name)

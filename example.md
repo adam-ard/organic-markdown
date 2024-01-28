@@ -124,9 +124,10 @@ printf("testing\n");
 ```
 
 ```{#test_nesting .C}
-printf("<<testing_nesting_inner()>>\n");
-printf("<<testing_nesting_inner()>>\n");
-printf("<<testing_nesting_inner()>>\n");
+printf("<<testing_nesting_inner()>>-1\n");
+printf("<<testing_nesting_inner()>>-2\n");
+printf("<<testing_nesting_inner()>>-3\n");
+printf("<<testing_nesting_inner()>>-4\n");
 ```
 
 ```{#testing_nesting_inner .C}
