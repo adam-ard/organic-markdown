@@ -4,8 +4,6 @@ import re
 import subprocess
 from textwrap import indent
 
-# TODO: add the indenting for emd reference expansion ( based off the characters before the item )
-
 languages = ["python", "bash"]
 
 def strip_emd_ref(text):
