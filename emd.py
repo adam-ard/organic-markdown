@@ -60,18 +60,26 @@ class CodeBlocks:
                 lines[i] = prefix + line
         return '\n'.join(lines)
 
+    def expand_match(self, text, regex):
+        pattern = re.compile(regex)
+        match = re.search(pattern, text)
+
+        if match is None:
+            return text, False
+
+        prefix = text[:match.start()]
+
+        block = self.get_code_block(strip_emd_ref(match.group()))
+
+        if block is None:
+            return text, True
+
+        return text[:match.start()] + self.add_prefix(prefix, self.expand(block.code)) + text[match.end():], True
+
     def expand_line(self, line):
-        pattern = re.compile("<<.*?\(\)>>")
-
-        match = re.search(pattern, line)
-        while (match):
-            prefix = line[:match.start()]
-
-            block = self.get_code_block(strip_emd_ref(match.group()))
-            if block is not None:
-                line = line[:match.start()] + self.add_prefix(prefix, self.expand(block.code)) + line[match.end():]
-
-            match = re.search(pattern, line)
+        matched = True
+        while(matched):
+            line, matched = self.expand_match(line, "<<.*?\(\)>>")
         return line
 
     def expand(self, text):
@@ -84,19 +92,16 @@ class CodeBlocks:
         block = self.get_code_block(name)
         if block is not None:
             block.run()
-            return
 
     def tangle(self, name):
         block = self.get_code_block(name)
         if block is not None:
             block.tangle()
-            return
 
     def info(self, name):
         block = self.get_code_block(name)
         if block is not None:
             print(block)
-            return
 
     def tangle_all(self):
         for block in self.code_blocks:
