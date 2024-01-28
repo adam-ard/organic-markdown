@@ -1,0 +1,4 @@
+#!/bin/bash
+
+#pandoc -f markdown -t json example.md | python -m json.tool | python3 emd.py
+pandoc -f markdown -t json example.md | python3 emd.py $@
