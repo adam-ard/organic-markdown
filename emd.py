@@ -1,9 +1,10 @@
 import json
 import sys
 import re
+import subprocess
 from textwrap import indent
 
-languages = ["python", "bash"]
+languages = ["bash"]
 
 def strip_emd_ref(text):
     return text[2:-4]
@@ -85,6 +86,11 @@ class CodeBlocks:
 
         return '\n'.join([self.expand_line(x) for x in text.split('\n')])
 
+    def irun(self, name):
+        block = self.get_code_block(name)
+        if block is not None:
+            block.irun()
+
     def run(self, name):
         block = self.get_code_block(name)
         if block is not None:
@@ -115,18 +121,38 @@ class CodeBlock:
         self.code_blocks = None
         self.docker_container=None
 
-    def run(self):
-        if self.lang == "bash" and self.is_runnable:
+    def get_run_cmd(self):
+        if not self.is_runnable:
+            return None
+
+        if self.lang not in languages:
+            return None
+
+        if self.lang == "bash":
             cmd = self.code_blocks.expand(self.code)
             docker_container = self.code_blocks.expand(self.docker_container)
             cwd = self.code_blocks.expand(self.cwd)
             cmd_in_dir = f"cd {cwd}\n{cmd}"
             if self.docker_container is None:
-                print(cmd_in_dir)
+                return cmd_in_dir
             else:
-                print(f'docker exec {docker_container} /bin/bash -c "{cmd_in_dir}"')
-        else:
-            print(f"echo Unsupported language: {self.lang}")
+                return f'docker exec {docker_container} /bin/bash -c "{cmd_in_dir}"'
+
+    def run(self):
+        cmd = self.get_run_cmd()
+        if cmd is None:
+            print("Error running command")
+
+        subprocess.call(cmd, shell=True)
+
+    # this function returns a bash command to be executed by calling bash script
+    #   it allows for interactive things like "docker exec -it" to work
+    def irun(self):
+        cmd = self.get_run_cmd()
+        if cmd is None:
+            print("echo Error running command")
+
+        print(cmd)
 
     def tangle(self):
         if self.tangle_file is not None:
@@ -187,6 +213,8 @@ if __name__ == '__main__':
     if len(sys.argv) == 3:
         if sys.argv[1] == "tangle":
             code_blocks.tangle(sys.argv[2])
+        elif sys.argv[1] == "irun":
+            code_blocks.irun(sys.argv[2])
         elif sys.argv[1] == "run":
             code_blocks.run(sys.argv[2])
         elif sys.argv[1] == "info":
