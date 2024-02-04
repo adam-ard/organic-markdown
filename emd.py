@@ -97,6 +97,24 @@ class CodeBlocks:
             return
         fn(block)
 
+    def run_tangle_by_num_fn(self, num, fn):
+        curr_num = 1
+        for block in self.code_blocks:
+            if block.tangle_file is not None:
+                if curr_num == num:
+                    fn(block)
+                    return
+                curr_num += 1
+
+    def run_cmd_by_num_fn(self, num, fn):
+        curr_num = 1
+        for block in self.code_blocks:
+            if block.is_runnable:
+                if curr_num == num:
+                    fn(block)
+                    return
+                curr_num += 1
+
     def tangle_all(self):
         for block in self.code_blocks:
             block.tangle()
@@ -203,13 +221,22 @@ if __name__ == '__main__':
 
     if len(sys.argv) == 3:
         if sys.argv[1] == "tangle":
-            code_blocks.run_block_fn(sys.argv[2], CodeBlock.tangle)
+            if sys.argv[2].isdigit():
+                code_blocks.run_tangle_by_num_fn(int(sys.argv[2]), CodeBlock.tangle)
+            else:
+                code_blocks.run_block_fn(sys.argv[2], CodeBlock.tangle)
         elif sys.argv[1] == "irun":
-            code_blocks.run_block_fn(sys.argv[2], CodeBlock.irun)
+            if sys.argv[2].isdigit():
+                code_blocks.run_cmd_by_num_fn(int(sys.argv[2]), CodeBlock.irun)
+            else:
+                code_blocks.run_block_fn(sys.argv[2], CodeBlock.irun)
         # eventually we will make this call irun, and remove the irun command
         #   but for now it is nice for testing
         elif sys.argv[1] == "run":
-            code_blocks.run_block_fn(sys.argv[2], CodeBlock.run)
+            if sys.argv[2].isdigit():
+                code_blocks.run_cmd_by_num_fn(int(sys.argv[2]), CodeBlock.run)
+            else:
+                code_blocks.run_block_fn(sys.argv[2], CodeBlock.run)
         elif sys.argv[1] == "info":
             code_blocks.run_block_fn(sys.argv[2], CodeBlock.info)
     elif len(sys.argv) == 2:
