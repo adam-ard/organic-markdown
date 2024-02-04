@@ -92,25 +92,12 @@ class CodeBlocks:
 
         return '\n'.join([self.expand_line(x) for x in text.split('\n')])
 
-    def irun(self, name):
+    def run_block_fn(self, name, fn):
         block = self.get_code_block(name)
-        if block is not None:
-            block.irun()
-
-    def run(self, name):
-        block = self.get_code_block(name)
-        if block is not None:
-            block.run()
-
-    def tangle(self, name):
-        block = self.get_code_block(name)
-        if block is not None:
-            block.tangle()
-
-    def info(self, name):
-        block = self.get_code_block(name)
-        if block is not None:
-            print(block)
+        if block is None:
+            print(f"block not found! {name}")
+            return
+        fn(block)
 
     def tangle_all(self):
         for block in self.code_blocks:
@@ -218,15 +205,15 @@ if __name__ == '__main__':
 
     if len(sys.argv) == 3:
         if sys.argv[1] == "tangle":
-            code_blocks.tangle(sys.argv[2])
+            code_blocks.run_block_fn(sys.argv[2], CodeBlock.tangle)
         elif sys.argv[1] == "irun":
-            code_blocks.irun(sys.argv[2])
+            code_blocks.run_block_fn(sys.argv[2], CodeBlock.irun)
         # eventually we will make this call irun, and remove the irun command
         #   but for now it is nice for testing
         elif sys.argv[1] == "run":
-            code_blocks.run(sys.argv[2])
+            code_blocks.run_block_fn(sys.argv[2], CodeBlock.run)
         elif sys.argv[1] == "info":
-            code_blocks.info(sys.argv[2])
+            code_blocks.run_block_fn(sys.argv[2], CodeBlock.info)
     elif len(sys.argv) == 2:
         if sys.argv[1] == "tangle":
             code_blocks.tangle_all()

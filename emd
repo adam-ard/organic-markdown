@@ -12,7 +12,7 @@ res=$(pandoc -f markdown -t json "${filename}" | python3 emd.py $@)
 
 # Check if there are no command-line arguments or the first argument is not "run"
 if [ "$#" -eq 0 ] || [ "$1" != "irun" ]; then
-    echo "${res}"
+    echo -n "${res}"
 else
     # if this is a "run" command, then evaluate the command being returned
     eval "${res}"
