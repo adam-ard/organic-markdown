@@ -1,6 +1,7 @@
 import json
 import sys
 import re
+import os
 import subprocess
 from textwrap import indent
 
@@ -40,7 +41,12 @@ class CodeBlocks:
         num = 1
         for block in self.code_blocks:
             if block.tangle_file is not None:
-                print(f"    {num}. {block.name}")
+                if block.name is None or block.name == "":
+                    expanded_filename = self.expand(block.tangle_file)
+                    rel_path = os.path.relpath(expanded_filename)
+                    print(f"    {num}. {rel_path}")
+                else:
+                    print(f"    {num}. {block.name}")
                 num += 1
 
         print("")
@@ -215,6 +221,8 @@ if __name__ == '__main__':
             code_blocks.tangle(sys.argv[2])
         elif sys.argv[1] == "irun":
             code_blocks.irun(sys.argv[2])
+        # eventually we will make this call irun, and remove the irun command
+        #   but for now it is nice for testing
         elif sys.argv[1] == "run":
             code_blocks.run(sys.argv[2])
         elif sys.argv[1] == "info":

@@ -144,7 +144,7 @@ testing_me
 
 ## Test Main
 
-```{#test_main .C tangle=<<project_name()>>/main.c}
+```{.C tangle=<<project_name()>>/main.c}
 #include <stdio.h>
 
 void main()
