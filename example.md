@@ -60,7 +60,7 @@ WORKDIR /home/<<username()>>
 ## Docker Shell
 
 ```{#shell .bash .runnable}
-docker exec -it emarkdown-example1 /bin/bash
+docker exec -it <<docker_container_name()>> /bin/bash
 ```
 
 ## Docker Build
