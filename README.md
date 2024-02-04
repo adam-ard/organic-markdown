@@ -1,1 +1,5 @@
 # electric-markdown
+
+## Dependencies
+
+- pandoc

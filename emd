@@ -1,4 +1,19 @@
 #!/bin/bash
 
-#pandoc -f markdown -t json example.md | python -m json.tool | python3 emd.py
-pandoc -f markdown -t json example.md | python3 emd.py $@
+if [ "$#" -eq 0 ]; then
+    echo "Missing Filename"
+    exit 1
+fi
+
+filename=$1
+shift
+
+res=$(pandoc -f markdown -t json "${filename}" | python3 emd.py $@)
+
+# Check if there are no command-line arguments or the first argument is not "run"
+if [ "$#" -eq 0 ] || [ "$1" != "run" ]; then
+    echo "${res}"
+else
+    # if this is a "run" command, then evaluate the command being returned
+    eval "${res}"
+fi

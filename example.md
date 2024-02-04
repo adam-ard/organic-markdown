@@ -10,11 +10,6 @@ environment
 ~/code
 ```
 
-### <<project\_name>>=
-```{#project_name}
-example
-```
-
 ### <<project\_name_recurse>>=
 ```{#project_name_recurse}
 <<project_name()>>
@@ -30,9 +25,14 @@ emarkdown-example
 emarkdown-example1
 ```
 
-### <<docker\_container_user>>=
-```{.bash #docker_container_user}
-build_user
+### <<username>>=
+```{.bash #username}
+aard
+```
+
+### <<project\_name>>=
+```{#project_name}
+/home/<<username()>>/code/electric-markdown/example
 ```
 
 ## Mkdir
@@ -42,7 +42,7 @@ mkdir -p <<project_name()>>
 
 ## Dockerfile
 
-```{#dockerfile .Dockerfile tangle="<<project_name()>>/Dockerfile"}
+```{#dockerfile .Dockerfile tangle=<<project_name()>>/Dockerfile}
 FROM ubuntu:22.04
 
 RUN apt-get update && \
@@ -52,14 +52,20 @@ RUN apt-get update && \
     cmake \
     build-essential
 
-RUN useradd -ms /bin/bash build_user
-USER build_user
-WORKDIR /home/build_user
+RUN useradd -ms /bin/bash <<username()>>
+USER <<username()>>
+WORKDIR /home/<<username()>>
+```
+
+## Docker Shell
+
+```{#shell .bash .runnable}
+docker exec -it emarkdown-example1 /bin/bash
 ```
 
 ## Docker Build
 
-```{#build_container .bash .runnable dir="<<project_name()>>"}
+```{#build_container .bash .runnable dir=<<project_name()>>}
 docker build -t <<docker_image_name()>> .
 ```
 
@@ -67,7 +73,7 @@ docker build -t <<docker_image_name()>> .
 
 ```{#start_container .bash .runnable dir="."}
 docker run --rm --name <<docker_container_name()>> -d \
-       -v ./<<project_name()>>:/home/<<docker_container_user()>>/<<project_name()>> \
+       -v ${PWD}:${PWD} \
        <<docker_image_name()>> \
        tail -f /dev/null
 ```
@@ -80,14 +86,16 @@ docker stop <<docker_container_name()>>
 
 ## Run something in the container
 
-```{#in_container .bash .runnable docker=<<docker_container_name()>> dir="<<project_name()>>"}
+```{#in_container .bash .runnable docker=<<docker_container_name()>> dir=<<project_name()>>}
+hostname
 pwd
 ls -al <<project_name()>>
 ```
 
 ## Run something outside a container
 
-```{#out_container .bash .runnable dir="<<project_name()>>"}
+```{#out_container .bash .runnable dir=<<project_name()>>}
+hostname
 pwd
 ls -al <<project_name()>>
 ```
@@ -96,7 +104,7 @@ ls -al <<project_name()>>
 
 To build this project
 
-```{#build_project .bash .runnable docker=<<docker_container_name()>> dir="<<project_name()>>"}
+```{#build_project .bash .runnable docker=<<docker_container_name()>> dir=<<project_name()>>}
 gcc main.c
 ```
 
@@ -104,7 +112,7 @@ gcc main.c
 
 Run this project
 
-```{#run_project .bash .runnable docker=<<docker_container_name()>> dir="<<project_name()>>"}
+```{#run_project .bash .runnable docker=<<docker_container_name()>> dir=<<project_name()>>}
 ./a.out
 ```
 
@@ -136,7 +144,7 @@ testing_me
 
 ## Test Main
 
-```{#test_main .C tangle="<<project_name()>>/main.c"}
+```{#test_main .C tangle=<<project_name()>>/main.c}
 #include <stdio.h>
 
 void main()

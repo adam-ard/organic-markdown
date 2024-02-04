@@ -1,7 +1,6 @@
 import json
 import sys
 import re
-import subprocess
 from textwrap import indent
 
 languages = ["python", "bash"]
@@ -121,13 +120,13 @@ class CodeBlock:
             cmd = self.code_blocks.expand(self.code)
             docker_container = self.code_blocks.expand(self.docker_container)
             cwd = self.code_blocks.expand(self.cwd)
+            cmd_in_dir = f"cd {cwd}\n{cmd}"
             if self.docker_container is None:
-                subprocess.call(cmd, shell=True, cwd=cwd)
+                print(cmd_in_dir)
             else:
-                cmd = f'docker exec {docker_container} /bin/bash -c "cd {cwd} && {cmd}"'
-                subprocess.call(cmd, shell=True)
+                print(f'docker exec {docker_container} /bin/bash -c "{cmd_in_dir}"')
         else:
-            print(f"Unsupported language: {self.lang}")
+            print(f"echo Unsupported language: {self.lang}")
 
     def tangle(self):
         if self.tangle_file is not None:
