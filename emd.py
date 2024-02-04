@@ -147,6 +147,9 @@ class CodeBlock:
             else:
                 return f'docker exec {docker_container} /bin/bash -c "{cmd_in_dir}"'
 
+    def info(self):
+        print(self.__repr__())
+
     def run(self):
         cmd = self.get_run_cmd()
         if cmd is None:

@@ -1,5 +1,7 @@
 #!/bin/bash
 
+curr_dir=$(dirname $0)
+
 if [ -z "${EMD_ROOT_FILE}" ]; then
     if [ "$#" -eq 0 ]; then
         echo "Missing Filename"
@@ -12,7 +14,7 @@ else
     filename="${EMD_ROOT_FILE}"
 fi
 
-cmd="pandoc -f markdown -t json ${filename} | python3 emd.py $@"
+cmd="pandoc -f markdown -t json ${filename} | python3 ${curr_dir}/emd.py $@"
 
 # Check if there are no command-line arguments or the first argument is not "run"
 if [ "$#" -eq 0 ] || [ "$1" != "irun" ]; then
