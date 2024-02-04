@@ -49,8 +49,6 @@ class CodeBlocks:
                     print(f"    {num}. {block.name}")
                 num += 1
 
-        print("")
-
     def get_code_block(self, name):
         for block in self.code_blocks:
             if block.name == name:
