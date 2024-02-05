@@ -74,9 +74,6 @@ class CodeBlocks:
             values = arg_list[1::2]
             inner_args = {keys[i]: values[i] for i in range(len(keys))}
 
-        print(f"({outer_args}", end =",")
-        print(f"{inner_args})")
-
         name = match.group(1)
         if outer_args is not None and name in outer_args:
             return text[:match.start()] + self.add_prefix(prefix, self.expand(outer_args[name])) + text[match.end():], True
@@ -91,7 +88,7 @@ class CodeBlocks:
     def expand_line(self, line, args):
         matched = True
         while(matched):
-            line, matched = self.expand_match(line, "<<(.*?)\((.*)\)>>", args)
+            line, matched = self.expand_match(line, "<<(.*?)\((.*?)\)>>", args)
         return line
 
     def expand(self, text, args=None):
