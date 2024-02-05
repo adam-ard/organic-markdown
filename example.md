@@ -188,7 +188,7 @@ testing_me
 ## Test Main
 
 ```{.C tangle=<<project_name()>>/main.c}
-<<copyright-c(copyright_year="2014")>>
+<<copyright-c(copyright_year="2014", more="asdf",even_more="qwerty")>>
 
 #include <stdio.h>
 

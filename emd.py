@@ -7,9 +7,6 @@ from textwrap import indent
 
 languages = ["bash"]
 
-def strip_emd_ref(text):
-    return text[2:-4]
-
 class CodeBlocks:
     def __init__(self):
         self.code_blocks = []
@@ -58,7 +55,7 @@ class CodeBlocks:
                 lines[i] = prefix + line
         return '\n'.join(lines)
 
-    def expand_match(self, text, regex):
+    def expand_match(self, text, regex, outer_args):
         pattern = re.compile(regex)
         match = re.search(pattern, text)
 
@@ -67,24 +64,41 @@ class CodeBlocks:
 
         prefix = text[:match.start()]
 
-        block = self.get_code_block(strip_emd_ref(match.group()))
+        inner_args = None
+        #copyright_year="2014", more="asdf",even_more="qwerty"
+        if match.group(2) is not None and match.group(2) != "":
+            arg_list = match.group(2).replace(" ", ":").replace("=", ":").replace(",", ":").replace("\"", ":").split(":")
+            arg_list = [x for x in arg_list if x != ""]
+
+            keys = arg_list[::2]
+            values = arg_list[1::2]
+            inner_args = {keys[i]: values[i] for i in range(len(keys))}
+
+        print(f"({outer_args}", end =",")
+        print(f"{inner_args})")
+
+        name = match.group(1)
+        if outer_args is not None and name in outer_args:
+            return text[:match.start()] + self.add_prefix(prefix, self.expand(outer_args[name])) + text[match.end():], True
+
+        block = self.get_code_block(name)
 
         if block is None:
             return text, True
 
-        return text[:match.start()] + self.add_prefix(prefix, self.expand(block.code)) + text[match.end():], True
+        return text[:match.start()] + self.add_prefix(prefix, self.expand(block.code, inner_args)) + text[match.end():], True
 
-    def expand_line(self, line):
+    def expand_line(self, line, args):
         matched = True
         while(matched):
-            line, matched = self.expand_match(line, "<<.*?\(\)>>")
+            line, matched = self.expand_match(line, "<<(.*?)\((.*)\)>>", args)
         return line
 
-    def expand(self, text):
+    def expand(self, text, args=None):
         if text is None:
             return ""
 
-        return '\n'.join([self.expand_line(x) for x in text.split('\n')])
+        return '\n'.join([self.expand_line(x, args) for x in text.split('\n')])
 
     def run_block_fn(self, identifier, fn):
         block = None
