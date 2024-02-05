@@ -86,27 +86,15 @@ class CodeBlocks:
 
         return '\n'.join([self.expand_line(x) for x in text.split('\n')])
 
-    def run_block_fn(self, name, fn):
-        block = self.get_code_block(name)
+    def run_block_fn(self, identifier, fn):
+        block = None
+        if identifier.isdigit():
+            block = self.code_blocks[int(identifier)]
+        else:
+            block = self.get_code_block(identifier)
+
         if block is None:
-            print(f"block not found! {name}")
-            return
-        fn(block)
-
-    def run_block_by_num_fn(self, num, fn):
-        block = self.code_blocks[num]
-        fn(block)
-
-    def run_tangle_by_num_fn(self, num, fn):
-        block = self.code_blocks[num]
-        if block.tangle_file is None:
-            return
-
-        fn(block)
-
-    def run_cmd_by_num_fn(self, num, fn):
-        block = self.code_blocks[num]
-        if not block.is_runnable:
+            print("Error")
             return
 
         fn(block)
@@ -221,27 +209,15 @@ if __name__ == '__main__':
     # eventually we can probably make this call be default, and remove non-interactive run
     #   for now it is nice to have both for debugging
     if len(sys.argv) == 4 and sys.argv[1] == "-i" and sys.argv[2] == "run":
-        if sys.argv[3].isdigit():
-            code_blocks.run_cmd_by_num_fn(int(sys.argv[3]), CodeBlock.irun)
-        else:
-            code_blocks.run_block_fn(sys.argv[3], CodeBlock.irun)
+        code_blocks.run_block_fn(sys.argv[3], CodeBlock.irun)
 
     elif len(sys.argv) == 3:
         if sys.argv[1] == "tangle":
-            if sys.argv[2].isdigit():
-                code_blocks.run_tangle_by_num_fn(int(sys.argv[2]), CodeBlock.tangle)
-            else:
-                code_blocks.run_block_fn(sys.argv[2], CodeBlock.tangle)
+            code_blocks.run_block_fn(sys.argv[2], CodeBlock.tangle)
         elif sys.argv[1] == "run":
-            if sys.argv[2].isdigit():
-                code_blocks.run_cmd_by_num_fn(int(sys.argv[2]), CodeBlock.run)
-            else:
-                code_blocks.run_block_fn(sys.argv[2], CodeBlock.run)
+            code_blocks.run_block_fn(sys.argv[2], CodeBlock.run)
         elif sys.argv[1] == "info":
-            if sys.argv[2].isdigit():
-                code_blocks.run_block_by_num_fn(int(sys.argv[2]), CodeBlock.info)
-            else:
-                code_blocks.run_block_fn(sys.argv[2], CodeBlock.info)
+            code_blocks.run_block_fn(sys.argv[2], CodeBlock.info)
 
     elif len(sys.argv) == 2:
         if sys.argv[1] == "tangle":
