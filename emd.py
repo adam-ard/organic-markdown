@@ -30,16 +30,13 @@ class CodeBlocks:
                 self.code_blocks.append(cb)
 
     def print_summary(self):
-        print("Cmd blocks:")
-        num = 1
-        for block in self.code_blocks:
+        print("Commands:")
+        for num, block in enumerate(self.code_blocks):
             if block.is_runnable:
                 print(f"    {num}. {block.name}")
-                num += 1
 
-        print("\nTangle blocks:")
-        num = 1
-        for block in self.code_blocks:
+        print("\nFiles:")
+        for num, block in enumerate(self.code_blocks):
             if block.tangle_file is not None:
                 if block.name is None or block.name == "":
                     expanded_filename = self.expand(block.tangle_file)
@@ -47,7 +44,6 @@ class CodeBlocks:
                     print(f"    {num}. {rel_path}")
                 else:
                     print(f"    {num}. {block.name}")
-                num += 1
 
     def get_code_block(self, name):
         for block in self.code_blocks:
@@ -97,23 +93,23 @@ class CodeBlocks:
             return
         fn(block)
 
+    def run_block_by_num_fn(self, num, fn):
+        block = self.code_blocks[num]
+        fn(block)
+
     def run_tangle_by_num_fn(self, num, fn):
-        curr_num = 1
-        for block in self.code_blocks:
-            if block.tangle_file is not None:
-                if curr_num == num:
-                    fn(block)
-                    return
-                curr_num += 1
+        block = self.code_blocks[num]
+        if block.tangle_file is None:
+            return
+
+        fn(block)
 
     def run_cmd_by_num_fn(self, num, fn):
-        curr_num = 1
-        for block in self.code_blocks:
-            if block.is_runnable:
-                if curr_num == num:
-                    fn(block)
-                    return
-                curr_num += 1
+        block = self.code_blocks[num]
+        if not block.is_runnable:
+            return
+
+        fn(block)
 
     def tangle_all(self):
         for block in self.code_blocks:
@@ -222,26 +218,31 @@ if __name__ == '__main__':
     code_blocks = CodeBlocks()
     code_blocks.parse(data)
 
-    if len(sys.argv) == 3:
+    # eventually we can probably make this call be default, and remove non-interactive run
+    #   for now it is nice to have both for debugging
+    if len(sys.argv) == 4 and sys.argv[1] == "-i" and sys.argv[2] == "run":
+        if sys.argv[3].isdigit():
+            code_blocks.run_cmd_by_num_fn(int(sys.argv[3]), CodeBlock.irun)
+        else:
+            code_blocks.run_block_fn(sys.argv[3], CodeBlock.irun)
+
+    elif len(sys.argv) == 3:
         if sys.argv[1] == "tangle":
             if sys.argv[2].isdigit():
                 code_blocks.run_tangle_by_num_fn(int(sys.argv[2]), CodeBlock.tangle)
             else:
                 code_blocks.run_block_fn(sys.argv[2], CodeBlock.tangle)
-        elif sys.argv[1] == "irun":
-            if sys.argv[2].isdigit():
-                code_blocks.run_cmd_by_num_fn(int(sys.argv[2]), CodeBlock.irun)
-            else:
-                code_blocks.run_block_fn(sys.argv[2], CodeBlock.irun)
-        # eventually we will make this call irun, and remove the irun command
-        #   but for now it is nice for testing
         elif sys.argv[1] == "run":
             if sys.argv[2].isdigit():
                 code_blocks.run_cmd_by_num_fn(int(sys.argv[2]), CodeBlock.run)
             else:
                 code_blocks.run_block_fn(sys.argv[2], CodeBlock.run)
         elif sys.argv[1] == "info":
-            code_blocks.run_block_fn(sys.argv[2], CodeBlock.info)
+            if sys.argv[2].isdigit():
+                code_blocks.run_block_by_num_fn(int(sys.argv[2]), CodeBlock.info)
+            else:
+                code_blocks.run_block_fn(sys.argv[2], CodeBlock.info)
+
     elif len(sys.argv) == 2:
         if sys.argv[1] == "tangle":
             code_blocks.tangle_all()

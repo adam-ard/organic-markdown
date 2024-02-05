@@ -16,8 +16,7 @@ fi
 
 cmd="pandoc -f markdown -t json ${filename} | python3 ${curr_dir}/emd.py $@"
 
-# Check if there are no command-line arguments or the first argument is not "run"
-if [ "$#" -eq 0 ] || [ "$1" != "irun" ]; then
+if [ "$#" -eq 0 ] || [ "$1" != "-i" ]; then
     eval "$cmd"
 else
     # if this is a "run" command, then evaluate the command being returned
