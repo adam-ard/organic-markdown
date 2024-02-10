@@ -51,8 +51,18 @@ class CodeBlocks:
     def add_prefix(self, prefix, code):
         lines = code.split('\n')
         for i, line in enumerate(lines):
-            if i > 0:      # line one already has the prefix
+            if i == 0 or prefix == "":      # line one already has the prefix
+                continue
+
+            if line != "" and not line.isspace():
                 lines[i] = prefix + line
+                continue
+
+            if prefix.isspace():         # don't indent whitespace-only lines, with whitespace
+                continue
+            else:                        # don't add more whitespace to the end of whitespace-only lines
+                lines[i] = prefix.rstrip() + line
+
         return '\n'.join(lines)
 
     def expand_match(self, text, regex, outer_args):
