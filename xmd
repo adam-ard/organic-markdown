@@ -3,13 +3,7 @@
 curr_dir=$(dirname $0)
 
 if [ -z "${XMD_ROOT_FILE}" ]; then
-    if [ "$#" -eq 0 ]; then
-        echo "Missing Filename"
-        exit 1
-    fi
-
-    filename=$1
-    shift
+    filename="LIT.md"
 else
     filename="${XMD_ROOT_FILE}"
 fi
