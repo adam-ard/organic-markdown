@@ -5,8 +5,6 @@ import os
 import subprocess
 from textwrap import indent
 
-languages = ["bash"]
-
 class CodeBlocks:
     def __init__(self):
         self.code_blocks = []
@@ -139,9 +137,6 @@ class CodeBlock:
         if not self.is_runnable:
             return None
 
-        if self.lang not in languages:
-            return None
-
         if self.lang == "bash":
             cmd = self.code_blocks.expand(self.code)
             docker_container = self.code_blocks.expand(self.docker_container)
@@ -151,6 +146,8 @@ class CodeBlock:
                 return cmd_in_dir
             else:
                 return f'docker exec {docker_container} /bin/bash -c "{cmd_in_dir}"'
+        else:
+            print(f"language {self.lang} is not supported for execution")
 
     def info(self):
         print(self.__repr__())
