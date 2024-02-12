@@ -182,18 +182,16 @@ class CodeBlock:
             f.close()
 
     def parse(self, the_json):
-        self.name = the_json[0][0]
         self.code = the_json[1]
-        self.docker_container = None
-
-        for lang in languages:
-            if lang in the_json[0][1]:
-                self.lang = lang
-
-        if "runnable" in the_json[0][1]:
-            self.is_runnable = True
 
         for attrib in the_json[0][2]:
+            if attrib[0] == "runnable":
+                if(attrib[1] != "0" and attrib[1] != 0 and attrib[1].lower() != "false"):
+                   self.is_runnable = True
+            if attrib[0] == "lang":
+                self.lang = attrib[1]
+            if attrib[0] == "name":
+                self.name = attrib[1]
             if attrib[0] == "dir":
                 self.cwd = attrib[1]
             elif attrib[0] == "tangle":
