@@ -2,7 +2,7 @@
 
 curr_dir=$(dirname $0)
 
-if [ -z "${EMD_ROOT_FILE}" ]; then
+if [ -z "${XMD_ROOT_FILE}" ]; then
     if [ "$#" -eq 0 ]; then
         echo "Missing Filename"
         exit 1
@@ -11,10 +11,10 @@ if [ -z "${EMD_ROOT_FILE}" ]; then
     filename=$1
     shift
 else
-    filename="${EMD_ROOT_FILE}"
+    filename="${XMD_ROOT_FILE}"
 fi
 
-cmd="pandoc -f markdown -t json ${filename} | python3 ${curr_dir}/emd.py $@"
+cmd="pandoc -f markdown -t json ${filename} | python3 ${curr_dir}/xmd.py $@"
 
 if [ "$#" -eq 0 ] || [ "$1" != "-i" ]; then
     eval "$cmd"
