@@ -47,7 +47,7 @@ full_file = {"blocks": [{"t": "CodeBlock",
                      "c": [{"t": "MetaInlines", "c": [{"t": "Str", "c": "constants.md"}]},
                            {"t": "MetaInlines", "c": [{"t": "Str", "c": "docker.md"}]}]}}}
 
-def test_expand_from_full_json():
+def test_expand():
     code_blocks = xmd.CodeBlocks()
     code_blocks.parse(full_file)
 
@@ -56,6 +56,17 @@ def test_expand_from_full_json():
 
     txt = blk.get_expanded_code()
     assert txt == "[This is the text from block two:[This is the text from block one:[This is some text], wasn't that nice?], can you believe it?]"
+
+    # test with args
+    txt = code_blocks.expand('<<three(two="asdf")>>')
+    assert txt == "[This is the text from block two:asdf, can you believe it?]"
+
+    txt = code_blocks.expand('<<two(one="qwerty")>>')
+    assert txt == "[This is the text from block one:qwerty, wasn't that nice?]"
+
+    # this one takes some work, worth doing in the future?
+    # txt = code_blocks.expand('<<three(one="asdf")>>')
+    # assert txt == "[This is the text from block two:[This is the text from block one:asdf, wasn't that nice?], can you believe it?]"
 
 def test_parse_block():
     cb = xmd.CodeBlock()
