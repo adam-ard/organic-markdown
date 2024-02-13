@@ -73,7 +73,6 @@ class CodeBlocks:
         prefix = text[:match.start()]
 
         inner_args = None
-        #copyright_year="2014", more="asdf",even_more="qwerty"
         if match.group(2) is not None and match.group(2) != "":
             arg_list = match.group(2).replace(" ", ":").replace("=", ":").replace(",", ":").replace("\"", ":").split(":")
             arg_list = [x for x in arg_list if x != ""]
@@ -96,7 +95,7 @@ class CodeBlocks:
     def expand_line(self, line, args):
         matched = True
         while(matched):
-            line, matched = self.expand_match(line, "<<(.*?)\((.*?)\)>>", args)
+            line, matched = self.expand_match(line, r"<<(.*?)\((.*?)\)>>", args)
         return line
 
     def expand(self, text, args=None):
@@ -178,23 +177,36 @@ class CodeBlock:
             f.write("\n")  # put a newline at the end of the file
             f.close()
 
+    def parse_runnable_attrib(self, val):
+        if isinstance(val, bool):
+            return val
+
+        if isinstance(val, str):
+            return val.lower() != "false" and val != "0" and val != ""
+
+        return str(val).lower() != "false" and str(val) != "0" and val is not None
+
     def parse(self, the_json):
         self.code = the_json[1]
 
         for attrib in the_json[0][2]:
             if attrib[0] == "runnable":
-                if(attrib[1] != "0" and attrib[1] != 0 and attrib[1].lower() != "false"):
-                   self.is_runnable = True
-            if attrib[0] == "lang":
+                self.is_runnable = self.parse_runnable_attrib(attrib[1])
+            elif attrib[0] == "lang":
                 self.lang = attrib[1]
-            if attrib[0] == "name":
+            elif attrib[0] == "name":
                 self.name = attrib[1]
-            if attrib[0] == "dir":
+            elif attrib[0] == "dir":
                 self.cwd = attrib[1]
             elif attrib[0] == "tangle":
                 self.tangle_file = attrib[1]
             elif attrib[0] == "docker":
                 self.docker_container = attrib[1]
+            else:
+                print(f"Warning: I don't know what attribute this is {attrib[0]}")
+
+    def get_expanded_code(self):
+        return self.code_blocks.expand(self.code)
 
     def __repr__(self):
         out = "CodeBlock("
