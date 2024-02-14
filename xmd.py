@@ -63,7 +63,18 @@ class CodeBlocks:
 
         return '\n'.join(lines)
 
-    def expand_match(self, text, regex, outer_args):
+    def arg_parse(self, arg_str):
+        arg_lst = arg_str.split(",")
+        arg_lst_lst = [x.split("=") for x in arg_lst]
+
+        args = {}
+        for a in arg_lst_lst:
+            args[a[0].strip()] = a[1].strip().strip('"')
+
+        return args
+
+
+    def expand_match(self, text, regex, outer_args, match_type):
         pattern = re.compile(regex)
         match = re.search(pattern, text)
 
@@ -71,15 +82,10 @@ class CodeBlocks:
             return text, False
 
         prefix = text[:match.start()]
-
         inner_args = None
-        if match.group(2) is not None and match.group(2) != "":
-            arg_list = match.group(2).replace(" ", ":").replace("=", ":").replace(",", ":").replace("\"", ":").split(":")
-            arg_list = [x for x in arg_list if x != ""]
 
-            keys = arg_list[::2]
-            values = arg_list[1::2]
-            inner_args = {keys[i]: values[i] for i in range(len(keys))}
+        if match.group(2) is not None and match.group(2) != "":
+            inner_args = self.arg_parse(match.group(2))
 
         name = match.group(1)
         if outer_args is not None and name in outer_args:
@@ -95,7 +101,12 @@ class CodeBlocks:
     def expand_line(self, line, args):
         matched = True
         while(matched):
-            line, matched = self.expand_match(line, r"<<(.*?)\((.*?)\)>>", args)
+            line, matched = self.expand_match(line, r'<<([^()]*?)\(([^()]*?)\)>>', args, "str")
+
+        matched = True
+        while(matched):
+            line, matched = self.expand_match(line, r'<<([^()]*?)\(([^()]*?)\)\(\)>>', args, "str")
+
         return line
 
     def expand(self, text, args=None):

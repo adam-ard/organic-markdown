@@ -5,7 +5,6 @@ code_block = [["",
                [["name", "build_project"],
                 ["lang", "bash"],
                 ["what_is_this", "blah"],
-                ["runnable", "true"],
                 ["docker", "<<docker_container_name()>>"],
                 ["runnable", "true"],
                 ["dir", "<<project_name()>>"],
@@ -13,32 +12,53 @@ code_block = [["",
                 ]],
               "gcc --version"]
 
-code_block_one = [["",
+code_block_1 = [["",
                    [],
                    [["name", "one"],
                     ]],
                   "[This is some text]"]
 
-code_block_two = [["",
+code_block_2 = [["",
                    [],
                    [["name", "two"],
                     ]],
                   "[This is the text from block one:<<one()>>, wasn't that nice?]"]
 
-code_block_three = [["",
+code_block_2_1 = [["",
+                   [],
+                   [["name", "two_1"],
+                    ]],
+                  "[This is the text from block one:<<one()()>>, wasn't that nice?]"]
+
+code_block_3 = [["",
                      [],
                      [["name", "three"],
                       ]],
                     "[This is the text from block two:<<two()>>, can you believe it?]"]
 
+code_block_4 = [["",
+                    [],
+                    [["name", "four"],
+                     ["lang", "bash"],
+                     ["runnable", "true"],
+                     ["dir", "."],
+                     ]],
+                   "pwd"]
+
 full_file = {"blocks": [{"t": "CodeBlock",
-                         "c": code_block_one
+                         "c": code_block_1
                          },
                         {"t": "CodeBlock",
-                         "c": code_block_two
+                         "c": code_block_2
                          },
                         {"t": "CodeBlock",
-                         "c": code_block_three
+                         "c": code_block_2_1
+                         },
+                        {"t": "CodeBlock",
+                         "c": code_block_3
+                         },
+                        {"t": "CodeBlock",
+                         "c": code_block_4
                          },],
              "pandoc-api-version": [1, 20],
              "meta": {
@@ -67,6 +87,15 @@ def test_expand():
     # this one takes some work, worth doing in the future?
     # txt = code_blocks.expand('<<three(one="asdf")>>')
     # assert txt == "[This is the text from block two:[This is the text from block one:asdf, wasn't that nice?], can you believe it?]"
+
+    txt = code_blocks.expand('<<four()()>>')
+    assert txt == "pwd"
+
+    txt = code_blocks.expand('<<three(two="asdf")()>>')
+    assert txt == "[This is the text from block two:asdf, can you believe it?]"
+
+    txt = code_blocks.expand('<<two_1(one="qwerty")>>')
+    assert txt == "[This is the text from block one:qwerty, wasn't that nice?]"
 
 def test_parse_block():
     cb = xmd.CodeBlock()
@@ -97,3 +126,15 @@ def test_parse_runnable():
     assert cb.parse_runnable_attrib(None) == False
     assert cb.parse_runnable_attrib(0) == False
     assert cb.parse_runnable_attrib(False) == False
+
+def test_arg_parse():
+    cbs = xmd.CodeBlocks()
+    assert cbs.arg_parse('a="v1", a="v2"') == {"a": "v1", "a": "v2"}
+    assert cbs.arg_parse('arg1="val1", arg2="val2"') == {"arg1": "val1", "arg2": "val2"}
+    assert cbs.arg_parse('arg1="val1",arg2="val2"') == {"arg1": "val1", "arg2": "val2"}
+    assert cbs.arg_parse('arg1="val1",   arg2="val2"') == {"arg1": "val1", "arg2": "val2"}
+    assert cbs.arg_parse('arg1  =   "val1",arg2  =   "val2"') == {"arg1": "val1", "arg2": "val2"}
+    assert cbs.arg_parse('arg1="", arg2=""') == {"arg1": "", "arg2": ""}
+    assert cbs.arg_parse('arg1=" ", arg2=" "') == {"arg1": " ", "arg2": " "}
+    assert cbs.arg_parse('arg1="val one",   arg2="val one"') == {"arg1": "val one", "arg2": "val one"}
+    assert cbs.arg_parse('   arg1  =  " val1 ",   arg2  =  " val2 "') == {"arg1": " val1 ", "arg2": " val2 "}
