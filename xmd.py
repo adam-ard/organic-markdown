@@ -73,7 +73,6 @@ class CodeBlocks:
 
         return args
 
-
     def expand_match(self, text, regex, outer_args, match_type):
         pattern = re.compile(regex)
         match = re.search(pattern, text)
@@ -96,7 +95,10 @@ class CodeBlocks:
         if block is None:
             return text, True
 
-        return text[:match.start()] + self.add_prefix(prefix, self.expand(block.code, inner_args)) + text[match.end():], True
+        if match_type == "str":
+            return text[:match.start()] + self.add_prefix(prefix, self.expand(block.code, inner_args)) + text[match.end():], True
+        elif match_type == "exec":
+            return text[:match.start()] + self.add_prefix(prefix, self.expand(block.run_return_results(inner_args))) + text[match.end():], True
 
     def expand_line(self, line, args):
         matched = True
@@ -105,7 +107,7 @@ class CodeBlocks:
 
         matched = True
         while(matched):
-            line, matched = self.expand_match(line, r'<<([^()]*?)\(([^()]*?)\)\(\)>>', args, "str")
+            line, matched = self.expand_match(line, r'<<([^()]*?)\(([^()]*?)\)\(\)>>', args, "exec")
 
         return line
 
@@ -143,14 +145,14 @@ class CodeBlock:
         self.code_blocks = None
         self.docker_container=None
 
-    def get_run_cmd(self):
+    def get_run_cmd(self, args=None):
         if not self.is_runnable:
             return None
 
         if self.lang == "bash":
-            cmd = self.code_blocks.expand(self.code)
-            docker_container = self.code_blocks.expand(self.docker_container)
-            cwd = self.code_blocks.expand(self.cwd)
+            cmd = self.code_blocks.expand(self.code, args)
+            docker_container = self.code_blocks.expand(self.docker_container, args)
+            cwd = self.code_blocks.expand(self.cwd, args)
             cmd_in_dir = f"cd {cwd}\n{cmd}"
             if self.docker_container is None:
                 return cmd_in_dir
@@ -168,6 +170,14 @@ class CodeBlock:
             print("Error running command")
 
         subprocess.call(cmd, shell=True)
+
+    def run_return_results(self, args=None):
+        cmd = self.get_run_cmd(args)
+        if cmd is None:
+            print("Error running command")
+
+        output = subprocess.run(cmd, capture_output=True, shell=True)
+        return output.stdout.decode("utf-8")
 
     # this function returns a bash command to be executed by calling bash script
     #   it allows for interactive things like "docker exec -it" to work

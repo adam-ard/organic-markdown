@@ -36,6 +36,12 @@ code_block_3 = [["",
                       ]],
                     "[This is the text from block two:<<two()>>, can you believe it?]"]
 
+code_block_3_1 = [["",
+                   [],
+                   [["name", "msg"],
+                    ]],
+                  "this is great"]
+
 code_block_4 = [["",
                     [],
                     [["name", "four"],
@@ -43,7 +49,9 @@ code_block_4 = [["",
                      ["runnable", "true"],
                      ["dir", "."],
                      ]],
-                   "pwd"]
+                   'echo <<msg()>>']
+
+
 
 # note that I use the {"    "} syntax so when I run whitespace-cleanup it doesn't mess with the spaces
 indent_3 = [["",
@@ -111,6 +119,9 @@ full_file = {"blocks": [{"t": "CodeBlock",
                          "c": code_block_3
                          },
                         {"t": "CodeBlock",
+                         "c": code_block_3_1
+                         },
+                        {"t": "CodeBlock",
                          "c": code_block_4
                          },],
              "pandoc-api-version": [1, 20],
@@ -142,10 +153,10 @@ def test_expand():
     # assert txt == "[This is the text from block two:[This is the text from block one:asdf, wasn't that nice?], can you believe it?]"
 
     txt = code_blocks.expand('<<four()()>>')
-    assert txt == "pwd"
+    assert txt == "this is great\n"
 
-    txt = code_blocks.expand('<<three(two="asdf")()>>')
-    assert txt == "[This is the text from block two:asdf, can you believe it?]"
+    txt = code_blocks.expand('<<four(msg="here is a msg")()>>')
+    assert txt == "here is a msg\n"
 
     txt = code_blocks.expand('<<two_1(one="qwerty")>>')
     assert txt == "[This is the text from block one:qwerty, wasn't that nice?]"
