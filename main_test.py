@@ -45,6 +45,47 @@ code_block_4 = [["",
                      ]],
                    "pwd"]
 
+# note that I use the {"    "} syntax so when I run whitespace-cleanup it doesn't mess with the spaces
+indent_3 = [["",
+             [],
+             [["name", "indent_3"],
+              ]],
+            f"""one
+{"    "}
+
+two
+  three
+four"""]
+
+indent_4 = [["",
+             [],
+             [["name", "indent_4"],
+              ]],
+            """indent_block {
+    <<indent_3()>>
+}"""]
+
+indent_5 = [["",
+             [],
+             [["name", "indent_5"],
+              ]],
+            f"""one
+{"    "}
+
+two
+  three
+four"""]
+
+indent_6 = [["",
+             [],
+             [["name", "indent_6"],
+              ]],
+            """indent_block {
+    // <<indent_5()>>
+}"""]
+
+
+
 full_file = {"blocks": [{"t": "CodeBlock",
                          "c": code_block_1
                          },
@@ -53,6 +94,18 @@ full_file = {"blocks": [{"t": "CodeBlock",
                          },
                         {"t": "CodeBlock",
                          "c": code_block_2_1
+                         },
+                        {"t": "CodeBlock",
+                         "c": indent_3
+                         },
+                        {"t": "CodeBlock",
+                         "c": indent_4
+                         },
+                        {"t": "CodeBlock",
+                         "c": indent_5
+                         },
+                        {"t": "CodeBlock",
+                         "c": indent_6
                          },
                         {"t": "CodeBlock",
                          "c": code_block_3
@@ -96,6 +149,26 @@ def test_expand():
 
     txt = code_blocks.expand('<<two_1(one="qwerty")>>')
     assert txt == "[This is the text from block one:qwerty, wasn't that nice?]"
+
+    txt = code_blocks.expand('<<indent_4()>>')
+    assert txt == f"""indent_block {{
+    one
+{"    "}
+
+    two
+      three
+    four
+}}"""
+
+    txt = code_blocks.expand('<<indent_6()>>')
+    assert txt == f"""indent_block {{
+    // one
+    //{"    "}
+    //
+    // two
+    //   three
+    // four
+}}"""
 
 def test_parse_block():
     cb = xmd.CodeBlock()
