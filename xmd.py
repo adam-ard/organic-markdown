@@ -5,6 +5,33 @@ import os
 import subprocess
 from textwrap import indent
 
+def add_prefix(prefix, code):
+    lines = code.split('\n')
+    for i, line in enumerate(lines):
+        if i == 0 or prefix == "":      # line one already has the prefix
+            continue
+
+        if line != "" and not line.isspace():
+            lines[i] = prefix + line
+            continue
+
+        if prefix.isspace():         # don't indent whitespace-only lines, with whitespace
+            continue
+        else:                        # don't add more whitespace to the end of whitespace-only lines
+            lines[i] = prefix.rstrip() + line
+
+    return '\n'.join(lines)
+
+def arg_parse(arg_str):
+    arg_lst = arg_str.split(",")
+    arg_lst_lst = [x.split("=") for x in arg_lst]
+
+    args = {}
+    for a in arg_lst_lst:
+        args[a[0].strip()] = a[1].strip().strip('"')
+
+    return args
+
 class CodeBlocks:
     def __init__(self):
         self.code_blocks = []
@@ -46,33 +73,6 @@ class CodeBlocks:
                 return block
         return None
 
-    def add_prefix(self, prefix, code):
-        lines = code.split('\n')
-        for i, line in enumerate(lines):
-            if i == 0 or prefix == "":      # line one already has the prefix
-                continue
-
-            if line != "" and not line.isspace():
-                lines[i] = prefix + line
-                continue
-
-            if prefix.isspace():         # don't indent whitespace-only lines, with whitespace
-                continue
-            else:                        # don't add more whitespace to the end of whitespace-only lines
-                lines[i] = prefix.rstrip() + line
-
-        return '\n'.join(lines)
-
-    def arg_parse(self, arg_str):
-        arg_lst = arg_str.split(",")
-        arg_lst_lst = [x.split("=") for x in arg_lst]
-
-        args = {}
-        for a in arg_lst_lst:
-            args[a[0].strip()] = a[1].strip().strip('"')
-
-        return args
-
     def expand_match(self, text, regex, outer_args, match_type):
         pattern = re.compile(regex)
         match = re.search(pattern, text)
@@ -84,11 +84,11 @@ class CodeBlocks:
         inner_args = None
 
         if match.group(2) is not None and match.group(2) != "":
-            inner_args = self.arg_parse(match.group(2))
+            inner_args = arg_parse(match.group(2))
 
         name = match.group(1)
         if outer_args is not None and name in outer_args:
-            return text[:match.start()] + self.add_prefix(prefix, self.expand(outer_args[name])) + text[match.end():], True
+            return text[:match.start()] + add_prefix(prefix, self.expand(outer_args[name])) + text[match.end():], True
 
         block = self.get_code_block(name)
 
@@ -96,9 +96,9 @@ class CodeBlocks:
             return text, True
 
         if match_type == "str":
-            return text[:match.start()] + self.add_prefix(prefix, self.expand(block.code, inner_args)) + text[match.end():], True
+            return text[:match.start()] + add_prefix(prefix, self.expand(block.code, inner_args)) + text[match.end():], True
         elif match_type == "exec":
-            return text[:match.start()] + self.add_prefix(prefix, self.expand(block.run_return_results(inner_args))) + text[match.end():], True
+            return text[:match.start()] + add_prefix(prefix, self.expand(block.run_return_results(inner_args))) + text[match.end():], True
 
     def expand_line(self, line, args):
         matched = True
