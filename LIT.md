@@ -195,8 +195,8 @@ testing_me
 ```
 
 ```{name="test_exec" lang="bash" runnable="true" dir="."}
-for i in $(seq 1 10); do
-  echo "// Hi There!! $i"
+for i in $(seq 1 <<num()>>); do
+  echo "<<msg()>> $i"
 done
 ```
 
@@ -214,6 +214,6 @@ void main()
     /*
      *  <<test_nesting()>>
      */
-    <<test_exec()()>>
+    // <<test_exec(msg="wonderfull", num="15")()>>
 }
 ```
