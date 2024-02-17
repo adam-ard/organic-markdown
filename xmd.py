@@ -130,9 +130,9 @@ class CodeBlocks:
 
         fn(block)
 
-    def tangle_all(self):
+    def run_all_blocks_fn(self, fn):
         for block in self.code_blocks:
-            block.tangle()
+            fn(block)
 
 class CodeBlock:
     def __init__(self):
@@ -270,8 +270,8 @@ if __name__ == '__main__':
 
     elif len(sys.argv) == 2:
         if sys.argv[1] == "tangle":
-            code_blocks.tangle_all()
+            code_blocks.run_all_blocks_fn(CodeBlock.tangle)
         elif sys.argv[1] == "info":
-            print(code_blocks)
+            code_blocks.run_all_blocks_fn(CodeBlock.info)
     else:
         code_blocks.print_summary()

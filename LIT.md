@@ -194,6 +194,15 @@ printf("<<testing_nesting_inner()>>-5\n");
 testing_me
 ```
 
+```{name="msg"}
+nice
+```
+
+```{name="num"}
+10
+```
+
+
 ```{name="test_exec" lang="bash" runnable="true" dir="."}
 for i in $(seq 1 <<num()>>); do
   echo "<<msg()>> $i"
@@ -214,6 +223,6 @@ void main()
     /*
      *  <<test_nesting()>>
      */
-    // <<test_exec(msg="wonderfull", num="15")()>>
+    // <<test_exec(msg="wonderful", num="15")()>>
 }
 ```
