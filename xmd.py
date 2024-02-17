@@ -14,20 +14,10 @@ def parse_runnable_attrib(val):
 
     return str(val).lower() != "false" and str(val) != "0" and val is not None
 
-def add_prefix(prefix, code):
+def add_prefix(prefix, postfix, code):
     lines = code.split('\n')
     for i, line in enumerate(lines):
-        if i == 0 or prefix == "":      # line one already has the prefix
-            continue
-
-        if line != "" and not line.isspace():
-            lines[i] = prefix + line
-            continue
-
-        if prefix.isspace():         # don't indent whitespace-only lines, with whitespace
-            continue
-        else:                        # don't add more whitespace to the end of whitespace-only lines
-            lines[i] = prefix.rstrip() + line
+        lines[i] = prefix + line + postfix
 
     return '\n'.join(lines)
 
@@ -90,6 +80,7 @@ class CodeBlocks:
             return text, False
 
         prefix = text[:match.start()]
+        postfix = text[match.end():]
         inner_args = None
 
         if match.group(2) is not None and match.group(2) != "":
@@ -97,7 +88,7 @@ class CodeBlocks:
 
         name = match.group(1)
         if outer_args is not None and name in outer_args:
-            return text[:match.start()] + add_prefix(prefix, self.expand(outer_args[name])) + text[match.end():], True
+            return add_prefix(prefix, postfix, self.expand(outer_args[name])), True
 
         block = self.get_code_block(name)
 
@@ -105,9 +96,9 @@ class CodeBlocks:
             return text, True
 
         if match_type == "str":
-            return text[:match.start()] + add_prefix(prefix, self.expand(block.code, inner_args)) + text[match.end():], True
+            return add_prefix(prefix, postfix, self.expand(block.code, inner_args)), True
         elif match_type == "exec":
-            return text[:match.start()] + add_prefix(prefix, self.expand(block.run_return_results(inner_args))) + text[match.end():], True
+            return add_prefix(prefix, postfix, self.expand(block.run_return_results(inner_args))), True
 
     def expand_line(self, line, args):
         matched = True

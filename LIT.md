@@ -195,17 +195,21 @@ testing_me
 ```
 
 ```{name="msg"}
-nice
+begin->
+```
+
+```{name="msg2"}
+<-end1
+<-end2
 ```
 
 ```{name="num"}
 10
 ```
 
-
 ```{name="test_exec" lang="bash" runnable="true" dir="."}
 for i in $(seq 1 <<num()>>); do
-  echo "<<msg()>> $i"
+  echo "<<msg()>> $i <<msg2()>>"
 done
 ```
 
@@ -223,6 +227,6 @@ void main()
     /*
      *  <<test_nesting()>>
      */
-    // <<test_exec(msg="wonderful", num="15")()>>
+    // <<test_exec(msg="wonderful->", num="15")()>>
 }
 ```

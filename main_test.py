@@ -51,7 +51,14 @@ code_block_4 = [["",
                      ]],
                    'echo <<msg()>>']
 
-
+indent_2 = [["",
+             [],
+             [["name", "indent_2"],
+              ]],
+            f"""one
+two
+three
+four"""]
 
 # note that I use the {"    "} syntax so when I run whitespace-cleanup it doesn't mess with the spaces
 indent_3 = [["",
@@ -102,6 +109,9 @@ full_file = {"blocks": [{"t": "CodeBlock",
                          },
                         {"t": "CodeBlock",
                          "c": code_block_2_1
+                         },
+                        {"t": "CodeBlock",
+                         "c": indent_2
                          },
                         {"t": "CodeBlock",
                          "c": indent_3
@@ -181,6 +191,12 @@ def test_expand():
     // four
 }}"""
 
+    txt = code_blocks.expand('---><<indent_2()>><<code_block_1()>><-----')
+    assert txt == """--->one[This is some text]<-----
+--->two[This is some text]<-----
+--->three[This is some text]<-----
+--->four[This is some text]<-----"""
+
 def test_parse_block():
     cb = xmd.CodeBlock()
     cb.parse(code_block)
@@ -222,17 +238,11 @@ def test_arg_parse():
     assert xmd.arg_parse('   arg1  =  " val1 ",   arg2  =  " val2 "') == {"arg1": " val1 ", "arg2": " val2 "}
 
 def test_add_prefix():
-    assert xmd.add_prefix("", "word\nword") == "word\nword"
-
-    assert xmd.add_prefix("    ", "word") == "word"
-    assert xmd.add_prefix("    ", "word\nword") == "word\n    word"
-    assert xmd.add_prefix("    ", "word\n\nword") == "word\n\n    word"
-    assert xmd.add_prefix("    ", "word\n    \nword") == "word\n    \n    word"
-    assert xmd.add_prefix("    ", "word\n    word") == "word\n        word"
-
-    assert xmd.add_prefix("----", "word") == "word"
-    assert xmd.add_prefix("----", "word\nword") == "word\n----word"
-    assert xmd.add_prefix("----", "word\n\nword") == "word\n----\n----word"
-    assert xmd.add_prefix("----  ", "word\n\nword") == "word\n----\n----  word"
-    assert xmd.add_prefix("----  ", "word\n    \nword") == "word\n----    \n----  word"
-    assert xmd.add_prefix("----", "word\n    word") == "word\n----    word"
+    assert xmd.add_prefix("---->", "<----", "word") == "---->word<----"
+    assert xmd.add_prefix("---->", "<----", """one
+two
+three
+four""") == """---->one<----
+---->two<----
+---->three<----
+---->four<----"""
