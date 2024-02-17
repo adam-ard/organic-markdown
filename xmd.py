@@ -5,6 +5,15 @@ import os
 import subprocess
 from textwrap import indent
 
+def parse_runnable_attrib(val):
+    if isinstance(val, bool):
+        return val
+
+    if isinstance(val, str):
+        return val.lower() != "false" and val != "0" and val != ""
+
+    return str(val).lower() != "false" and str(val) != "0" and val is not None
+
 def add_prefix(prefix, code):
     lines = code.split('\n')
     for i, line in enumerate(lines):
@@ -198,21 +207,12 @@ class CodeBlock:
             f.write("\n")  # put a newline at the end of the file
             f.close()
 
-    def parse_runnable_attrib(self, val):
-        if isinstance(val, bool):
-            return val
-
-        if isinstance(val, str):
-            return val.lower() != "false" and val != "0" and val != ""
-
-        return str(val).lower() != "false" and str(val) != "0" and val is not None
-
     def parse(self, the_json):
         self.code = the_json[1]
 
         for attrib in the_json[0][2]:
             if attrib[0] == "runnable":
-                self.is_runnable = self.parse_runnable_attrib(attrib[1])
+                self.is_runnable = parse_runnable_attrib(attrib[1])
             elif attrib[0] == "lang":
                 self.lang = attrib[1]
             elif attrib[0] == "name":

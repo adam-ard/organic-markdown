@@ -194,22 +194,21 @@ def test_parse_block():
     assert cb.docker_container == "<<docker_container_name()>>"
 
 def test_parse_runnable():
-    cb = xmd.CodeBlock()
-    assert cb.parse_runnable_attrib("true") == True
-    assert cb.parse_runnable_attrib("True") == True
-    assert cb.parse_runnable_attrib("1") == True
-    assert cb.parse_runnable_attrib(1) == True
-    assert cb.parse_runnable_attrib(True) == True
-    assert cb.parse_runnable_attrib("asdf") == True
+    assert xmd.parse_runnable_attrib("true") == True
+    assert xmd.parse_runnable_attrib("True") == True
+    assert xmd.parse_runnable_attrib("1") == True
+    assert xmd.parse_runnable_attrib(1) == True
+    assert xmd.parse_runnable_attrib(True) == True
+    assert xmd.parse_runnable_attrib("asdf") == True
 
-    assert cb.parse_runnable_attrib("false") == False
-    assert cb.parse_runnable_attrib("False") == False
-    assert cb.parse_runnable_attrib("FaLse") == False
-    assert cb.parse_runnable_attrib("0") == False
-    assert cb.parse_runnable_attrib("") == False
-    assert cb.parse_runnable_attrib(None) == False
-    assert cb.parse_runnable_attrib(0) == False
-    assert cb.parse_runnable_attrib(False) == False
+    assert xmd.parse_runnable_attrib("false") == False
+    assert xmd.parse_runnable_attrib("False") == False
+    assert xmd.parse_runnable_attrib("FaLse") == False
+    assert xmd.parse_runnable_attrib("0") == False
+    assert xmd.parse_runnable_attrib("") == False
+    assert xmd.parse_runnable_attrib(None) == False
+    assert xmd.parse_runnable_attrib(0) == False
+    assert xmd.parse_runnable_attrib(False) == False
 
 def test_arg_parse():
     assert xmd.arg_parse('a="v1", a="v2"') == {"a": "v1", "a": "v2"}
