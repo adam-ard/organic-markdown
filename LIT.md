@@ -184,7 +184,7 @@ printf("testing\n");
 printf("<<testing_nesting_inner()>>-1\n");
 
 printf("<<testing_nesting_inner()>>-2\n");
-    
+
 printf("<<testing_nesting_inner()>>-3\n");
 
 printf("<<testing_nesting_inner()>>-5\n");
@@ -192,6 +192,12 @@ printf("<<testing_nesting_inner()>>-5\n");
 
 ```{name="testing_nesting_inner" lang="C"}
 testing_me
+```
+
+```{name="test_exec" lang="bash" runnable="true" dir="."}
+for i in $(seq 1 10); do
+  echo "// Hi There!! $i"
+done
 ```
 
 ## Test Main
@@ -208,5 +214,6 @@ void main()
     /*
      *  <<test_nesting()>>
      */
+    <<test_exec()()>>
 }
 ```
