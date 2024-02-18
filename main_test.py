@@ -60,13 +60,13 @@ two
 three
 four"""]
 
-# note that I use the {"    "} syntax so when I run whitespace-cleanup it doesn't mess with the spaces
+# note that I use the {""} syntax so when I run whitespace-cleanup it doesn't mess with the spaces
 indent_3 = [["",
              [],
              [["name", "indent_3"],
               ]],
             f"""one
-{"    "}
+    {""}
 
 two
   three
@@ -174,8 +174,8 @@ def test_expand():
     txt = code_blocks.expand('<<indent_4()>>')
     assert txt == f"""indent_block {{
     one
-{"    "}
-
+        {""}
+    {""}
     two
       three
     four
@@ -184,14 +184,14 @@ def test_expand():
     txt = code_blocks.expand('<<indent_6()>>')
     assert txt == f"""indent_block {{
     // one
-    //{"    "}
-    //
+    // {"    "}
+    // {""}
     // two
     //   three
     // four
 }}"""
 
-    txt = code_blocks.expand('---><<indent_2()>><<code_block_1()>><-----')
+    txt = code_blocks.expand('---><<indent_2()>><<one()>><-----')
     assert txt == """--->one[This is some text]<-----
 --->two[This is some text]<-----
 --->three[This is some text]<-----
