@@ -93,7 +93,7 @@ class CodeBlocks:
         block = self.get_code_block(name)
 
         if block is None:
-            return text, True
+            return add_prefix(prefix, postfix, f"<<X{name}()X>>"), True
 
         if match_type == "str":
             return add_prefix(prefix, postfix, self.expand(block.code, inner_args)), True
@@ -115,7 +115,7 @@ class CodeBlocks:
         if text is None:
             return ""
 
-        return '\n'.join([self.expand_line(x, args) for x in text.split('\n')])
+        return '\n'.join([self.expand_line(x, args).replace("<<X", "<<").replace("X>>", ">>") for x in text.split('\n')])
 
     def run_block_fn(self, identifier, fn):
         block = None

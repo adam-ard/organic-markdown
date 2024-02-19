@@ -194,17 +194,9 @@ printf("<<testing_nesting_inner()>>-5\n");
 testing_me
 ```
 
-```{name="msg"}
-begin->
-```
-
 ```{name="msg2"}
 <-end1
 <-end2
-```
-
-```{name="num"}
-10
 ```
 
 ```{name="test_exec" lang="bash" runnable="true" dir="."}
