@@ -230,9 +230,6 @@ class CodeBlock:
             else:
                 print(f"Warning: I don't know what attribute this is {attrib[0]}")
 
-    def get_expanded_code(self):
-        return self.code_blocks.expand(self.code)
-
     def __repr__(self):
         out = "CodeBlock("
         if self.name is not None:
