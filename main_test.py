@@ -12,6 +12,18 @@ code_block = [["",
                 ]],
               "gcc --version"]
 
+code_block_b = [["",
+                 [],
+                 [["name", "b"],
+                  ]],
+                "1\n2"]
+
+code_block_d = [["",
+                 [],
+                 [["name", "d"],
+                  ]],
+                "3\n4"]
+
 code_block_1 = [["",
                    [],
                    [["name", "one"],
@@ -103,6 +115,12 @@ indent_6 = [["",
 
 full_file = {"blocks": [{"t": "CodeBlock",
                          "c": code_block_1
+                         },
+                        {"t": "CodeBlock",
+                         "c": code_block_b
+                         },
+                        {"t": "CodeBlock",
+                         "c": code_block_d
                          },
                         {"t": "CodeBlock",
                          "c": code_block_2
@@ -197,6 +215,15 @@ def test_expand():
 --->three[This is some text]<-----
 --->four[This is some text]<-----"""
 
+    txt = code_blocks.expand('a<<b()>>c<<d()>>e')  # this will cause an infinite loop if we do this wrong
+    lines = txt.split("\n")
+    assert len(lines) == 4
+    assert "a1c3e" in lines
+    assert "a1c4e" in lines
+    assert "a2c3e" in lines
+    assert "a2c4e" in lines
+
+
 def test_parse_block():
     cb = xmd.CodeBlock()
     cb.parse(code_block)
@@ -227,6 +254,7 @@ def test_parse_runnable():
     assert xmd.parse_runnable_attrib(False) == False
 
 def test_arg_parse():
+    assert xmd.arg_parse('') == {}
     assert xmd.arg_parse('a="v1", a="v2"') == {"a": "v1", "a": "v2"}
     assert xmd.arg_parse('arg1="val1", arg2="val2"') == {"arg1": "val1", "arg2": "val2"}
     assert xmd.arg_parse('arg1="val1",arg2="val2"') == {"arg1": "val1", "arg2": "val2"}
@@ -237,12 +265,80 @@ def test_arg_parse():
     assert xmd.arg_parse('arg1="val one",   arg2="val one"') == {"arg1": "val one", "arg2": "val one"}
     assert xmd.arg_parse('   arg1  =  " val1 ",   arg2  =  " val2 "') == {"arg1": " val1 ", "arg2": " val2 "}
 
-def test_add_prefix():
-    assert xmd.add_prefix("---->", "<----", "word") == "---->word<----"
-    assert xmd.add_prefix("---->", "<----", """one
+def test_add_pre_post():
+    assert xmd.add_pre_post("word", "---->", "<----") == "---->word<----"
+    assert xmd.add_pre_post("word", "", "") == "word"
+    assert xmd.add_pre_post("""one
 two
 three
-four""") == """---->one<----
+four""", "---->", "<----") == """---->one<----
 ---->two<----
 ---->three<----
 ---->four<----"""
+
+    assert xmd.add_prefix("""one
+two
+three
+four""", "", "") == """one
+two
+three
+four"""
+
+def test_insert_blk():
+    assert xmd.insert_blk("abcdefg", "xyz", 1, 6) == "axyzg"
+    assert xmd.insert_blk("abcdefg", "xyz", 3, 4) == "abcxyzefg"
+    assert xmd.insert_blk("abcdefg", "xyz", 0, 6) == "xyzg"
+    assert xmd.insert_blk("abcdefg", "xyz", 0, 7) == "xyz"
+    assert xmd.insert_blk("abcdefg", "xyz", -10, 10) == "xyz"
+
+    assert xmd.insert_blk("ab\ncd\nefg", "1\n2", 3, 5) == "ab\n1\n2\nefg"
+    assert xmd.insert_blk("ab\n--cd--\nefg", "1\n2", 5, 7) == "ab\n--1--\n--2--\nefg"
+    assert xmd.insert_blk("ab\n---->cd--\nefg", "1\n2", 8, 10) == "ab\n---->1--\n---->2--\nefg"
+    assert xmd.insert_blk("ab\n--cd<----\nefg", "1\n2", 5, 7) == "ab\n--1<----\n--2<----\nefg"
+
+    assert xmd.insert_blk("ab\ncd\nef\ngh\nij\nkl\nm", "1\n2", 9, 11) == "ab\ncd\nef\n1\n2\nij\nkl\nm"
+    assert xmd.insert_blk("ab\ncd\nef\n----gh----\nij\nkl\nm", "1\n2", 13, 15) == "ab\ncd\nef\n----1----\n----2----\nij\nkl\nm"
+
+
+def test_get_match():
+    match, exec = xmd.get_match('')
+    assert match is None
+    assert exec == False
+
+    match, exec = xmd.get_match('<<one(arg1="val1")>>')
+    assert match is not None
+    assert exec == False
+
+    match, exec = xmd.get_match("<<one()>>")
+    assert match is not None
+    assert exec == False
+
+    match, exec = xmd.get_match("<<one()>>asdf<<two()>>")
+    assert match is not None
+    assert exec == False
+
+    match, exec = xmd.get_match("asdf<<one()>>asdf")
+    assert match is not None
+    assert exec == False
+
+    match, exec = xmd.get_match("asdf<<one()>asdf")
+    assert match is None
+
+    match, exec = xmd.get_match("<<one()()>>")
+    assert match is not None
+    assert exec == True
+
+    match, exec = xmd.get_match('<<one(arg1="val1")()>>')
+    assert match is not None
+    assert exec == True
+
+    match, exec = xmd.get_match("<<one()()>>asdf<<two()()>>")
+    assert match is not None
+    assert exec == True
+
+    match, exec = xmd.get_match("asdf<<one()()>>asdf")
+    assert match is not None
+    assert exec == True
+
+    match, exec = xmd.get_match("asdf<<one()()>asdf")
+    assert match is None

@@ -194,6 +194,10 @@ printf("<<testing_nesting_inner()>>-5\n");
 testing_me
 ```
 
+```{name="msg"}
+begin->
+```
+
 ```{name="msg2"}
 <-end1
 <-end2

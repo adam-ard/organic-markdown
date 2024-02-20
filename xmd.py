@@ -5,6 +5,56 @@ import os
 import subprocess
 from textwrap import indent
 
+# returns match (or None if there isn't one) and whether or not it is
+#  string replacement or results of a string execution replacement. There is no
+#  guarentee that the match will be first in string
+def get_match(txt):
+    pattern = re.compile(r'<<([^()]*?)\(([^()]*?)\)>>')
+    match = re.search(pattern, txt)
+
+    if match is not None:
+        return match, False
+
+    pattern = re.compile(r'<<([^()]*?)\(([^()]*?)\)\(\)>>')
+    match = re.search(pattern, txt)
+
+    if match is not None:
+        return match, True
+
+    return None, False
+
+def add_pre_post(code, prefix, postfix):
+    lines = code.split('\n')
+    for i, line in enumerate(lines):
+        lines[i] = prefix + line + postfix
+
+    return '\n'.join(lines)
+
+def arg_parse(arg_str):
+    if arg_str == '':
+        return {}
+
+    arg_lst = arg_str.split(",")
+    arg_lst_lst = [x.split("=") for x in arg_lst]
+
+    args = {}
+    for a in arg_lst_lst:
+        args[a[0].strip()] = a[1].strip().strip('"')
+
+    return args
+
+def insert_blk(txt, blk_txt, start, end):
+    lbreak = txt.rfind("\n", 0, start)
+    if lbreak == -1:
+        lbreak = -1
+
+    rbreak = txt.find("\n", end)
+    if rbreak == -1:
+        rbreak = len(txt)
+
+    pre_post = add_pre_post(blk_txt, txt[lbreak + 1 : start], txt[end : rbreak])
+    return txt[:lbreak + 1] + pre_post + txt[rbreak:]
+
 def parse_runnable_attrib(val):
     if isinstance(val, bool):
         return val
@@ -20,16 +70,6 @@ def add_prefix(prefix, postfix, code):
         lines[i] = prefix + line + postfix
 
     return '\n'.join(lines)
-
-def arg_parse(arg_str):
-    arg_lst = arg_str.split(",")
-    arg_lst_lst = [x.split("=") for x in arg_lst]
-
-    args = {}
-    for a in arg_lst_lst:
-        args[a[0].strip()] = a[1].strip().strip('"')
-
-    return args
 
 class CodeBlocks:
     def __init__(self):
@@ -111,7 +151,31 @@ class CodeBlocks:
 
         return line
 
-    def expand(self, text, args=None):
+    def expand(self, txt, args={}):
+        match, exec = get_match(txt)
+        if match is None:    # base case, exit point for the recursion
+            return txt.replace("<<X", "<<").replace("X>>",">>")
+
+        name = match.group(1)
+        new_args = arg_parse(match.group(2))
+        if args is not None and name in args:
+            return self.expand(insert_blk(txt, args[name], match.start(), match.end()),
+                               args | new_args)
+
+        blk = self.get_code_block(name)
+        if blk is None:
+            non_match_name = match.group(0).replace("<<", "<<X").replace(">>","X>>")   # make it no longer match (to avoid infinite loop)
+            return self.expand(insert_blk(txt, non_match_name, match.start(), match.end()),
+                               args | new_args)
+
+        if exec:
+            return self.expand(insert_blk(txt, blk.run_return_results(args | new_args), match.start(), match.end()),
+                               args | new_args)
+        else:
+            return self.expand(insert_blk(txt, blk.code, match.start(), match.end()),
+                               args | new_args)
+
+    def expand_old(self, text, args={}):
         if text is None:
             return ""
 
@@ -145,13 +209,14 @@ class CodeBlock:
         self.code_blocks = None
         self.docker_container=None
 
-    def get_run_cmd(self, args=None):
+    def get_run_cmd(self, args={}):
         if not self.is_runnable:
             return None
 
         if self.lang == "bash":
             cmd = self.code_blocks.expand(self.code, args)
-            docker_container = self.code_blocks.expand(self.docker_container, args)
+            if self.docker_container is not None:
+                docker_container = self.code_blocks.expand(self.docker_container, args)
             cwd = self.code_blocks.expand(self.cwd, args)
             cmd_in_dir = f"cd {cwd}\n{cmd}"
             if self.docker_container is None:
@@ -171,7 +236,7 @@ class CodeBlock:
 
         subprocess.call(cmd, shell=True)
 
-    def run_return_results(self, args=None):
+    def run_return_results(self, args={}):
         cmd = self.get_run_cmd(args)
         if cmd is None:
             print("Error running command")
