@@ -110,15 +110,6 @@ class CodeBlock:
         output = subprocess.run(cmd, capture_output=True, shell=True)
         return output.stdout.decode("utf-8")
 
-    # this function returns a bash command to be executed by calling bash script
-    #   it allows for interactive things like "docker exec -it" to work
-    def irun(self):
-        cmd = self.get_run_cmd()
-        if cmd is None:
-            print("echo Error running command")
-
-        print(cmd)
-
     def tangle(self):
         if self.tangle_file is not None:
             tangle_file = self.code_blocks.expand(self.tangle_file)
@@ -255,12 +246,7 @@ if __name__ == '__main__':
 
     sys.argv.pop(0)
 
-    # eventually we can probably make this call be default, and remove non-interactive run
-    #   for now it is nice to have both for debugging
-    if len(sys.argv) == 4 and sys.argv[1] == "-i" and sys.argv[2] == "run":
-        code_blocks.run_block_fn(sys.argv[3], CodeBlock.irun)
-
-    elif len(sys.argv) == 3:
+    if len(sys.argv) == 3:
         if sys.argv[1] == "tangle":
             code_blocks.run_block_fn(sys.argv[2], CodeBlock.tangle)
         elif sys.argv[1] == "run":
