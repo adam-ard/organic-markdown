@@ -93,7 +93,7 @@ class CodeBlock:
             print(f"language {self.lang} is not supported for execution")
 
     def info(self):
-        print(self.__repr__())
+        print(self)
 
     def run(self):
         cmd = self.get_run_cmd()
@@ -157,13 +157,6 @@ class CodeBlock:
 class CodeBlocks:
     def __init__(self):
         self.code_blocks = []
-
-    def __repr__(self):
-        out = "\nDebug Info:\n"
-        for block in self.code_blocks:
-            out += indent(block.__repr__(), '    ')
-            out += "\n"
-        return out
 
     def parse(self, data):
         for block in data['blocks']:
