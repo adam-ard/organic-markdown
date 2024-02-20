@@ -276,7 +276,7 @@ four""", "---->", "<----") == """---->one<----
 ---->three<----
 ---->four<----"""
 
-    assert xmd.add_prefix("""one
+    assert xmd.add_pre_post("""one
 two
 three
 four""", "", "") == """one

@@ -64,13 +64,6 @@ def parse_runnable_attrib(val):
 
     return str(val).lower() != "false" and str(val) != "0" and val is not None
 
-def add_prefix(prefix, postfix, code):
-    lines = code.split('\n')
-    for i, line in enumerate(lines):
-        lines[i] = prefix + line + postfix
-
-    return '\n'.join(lines)
-
 class CodeBlocks:
     def __init__(self):
         self.code_blocks = []
@@ -112,45 +105,6 @@ class CodeBlocks:
                 return block
         return None
 
-    def expand_match(self, text, regex, outer_args, match_type):
-        pattern = re.compile(regex)
-        match = re.search(pattern, text)
-
-        if match is None:
-            return text, False
-
-        prefix = text[:match.start()]
-        postfix = text[match.end():]
-        inner_args = None
-
-        if match.group(2) is not None and match.group(2) != "":
-            inner_args = arg_parse(match.group(2))
-
-        name = match.group(1)
-        if outer_args is not None and name in outer_args:
-            return add_prefix(prefix, postfix, self.expand(outer_args[name])), True
-
-        block = self.get_code_block(name)
-
-        if block is None:
-            return add_prefix(prefix, postfix, f"<<X{name}()X>>"), True
-
-        if match_type == "str":
-            return add_prefix(prefix, postfix, self.expand(block.code, inner_args)), True
-        elif match_type == "exec":
-            return add_prefix(prefix, postfix, self.expand(block.run_return_results(inner_args))), True
-
-    def expand_line(self, line, args):
-        matched = True
-        while(matched):
-            line, matched = self.expand_match(line, r'<<([^()]*?)\(([^()]*?)\)>>', args, "str")
-
-        matched = True
-        while(matched):
-            line, matched = self.expand_match(line, r'<<([^()]*?)\(([^()]*?)\)\(\)>>', args, "exec")
-
-        return line
-
     def expand(self, txt, args={}):
         match, exec = get_match(txt)
         if match is None:    # base case, exit point for the recursion
@@ -174,12 +128,6 @@ class CodeBlocks:
         else:
             return self.expand(insert_blk(txt, blk.code, match.start(), match.end()),
                                args | new_args)
-
-    def expand_old(self, text, args={}):
-        if text is None:
-            return ""
-
-        return '\n'.join([self.expand_line(x, args).replace("<<X", "<<").replace("X>>", ">>") for x in text.split('\n')])
 
     def run_block_fn(self, identifier, fn):
         block = None
