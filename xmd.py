@@ -79,11 +79,12 @@ class CodeBlock:
         if not self.is_runnable:
             return None
 
+        cmd = self.code_blocks.expand(self.code, args)
+        if self.docker_container is not None:
+            docker_container = self.code_blocks.expand(self.docker_container, args)
+        cwd = self.code_blocks.expand(self.cwd, args)
+
         if self.lang == "bash":
-            cmd = self.code_blocks.expand(self.code, args)
-            if self.docker_container is not None:
-                docker_container = self.code_blocks.expand(self.docker_container, args)
-            cwd = self.code_blocks.expand(self.cwd, args)
             cmd_in_dir = f"cd {cwd}\n{cmd}"
             if self.docker_container is None:
                 return cmd_in_dir
@@ -188,6 +189,15 @@ class CodeBlocks:
                 return block
         return None
 
+    def replace_match(self, txt, match, args):
+        def fn(replace_txt):
+            return self.expand(insert_blk(txt,
+                                          replace_txt,
+                                          match.start(),
+                                          match.end()),
+                               args)
+        return fn
+
     def expand(self, txt, args={}):
         match, exec = get_match(txt)
         if match is None:    # base case, exit point for the recursion
@@ -195,22 +205,19 @@ class CodeBlocks:
 
         name = match.group(1)
         new_args = arg_parse(match.group(2))
+        replace_fn = self.replace_match(txt, match, args | new_args)
+
         if args is not None and name in args:
-            return self.expand(insert_blk(txt, args[name], match.start(), match.end()),
-                               args | new_args)
+            return replace_fn(args[name])
 
         blk = self.get_code_block(name)
         if blk is None:
-            non_match_name = match.group(0).replace("<<", "<<X").replace(">>","X>>")   # make it no longer match (to avoid infinite loop)
-            return self.expand(insert_blk(txt, non_match_name, match.start(), match.end()),
-                               args | new_args)
+            return replace_fn(match.group(0).replace("<<", "<<X").replace(">>","X>>")) # make it no longer match (to avoid infinite loop)
 
         if exec:
-            return self.expand(insert_blk(txt, blk.run_return_results(args | new_args), match.start(), match.end()),
-                               args | new_args)
-        else:
-            return self.expand(insert_blk(txt, blk.code, match.start(), match.end()),
-                               args | new_args)
+            return replace_fn(blk.run_return_results(args | new_args))
+
+        return replace_fn(blk.code)
 
     def run_block_fn(self, identifier, fn):
         block = None
