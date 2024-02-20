@@ -166,7 +166,7 @@ def test_expand():
     blk = code_blocks.get_code_block("three")
     assert blk != None
 
-    txt = blk.get_expanded_code()
+    txt = code_blocks.expand(blk.code)
     assert txt == "[This is the text from block two:[This is the text from block one:[This is some text], wasn't that nice?], can you believe it?]"
 
     # test with args
