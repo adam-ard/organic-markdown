@@ -87,19 +87,23 @@ class CodeBlock:
         if not self.is_runnable:
             return None
 
-        cmd = self.code_blocks.expand(self.code, args)
+        code = self.code_blocks.expand(self.code, args)
+        if self.lang == "bash":
+            cmd = code
+        elif self.lang == "python":
+            cmd = f"python3 -c '{code}'"
+        else:
+            print(f"language {self.lang} is not supported for execution")
+            return
+
         if self.docker_container is not None:
             docker_container = self.code_blocks.expand(self.docker_container, args)
         cwd = self.code_blocks.expand(self.cwd, args)
-
-        if self.lang == "bash":
-            cmd_in_dir = f"cd {cwd}\n{cmd}"
-            if self.docker_container is None:
-                return cmd_in_dir
-            else:
-                return f'docker exec {docker_container} /bin/bash -c "{cmd_in_dir}"'
+        cmd_in_dir = f"cd {cwd}\n{cmd}"
+        if self.docker_container is None:
+            return cmd_in_dir
         else:
-            print(f"language {self.lang} is not supported for execution")
+            return f'docker exec {docker_container} /bin/bash -c "{cmd_in_dir}"'
 
     def info(self):
         print(self)
