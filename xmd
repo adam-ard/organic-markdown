@@ -8,11 +8,14 @@ else
     filename="${XMD_ROOT_FILE}"
 fi
 
-cmd="pandoc -f markdown -t json ${filename} | python3 ${curr_dir}/xmd.py $@"
+#  NOTE: don't try this:
+#
+#   pandoc -f markdown -t json ${filename} | python3 ${curr_dir}/xmd.py $@
+#
+#  For some reason piping messes up my ability to spawn processes for the python script. I get
+#    this error: "the input device is not a TTY"
+#
+#  So, I have to pass the json as an argument.
 
-if [ "$#" -eq 0 ] || [ "$1" != "-i" ]; then
-    eval "$cmd"
-else
-    # if this is a "run" command, then evaluate the command being returned
-    eval "$(eval "$cmd")"
-fi
+json=$(pandoc -f markdown -t json "${filename}")
+python3 ${curr_dir}/xmd.py "$json" $@

@@ -248,14 +248,12 @@ class CodeBlocks:
 
 if __name__ == '__main__':
 
-    json_str=""
-    for line in sys.stdin:
-        json_str+=line
-
-    data = json.loads(json_str)
+    data = json.loads(sys.argv[1])
 
     code_blocks = CodeBlocks()
     code_blocks.parse(data)
+
+    sys.argv.pop(0)
 
     # eventually we can probably make this call be default, and remove non-interactive run
     #   for now it is nice to have both for debugging
