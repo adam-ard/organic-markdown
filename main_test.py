@@ -63,6 +63,16 @@ code_block_4 = [["",
                      ]],
                    'echo <<msg()>>']
 
+code_block_5 = [["",
+                    [],
+                    [["name", "five"],
+                     ["lang", "python"],
+                     ["runnable", "true"],
+                     ["dir", "."],
+                     ]],
+                   'print("I am python!! <<msg()>>")']
+
+
 indent_2 = [["",
              [],
              [["name", "indent_2"],
@@ -150,6 +160,9 @@ full_file = {"blocks": [{"t": "CodeBlock",
                          "c": code_block_3_1
                          },
                         {"t": "CodeBlock",
+                         "c": code_block_5
+                         },
+                        {"t": "CodeBlock",
                          "c": code_block_4
                          },],
              "pandoc-api-version": [1, 20],
@@ -182,6 +195,9 @@ def test_expand():
 
     txt = code_blocks.expand('<<four()()>>')
     assert txt == "this is great\n"
+
+    txt = code_blocks.expand('<<five(msg="asdf")()>>')
+    assert txt == "I am python!! asdf\n"
 
     txt = code_blocks.expand('<<four(msg="here is a msg")()>>')
     assert txt == "here is a msg\n"
