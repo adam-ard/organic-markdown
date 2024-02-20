@@ -64,88 +64,6 @@ def parse_runnable_attrib(val):
 
     return str(val).lower() != "false" and str(val) != "0" and val is not None
 
-class CodeBlocks:
-    def __init__(self):
-        self.code_blocks = []
-
-    def __repr__(self):
-        out = "\nDebug Info:\n"
-        for block in self.code_blocks:
-            out += indent(block.__repr__(), '    ')
-            out += "\n"
-        return out
-
-    def parse(self, data):
-        for block in data['blocks']:
-            if block['t'] == "CodeBlock":
-                cb = CodeBlock()
-                cb.parse(block['c'])
-                cb.code_blocks = self
-                self.code_blocks.append(cb)
-
-    def print_summary(self):
-        print("Commands:")
-        for num, block in enumerate(self.code_blocks):
-            if block.is_runnable:
-                print(f"    {num}. {block.name}")
-
-        print("\nFiles:")
-        for num, block in enumerate(self.code_blocks):
-            if block.tangle_file is not None:
-                if block.name is None or block.name == "":
-                    expanded_filename = self.expand(block.tangle_file)
-                    rel_path = os.path.relpath(expanded_filename)
-                    print(f"    {num}. {rel_path}")
-                else:
-                    print(f"    {num}. {block.name}")
-
-    def get_code_block(self, name):
-        for block in self.code_blocks:
-            if block.name == name:
-                return block
-        return None
-
-    def expand(self, txt, args={}):
-        match, exec = get_match(txt)
-        if match is None:    # base case, exit point for the recursion
-            return txt.replace("<<X", "<<").replace("X>>",">>")
-
-        name = match.group(1)
-        new_args = arg_parse(match.group(2))
-        if args is not None and name in args:
-            return self.expand(insert_blk(txt, args[name], match.start(), match.end()),
-                               args | new_args)
-
-        blk = self.get_code_block(name)
-        if blk is None:
-            non_match_name = match.group(0).replace("<<", "<<X").replace(">>","X>>")   # make it no longer match (to avoid infinite loop)
-            return self.expand(insert_blk(txt, non_match_name, match.start(), match.end()),
-                               args | new_args)
-
-        if exec:
-            return self.expand(insert_blk(txt, blk.run_return_results(args | new_args), match.start(), match.end()),
-                               args | new_args)
-        else:
-            return self.expand(insert_blk(txt, blk.code, match.start(), match.end()),
-                               args | new_args)
-
-    def run_block_fn(self, identifier, fn):
-        block = None
-        if identifier.isdigit():
-            block = self.code_blocks[int(identifier)]
-        else:
-            block = self.get_code_block(identifier)
-
-        if block is None:
-            print("Error")
-            return
-
-        fn(block)
-
-    def run_all_blocks_fn(self, fn):
-        for block in self.code_blocks:
-            fn(block)
-
 class CodeBlock:
     def __init__(self):
         self.name=None
@@ -244,6 +162,89 @@ class CodeBlock:
         out += ")\n"
         out += f"{{\n{indent(self.code_blocks.expand(self.code), '    ')}\n}}"
         return out
+
+class CodeBlocks:
+    def __init__(self):
+        self.code_blocks = []
+
+    def __repr__(self):
+        out = "\nDebug Info:\n"
+        for block in self.code_blocks:
+            out += indent(block.__repr__(), '    ')
+            out += "\n"
+        return out
+
+    def parse(self, data):
+        for block in data['blocks']:
+            if block['t'] == "CodeBlock":
+                cb = CodeBlock()
+                cb.parse(block['c'])
+                cb.code_blocks = self
+                self.code_blocks.append(cb)
+
+    def print_summary(self):
+        print("Commands:")
+        for num, block in enumerate(self.code_blocks):
+            if block.is_runnable:
+                print(f"    {num}. {block.name}")
+
+        print("\nFiles:")
+        for num, block in enumerate(self.code_blocks):
+            if block.tangle_file is not None:
+                if block.name is None or block.name == "":
+                    expanded_filename = self.expand(block.tangle_file)
+                    rel_path = os.path.relpath(expanded_filename)
+                    print(f"    {num}. {rel_path}")
+                else:
+                    print(f"    {num}. {block.name}")
+
+    def get_code_block(self, name):
+        for block in self.code_blocks:
+            if block.name == name:
+                return block
+        return None
+
+    def expand(self, txt, args={}):
+        match, exec = get_match(txt)
+        if match is None:    # base case, exit point for the recursion
+            return txt.replace("<<X", "<<").replace("X>>",">>")
+
+        name = match.group(1)
+        new_args = arg_parse(match.group(2))
+        if args is not None and name in args:
+            return self.expand(insert_blk(txt, args[name], match.start(), match.end()),
+                               args | new_args)
+
+        blk = self.get_code_block(name)
+        if blk is None:
+            non_match_name = match.group(0).replace("<<", "<<X").replace(">>","X>>")   # make it no longer match (to avoid infinite loop)
+            return self.expand(insert_blk(txt, non_match_name, match.start(), match.end()),
+                               args | new_args)
+
+        if exec:
+            return self.expand(insert_blk(txt, blk.run_return_results(args | new_args), match.start(), match.end()),
+                               args | new_args)
+        else:
+            return self.expand(insert_blk(txt, blk.code, match.start(), match.end()),
+                               args | new_args)
+
+    def run_block_fn(self, identifier, fn):
+        block = None
+        if identifier.isdigit():
+            block = self.code_blocks[int(identifier)]
+        else:
+            block = self.get_code_block(identifier)
+
+        if block is None:
+            print("Error")
+            return
+
+        fn(block)
+
+    def run_all_blocks_fn(self, fn):
+        for block in self.code_blocks:
+            fn(block)
+
 
 if __name__ == '__main__':
 
