@@ -4,6 +4,7 @@ import re
 import os
 import subprocess
 from textwrap import indent
+from pathlib import Path
 
 # returns match (or None if there isn't one) and whether or not it is
 #  string replacement or results of a string execution replacement. There is no
@@ -251,7 +252,7 @@ class CodeBlocks:
 
 if __name__ == '__main__':
 
-    data = json.loads(sys.argv[1])
+    data = json.loads(Path(sys.argv[1]).read_text())
 
     code_blocks = CodeBlocks()
     code_blocks.parse(data)

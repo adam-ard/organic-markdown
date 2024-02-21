@@ -17,5 +17,5 @@ fi
 #
 #  So, I have to pass the json as an argument.
 
-json=$(pandoc -f markdown -t json "${filename}")
-python3 ${curr_dir}/xmd.py "$json" $@
+pandoc -f markdown -t json "${filename}" | python3 -m json.tool > LIT.json
+python3 ${curr_dir}/xmd.py LIT.json $@
