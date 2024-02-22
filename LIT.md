@@ -4,7 +4,7 @@ includes:
 - "docker.md"
 ---
 
-# This is an Electric Markdown file
+# This is an Organic Markdown file
 
 ## Constants
 
@@ -23,12 +23,12 @@ environment
 
 ### <<docker\_image_name>>=
 ```{lang="bash" name="docker_image_name"}
-emarkdown-example
+omarkdown-example
 ```
 
 ### <<docker\_container_name>>=
 ```{lang="bash" name="docker_container_name"}
-emarkdown-example1
+omarkdown-example1
 ```
 
 ### <<username>>=
@@ -38,7 +38,7 @@ aard
 
 ### <<project\_name>>=
 ```{name="project_name"}
-/home/<<username()>>/code/electric-markdown/example
+/home/<<username()>>/code/organic-markdown/example
 ```
 
 ### <<copyright\_year>>=
@@ -224,7 +224,7 @@ print(f"Here goes nothing {testing} 2")
 
 void main()
 {
-    printf("Hello Electric Markdown World\n");
+    printf("Hello Organic Markdown World\n");
     <<test_nesting()>>
     /*
      *  <<test_nesting()>>

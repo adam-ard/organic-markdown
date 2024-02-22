@@ -1,4 +1,4 @@
-import xmd
+import omd
 
 code_block = [["",
                [],
@@ -173,7 +173,7 @@ full_file = {"blocks": [{"t": "CodeBlock",
                            {"t": "MetaInlines", "c": [{"t": "Str", "c": "docker.md"}]}]}}}
 
 def test_expand():
-    code_blocks = xmd.CodeBlocks()
+    code_blocks = omd.CodeBlocks()
     code_blocks.parse(full_file)
 
     blk = code_blocks.get_code_block("three")
@@ -241,7 +241,7 @@ def test_expand():
 
 
 def test_parse_block():
-    cb = xmd.CodeBlock()
+    cb = omd.CodeBlock()
     cb.parse(code_block)
 
     assert cb.name == "build_project"
@@ -253,42 +253,42 @@ def test_parse_block():
     assert cb.docker_container == "<<docker_container_name()>>"
 
 def test_parse_runnable():
-    assert xmd.parse_runnable_attrib("true") == True
-    assert xmd.parse_runnable_attrib("True") == True
-    assert xmd.parse_runnable_attrib("1") == True
-    assert xmd.parse_runnable_attrib(1) == True
-    assert xmd.parse_runnable_attrib(True) == True
-    assert xmd.parse_runnable_attrib("asdf") == True
+    assert omd.parse_runnable_attrib("true") == True
+    assert omd.parse_runnable_attrib("True") == True
+    assert omd.parse_runnable_attrib("1") == True
+    assert omd.parse_runnable_attrib(1) == True
+    assert omd.parse_runnable_attrib(True) == True
+    assert omd.parse_runnable_attrib("asdf") == True
 
-    assert xmd.parse_runnable_attrib("false") == False
-    assert xmd.parse_runnable_attrib("False") == False
-    assert xmd.parse_runnable_attrib("FaLse") == False
-    assert xmd.parse_runnable_attrib("0") == False
-    assert xmd.parse_runnable_attrib("") == False
-    assert xmd.parse_runnable_attrib(None) == False
-    assert xmd.parse_runnable_attrib(0) == False
-    assert xmd.parse_runnable_attrib(False) == False
+    assert omd.parse_runnable_attrib("false") == False
+    assert omd.parse_runnable_attrib("False") == False
+    assert omd.parse_runnable_attrib("FaLse") == False
+    assert omd.parse_runnable_attrib("0") == False
+    assert omd.parse_runnable_attrib("") == False
+    assert omd.parse_runnable_attrib(None) == False
+    assert omd.parse_runnable_attrib(0) == False
+    assert omd.parse_runnable_attrib(False) == False
 
 def test_arg_parse():
-    assert xmd.arg_parse('') == {}
-    assert xmd.arg_parse('a="v1" a="v2"') == {"a": "v1", "a": "v2"}
-    assert xmd.arg_parse('arg1="val1" arg2="val2"') == {"arg1": "val1", "arg2": "val2"}
-    assert xmd.arg_parse('arg1="val1" arg2="val2"') == {"arg1": "val1", "arg2": "val2"}
-    assert xmd.arg_parse('arg1="val1"   arg2="val2"') == {"arg1": "val1", "arg2": "val2"}
-    assert xmd.arg_parse('arg1  =   "val1" arg2  =   "val2"') == {"arg1": "val1", "arg2": "val2"}
-    assert xmd.arg_parse('arg1="" arg2=""') == {"arg1": "", "arg2": ""}
-    assert xmd.arg_parse('arg1=" " arg2=" "') == {"arg1": " ", "arg2": " "}
-    assert xmd.arg_parse('arg1="val one"   arg2="val one"') == {"arg1": "val one", "arg2": "val one"}
-    assert xmd.arg_parse('   arg1  =  " val1 "   arg2  =  " val2 "') == {"arg1": " val1 ", "arg2": " val2 "}
-    assert xmd.arg_parse('ret_name="parsed_bool" ret="bool value, float one" name="myFunc" args="char *filename, float two"') == {"ret_name": "parsed_bool",
+    assert omd.arg_parse('') == {}
+    assert omd.arg_parse('a="v1" a="v2"') == {"a": "v1", "a": "v2"}
+    assert omd.arg_parse('arg1="val1" arg2="val2"') == {"arg1": "val1", "arg2": "val2"}
+    assert omd.arg_parse('arg1="val1" arg2="val2"') == {"arg1": "val1", "arg2": "val2"}
+    assert omd.arg_parse('arg1="val1"   arg2="val2"') == {"arg1": "val1", "arg2": "val2"}
+    assert omd.arg_parse('arg1  =   "val1" arg2  =   "val2"') == {"arg1": "val1", "arg2": "val2"}
+    assert omd.arg_parse('arg1="" arg2=""') == {"arg1": "", "arg2": ""}
+    assert omd.arg_parse('arg1=" " arg2=" "') == {"arg1": " ", "arg2": " "}
+    assert omd.arg_parse('arg1="val one"   arg2="val one"') == {"arg1": "val one", "arg2": "val one"}
+    assert omd.arg_parse('   arg1  =  " val1 "   arg2  =  " val2 "') == {"arg1": " val1 ", "arg2": " val2 "}
+    assert omd.arg_parse('ret_name="parsed_bool" ret="bool value, float one" name="myFunc" args="char *filename, float two"') == {"ret_name": "parsed_bool",
                                                                                                                              "ret": "bool value, float one",
                                                                                                                              "name": "myFunc",
                                                                                                                              "args": "char *filename, float two"}
 
 def test_add_pre_post():
-    assert xmd.add_pre_post("word", "---->", "<----") == "---->word<----"
-    assert xmd.add_pre_post("word", "", "") == "word"
-    assert xmd.add_pre_post("""one
+    assert omd.add_pre_post("word", "---->", "<----") == "---->word<----"
+    assert omd.add_pre_post("word", "", "") == "word"
+    assert omd.add_pre_post("""one
 two
 three
 four""", "---->", "<----") == """---->one<----
@@ -296,7 +296,7 @@ four""", "---->", "<----") == """---->one<----
 ---->three<----
 ---->four<----"""
 
-    assert xmd.add_pre_post("""one
+    assert omd.add_pre_post("""one
 two
 three
 four""", "", "") == """one
@@ -305,60 +305,60 @@ three
 four"""
 
 def test_insert_blk():
-    assert xmd.insert_blk("abcdefg", "xyz", 1, 6) == "axyzg"
-    assert xmd.insert_blk("abcdefg", "xyz", 3, 4) == "abcxyzefg"
-    assert xmd.insert_blk("abcdefg", "xyz", 0, 6) == "xyzg"
-    assert xmd.insert_blk("abcdefg", "xyz", 0, 7) == "xyz"
-    assert xmd.insert_blk("abcdefg", "xyz", -10, 10) == "xyz"
+    assert omd.insert_blk("abcdefg", "xyz", 1, 6) == "axyzg"
+    assert omd.insert_blk("abcdefg", "xyz", 3, 4) == "abcxyzefg"
+    assert omd.insert_blk("abcdefg", "xyz", 0, 6) == "xyzg"
+    assert omd.insert_blk("abcdefg", "xyz", 0, 7) == "xyz"
+    assert omd.insert_blk("abcdefg", "xyz", -10, 10) == "xyz"
 
-    assert xmd.insert_blk("ab\ncd\nefg", "1\n2", 3, 5) == "ab\n1\n2\nefg"
-    assert xmd.insert_blk("ab\n--cd--\nefg", "1\n2", 5, 7) == "ab\n--1--\n--2--\nefg"
-    assert xmd.insert_blk("ab\n---->cd--\nefg", "1\n2", 8, 10) == "ab\n---->1--\n---->2--\nefg"
-    assert xmd.insert_blk("ab\n--cd<----\nefg", "1\n2", 5, 7) == "ab\n--1<----\n--2<----\nefg"
+    assert omd.insert_blk("ab\ncd\nefg", "1\n2", 3, 5) == "ab\n1\n2\nefg"
+    assert omd.insert_blk("ab\n--cd--\nefg", "1\n2", 5, 7) == "ab\n--1--\n--2--\nefg"
+    assert omd.insert_blk("ab\n---->cd--\nefg", "1\n2", 8, 10) == "ab\n---->1--\n---->2--\nefg"
+    assert omd.insert_blk("ab\n--cd<----\nefg", "1\n2", 5, 7) == "ab\n--1<----\n--2<----\nefg"
 
-    assert xmd.insert_blk("ab\ncd\nef\ngh\nij\nkl\nm", "1\n2", 9, 11) == "ab\ncd\nef\n1\n2\nij\nkl\nm"
-    assert xmd.insert_blk("ab\ncd\nef\n----gh----\nij\nkl\nm", "1\n2", 13, 15) == "ab\ncd\nef\n----1----\n----2----\nij\nkl\nm"
+    assert omd.insert_blk("ab\ncd\nef\ngh\nij\nkl\nm", "1\n2", 9, 11) == "ab\ncd\nef\n1\n2\nij\nkl\nm"
+    assert omd.insert_blk("ab\ncd\nef\n----gh----\nij\nkl\nm", "1\n2", 13, 15) == "ab\ncd\nef\n----1----\n----2----\nij\nkl\nm"
 
 
 def test_get_match():
-    match, exec = xmd.get_match('')
+    match, exec = omd.get_match('')
     assert match is None
     assert exec == False
 
-    match, exec = xmd.get_match('<<one(arg1="val1")>>')
+    match, exec = omd.get_match('<<one(arg1="val1")>>')
     assert match is not None
     assert exec == False
 
-    match, exec = xmd.get_match("<<one()>>")
+    match, exec = omd.get_match("<<one()>>")
     assert match is not None
     assert exec == False
 
-    match, exec = xmd.get_match("<<one()>>asdf<<two()>>")
+    match, exec = omd.get_match("<<one()>>asdf<<two()>>")
     assert match is not None
     assert exec == False
 
-    match, exec = xmd.get_match("asdf<<one()>>asdf")
+    match, exec = omd.get_match("asdf<<one()>>asdf")
     assert match is not None
     assert exec == False
 
-    match, exec = xmd.get_match("asdf<<one()>asdf")
+    match, exec = omd.get_match("asdf<<one()>asdf")
     assert match is None
 
-    match, exec = xmd.get_match("<<one()()>>")
+    match, exec = omd.get_match("<<one()()>>")
     assert match is not None
     assert exec == True
 
-    match, exec = xmd.get_match('<<one(arg1="val1")()>>')
+    match, exec = omd.get_match('<<one(arg1="val1")()>>')
     assert match is not None
     assert exec == True
 
-    match, exec = xmd.get_match("<<one()()>>asdf<<two()()>>")
+    match, exec = omd.get_match("<<one()()>>asdf<<two()()>>")
     assert match is not None
     assert exec == True
 
-    match, exec = xmd.get_match("asdf<<one()()>>asdf")
+    match, exec = omd.get_match("asdf<<one()()>>asdf")
     assert match is not None
     assert exec == True
 
-    match, exec = xmd.get_match("asdf<<one()()>asdf")
+    match, exec = omd.get_match("asdf<<one()()>asdf")
     assert match is None

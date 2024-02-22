@@ -2,15 +2,15 @@
 
 curr_dir=$(dirname $0)
 
-if [ -z "${XMD_ROOT_FILE}" ]; then
+if [ -z "${OMD_ROOT_FILE}" ]; then
     filename="LIT.md"
 else
-    filename="${XMD_ROOT_FILE}"
+    filename="${OMD_ROOT_FILE}"
 fi
 
 #  NOTE: don't try this:
 #
-#   pandoc -f markdown -t json ${filename} | python3 ${curr_dir}/xmd.py $@
+#   pandoc -f markdown -t json ${filename} | python3 ${curr_dir}/omd.py $@
 #
 #  For some reason piping messes up my ability to spawn processes for the python script. I get
 #    this error: "the input device is not a TTY"
@@ -18,4 +18,4 @@ fi
 #  So, I have to pass the json as an argument.
 
 pandoc -f markdown -t json "${filename}" | python3 -m json.tool > LIT.json
-python3 ${curr_dir}/xmd.py LIT.json $@
+python3 ${curr_dir}/omd.py LIT.json $@

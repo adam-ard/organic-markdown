@@ -1,4 +1,6 @@
-# electric-markdown
+# Organic Markdown
+
+The most natural way to program.
 
 ## Dependencies
 
