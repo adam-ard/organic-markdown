@@ -271,15 +271,15 @@ def test_parse_runnable():
 
 def test_arg_parse():
     assert xmd.arg_parse('') == {}
-    assert xmd.arg_parse('a="v1", a="v2"') == {"a": "v1", "a": "v2"}
-    assert xmd.arg_parse('arg1="val1", arg2="val2"') == {"arg1": "val1", "arg2": "val2"}
-    assert xmd.arg_parse('arg1="val1",arg2="val2"') == {"arg1": "val1", "arg2": "val2"}
-    assert xmd.arg_parse('arg1="val1",   arg2="val2"') == {"arg1": "val1", "arg2": "val2"}
-    assert xmd.arg_parse('arg1  =   "val1",arg2  =   "val2"') == {"arg1": "val1", "arg2": "val2"}
-    assert xmd.arg_parse('arg1="", arg2=""') == {"arg1": "", "arg2": ""}
-    assert xmd.arg_parse('arg1=" ", arg2=" "') == {"arg1": " ", "arg2": " "}
-    assert xmd.arg_parse('arg1="val one",   arg2="val one"') == {"arg1": "val one", "arg2": "val one"}
-    assert xmd.arg_parse('   arg1  =  " val1 ",   arg2  =  " val2 "') == {"arg1": " val1 ", "arg2": " val2 "}
+    assert xmd.arg_parse('a="v1" a="v2"') == {"a": "v1", "a": "v2"}
+    assert xmd.arg_parse('arg1="val1" arg2="val2"') == {"arg1": "val1", "arg2": "val2"}
+    assert xmd.arg_parse('arg1="val1" arg2="val2"') == {"arg1": "val1", "arg2": "val2"}
+    assert xmd.arg_parse('arg1="val1"   arg2="val2"') == {"arg1": "val1", "arg2": "val2"}
+    assert xmd.arg_parse('arg1  =   "val1" arg2  =   "val2"') == {"arg1": "val1", "arg2": "val2"}
+    assert xmd.arg_parse('arg1="" arg2=""') == {"arg1": "", "arg2": ""}
+    assert xmd.arg_parse('arg1=" " arg2=" "') == {"arg1": " ", "arg2": " "}
+    assert xmd.arg_parse('arg1="val one"   arg2="val one"') == {"arg1": "val one", "arg2": "val one"}
+    assert xmd.arg_parse('   arg1  =  " val1 "   arg2  =  " val2 "') == {"arg1": " val1 ", "arg2": " val2 "}
 
 def test_add_pre_post():
     assert xmd.add_pre_post("word", "---->", "<----") == "---->word<----"

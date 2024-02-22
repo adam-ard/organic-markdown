@@ -35,12 +35,13 @@ def arg_parse(arg_str):
     if arg_str == '':
         return {}
 
-    arg_lst = arg_str.split(",")
-    arg_lst_lst = [x.split("=") for x in arg_lst]
+    arg_lst = arg_str.split("\"")
 
     args = {}
-    for a in arg_lst_lst:
-        args[a[0].strip()] = a[1].strip().strip('"')
+    i = 0
+    while arg_lst[i] != "" and i < len(arg_lst):
+        args[arg_lst[i].strip().strip("=").strip()] = arg_lst[i+1]
+        i += 2
 
     return args
 
