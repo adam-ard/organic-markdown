@@ -1,6 +1,6 @@
 # Organic Markdown
 
-The most natural way to program.
+The most natural (and delicious!!) way to program.
 
 ## Dependencies
 
