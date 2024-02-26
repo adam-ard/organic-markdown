@@ -6,6 +6,8 @@ import subprocess
 from textwrap import indent
 from pathlib import Path
 
+languages = ["bash", "python"]
+
 # returns match (or None if there isn't one) and whether or not it is
 #  string replacement or results of a string execution replacement. There is no
 #  guarentee that the match will be first in string
@@ -137,6 +139,10 @@ class CodeBlock:
 
     def parse(self, the_json):
         self.code = the_json[1]
+
+        for attrib in the_json[0][1]:
+            if attrib in languages:
+                self.lang = attrib
 
         for attrib in the_json[0][2]:
             if attrib[0] == "runnable":

@@ -209,7 +209,7 @@ for i in $(seq 1 <<num()>>); do
 done
 ```
 
-```{name="test_exec_python" lang="python" runnable="true" dir="."}
+```python {name="test_exec_python" lang="python" runnable="true" dir="."}
 testing="testing"
 print(f"Here goes nothing {testing} 1")
 print(f"Here goes nothing {testing} 2")

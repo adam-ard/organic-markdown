@@ -12,6 +12,39 @@ code_block = [["",
                 ]],
               "gcc --version"]
 
+code_block_alt_syntax = [["",
+                          ["python"],
+                          [["name", "build_project"],
+                           ["what_is_this", "blah"],
+                           ["docker", "<<docker_container_name()>>"],
+                           ["runnable", "true"],
+                           ["dir", "<<project_name()>>"],
+                           ["tangle", "<<project_name()>>/main.c"]
+                           ]],
+                         "gcc --version"]
+
+code_block_alt_syntax2 = [["",
+                           ["bash"],
+                           [["name", "build_project"],
+                            ["what_is_this", "blah"],
+                            ["docker", "<<docker_container_name()>>"],
+                            ["runnable", "true"],
+                            ["dir", "<<project_name()>>"],
+                            ["tangle", "<<project_name()>>/main.c"]
+                            ]],
+                          "gcc --version"]
+
+code_block_alt_syntax3 = [["",
+                           [],
+                           [["name", "build_project"],
+                            ["what_is_this", "blah"],
+                            ["docker", "<<docker_container_name()>>"],
+                            ["runnable", "true"],
+                            ["dir", "<<project_name()>>"],
+                            ["tangle", "<<project_name()>>/main.c"]
+                            ]],
+                          "gcc --version"]
+
 code_block_b = [["",
                  [],
                  [["name", "b"],
@@ -247,6 +280,41 @@ def test_parse_block():
     assert cb.name == "build_project"
     assert cb.code == "gcc --version"
     assert cb.lang == "bash"
+    assert cb.cwd == "<<project_name()>>"
+    assert cb.tangle_file == "<<project_name()>>/main.c"
+    assert cb.is_runnable == True
+    assert cb.docker_container == "<<docker_container_name()>>"
+
+
+def test_parse_block_alt_syntax():
+    cb = omd.CodeBlock()
+    cb.parse(code_block_alt_syntax)
+
+    assert cb.name == "build_project"
+    assert cb.code == "gcc --version"
+    assert cb.lang == "python"
+    assert cb.cwd == "<<project_name()>>"
+    assert cb.tangle_file == "<<project_name()>>/main.c"
+    assert cb.is_runnable == True
+    assert cb.docker_container == "<<docker_container_name()>>"
+
+    cb = omd.CodeBlock()
+    cb.parse(code_block_alt_syntax2)
+
+    assert cb.name == "build_project"
+    assert cb.code == "gcc --version"
+    assert cb.lang == "bash"
+    assert cb.cwd == "<<project_name()>>"
+    assert cb.tangle_file == "<<project_name()>>/main.c"
+    assert cb.is_runnable == True
+    assert cb.docker_container == "<<docker_container_name()>>"
+
+    cb = omd.CodeBlock()
+    cb.parse(code_block_alt_syntax3)
+
+    assert cb.name == "build_project"
+    assert cb.code == "gcc --version"
+    assert cb.lang == None
     assert cb.cwd == "<<project_name()>>"
     assert cb.tangle_file == "<<project_name()>>/main.c"
     assert cb.is_runnable == True
