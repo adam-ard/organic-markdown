@@ -195,10 +195,12 @@ class CodeBlocks:
                 cb.parse(block['c'])
                 cb.code_blocks = self
 
-                blk = self.get_code_block(cb.name)
-                if blk is not None:
-                    cb.code = blk.code + "\n" + cb.code
-                    self.code_blocks.remove(blk)
+                # append the code block contents if the name is the same
+                if cb.name is not None:
+                    blk = self.get_code_block(cb.name)
+                    if blk is not None:
+                        cb.code = blk.code + "\n" + cb.code
+                        self.code_blocks.remove(blk)
 
                 self.code_blocks.append(cb)
 
