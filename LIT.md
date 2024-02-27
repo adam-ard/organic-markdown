@@ -215,12 +215,24 @@ print(f"Here goes nothing {testing} 1")
 print(f"Here goes nothing {testing} 2")
 ```
 
+```{name="includes"}
+<stdio.h>
+```
+
+```{name="includes"}
+<stdlib.h>
+```
+
+```{name="includes"}
+<string.h>
+```
+
 ## Test Main
 
 ```{lang="C" tangle=<<project_name()>>/main.c}
 <<copyright-c(copyright_year="2014", more="asdf",even_more="qwerty")>>
 
-#include <stdio.h>
+#include <<includes()>>
 
 void main()
 {
