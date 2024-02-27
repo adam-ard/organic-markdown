@@ -1,5 +1,32 @@
 import omd
 
+
+meta_block = { "constants": {
+    "t": "MetaMap",
+    "c": {
+        "code_dir": {
+            "t": "MetaInlines",
+            "c": [
+                {
+                    "t": "Str",
+                    "c": "~/code"
+                }
+            ]
+        },
+        "project_name_recurse": {
+            "t": "MetaInlines",
+            "c": [
+                {
+                    "t": "Str",
+                    "c": "<<project_name()>>"
+                }
+            ]
+        }
+    }
+}
+              }
+
+
 code_block = [["",
                [],
                [["name", "build_project"],
@@ -181,7 +208,10 @@ indent_6 = [["",
 
 
 
-full_file = {"blocks": [{"t": "CodeBlock",
+full_file = {"blocks": [{"t": "",
+                         "c": meta_block
+                         },
+                        {"t": "CodeBlock",
                          "c": code_block_1
                          },
                         {"t": "CodeBlock",
@@ -236,11 +266,8 @@ full_file = {"blocks": [{"t": "CodeBlock",
                          "c": code_block_4
                          },],
              "pandoc-api-version": [1, 20],
-             "meta": {
-                 "includes": {
-                     "t": "MetaList",
-                     "c": [{"t": "MetaInlines", "c": [{"t": "Str", "c": "constants.md"}]},
-                           {"t": "MetaInlines", "c": [{"t": "Str", "c": "docker.md"}]}]}}}
+             "meta": meta_block
+             }
 
 def test_expand():
     code_blocks = omd.CodeBlocks()
@@ -311,6 +338,13 @@ def test_expand():
 
     txt = code_blocks.expand('<<append()>>')
     assert txt == "1\n2\n3\n4"
+
+    txt = code_blocks.expand('<<code_dir()>>')
+    assert txt == "~/code"
+
+    txt = code_blocks.expand('<<project_name_recurse()>>')
+    assert txt == "<<project_name()>>"
+
 
 def test_parse_block():
     cb = omd.CodeBlock()

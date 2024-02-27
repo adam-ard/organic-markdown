@@ -180,6 +180,15 @@ class CodeBlocks:
         self.code_blocks = []
 
     def parse(self, data):
+        for section, constants in data['meta'].items():
+            if section == "constants":
+                for key, val in constants['c'].items():
+                    cb = CodeBlock()
+                    cb.name = key
+                    cb.code = val['c'][0]['c']
+                    cb.code_blocks = self
+                    self.code_blocks.append(cb)
+
         for block in data['blocks']:
             if block['t'] == "CodeBlock":
                 cb = CodeBlock()

@@ -1,7 +1,7 @@
 ---
-includes:
-- "constants.md"
-- "docker.md"
+constants:
+  code_dir: ~/code
+  project_name_recurse: <<project_name()>>
 ---
 
 # This is an Organic Markdown file
@@ -10,16 +10,6 @@ includes:
 
 Below are some constants that you should change to match your own
 environment
-
-### <<code\_dir>>=
-```{name="code_dir"}
-~/code
-```
-
-### <<project\_name_recurse>>=
-```{name="project_name_recurse"}
-<<project_name()>>
-```
 
 ### <<docker\_image_name>>=
 ```{lang="bash" name="docker_image_name"}
