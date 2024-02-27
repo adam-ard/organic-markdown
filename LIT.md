@@ -2,39 +2,14 @@
 constants:
   code_dir: ~/code
   project_name_recurse: <<project_name()>>
+  docker_image_name: omarkdown-example
+  docker_container_name: omarkdown-example1
+  username: aard
+  project_name: /home/<<username()>>/code/organic-markdown/example
+  copyright_year: 2024
 ---
 
 # This is an Organic Markdown file
-
-## Constants
-
-Below are some constants that you should change to match your own
-environment
-
-### <<docker\_image_name>>=
-```{lang="bash" name="docker_image_name"}
-omarkdown-example
-```
-
-### <<docker\_container_name>>=
-```{lang="bash" name="docker_container_name"}
-omarkdown-example1
-```
-
-### <<username>>=
-```{lang="bash" name="username"}
-aard
-```
-
-### <<project\_name>>=
-```{name="project_name"}
-/home/<<username()>>/code/organic-markdown/example
-```
-
-### <<copyright\_year>>=
-```{name="copyright_year"}
-2024
-```
 
 ## Mkdir
 ```{name="mkdir" lang="bash" runnable="true"}
