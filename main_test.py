@@ -45,6 +45,31 @@ code_block_alt_syntax3 = [["",
                             ]],
                           "gcc --version"]
 
+
+code_block_append1 = [["",
+                       [],
+                       [["name", "append"],
+                        ]],
+                      "1"]
+
+code_block_append2 = [["",
+                       [],
+                       [["name", "append"],
+                        ]],
+                      "2"]
+
+code_block_append3 = [["",
+                       [],
+                       [["name", "append"],
+                        ]],
+                      "3"]
+
+code_block_append4 = [["",
+                       [],
+                       [["name", "append"],
+                        ]],
+                      "4"]
+
 code_block_b = [["",
                  [],
                  [["name", "b"],
@@ -163,6 +188,18 @@ full_file = {"blocks": [{"t": "CodeBlock",
                          "c": code_block_b
                          },
                         {"t": "CodeBlock",
+                         "c": code_block_append1
+                         },
+                        {"t": "CodeBlock",
+                         "c": code_block_append2
+                         },
+                        {"t": "CodeBlock",
+                         "c": code_block_append3
+                         },
+                        {"t": "CodeBlock",
+                         "c": code_block_append4
+                         },
+                        {"t": "CodeBlock",
                          "c": code_block_d
                          },
                         {"t": "CodeBlock",
@@ -272,6 +309,8 @@ def test_expand():
     assert "a2c3e" in lines
     assert "a2c4e" in lines
 
+    txt = code_blocks.expand('<<append()>>')
+    assert txt == "1\n2\n3\n4"
 
 def test_parse_block():
     cb = omd.CodeBlock()

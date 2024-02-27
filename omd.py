@@ -185,6 +185,12 @@ class CodeBlocks:
                 cb = CodeBlock()
                 cb.parse(block['c'])
                 cb.code_blocks = self
+
+                blk = self.get_code_block(cb.name)
+                if blk is not None:
+                    cb.code = blk.code + "\n" + cb.code
+                    self.code_blocks.remove(blk)
+
                 self.code_blocks.append(cb)
 
     def print_summary(self):
