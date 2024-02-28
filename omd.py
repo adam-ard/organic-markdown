@@ -226,6 +226,12 @@ class CodeBlocks:
                 return block
         return None
 
+    def get_code_block_by_code(self, code):
+        for block in self.code_blocks:
+            if block.code == code:
+                return block
+        return None
+
     def replace_match(self, txt, match, args):
         def fn(replace_txt):
             return self.expand(insert_blk(txt,

@@ -97,6 +97,11 @@ code_block_append4 = [["",
                         ]],
                       "4"]
 
+code_block_append1_no_name = [["", [], []], "no_name_1"]
+code_block_append2_no_name = [["", [], []], "no_name_2"]
+code_block_append3_no_name = [["", [], []], "no_name_3"]
+code_block_append4_no_name = [["", [], []], "no_name_4"]
+
 code_block_b = [["",
                  [],
                  [["name", "b"],
@@ -230,6 +235,18 @@ full_file = {"blocks": [{"t": "",
                          "c": code_block_append4
                          },
                         {"t": "CodeBlock",
+                         "c": code_block_append1_no_name
+                         },
+                        {"t": "CodeBlock",
+                         "c": code_block_append2_no_name
+                         },
+                        {"t": "CodeBlock",
+                         "c": code_block_append3_no_name
+                         },
+                        {"t": "CodeBlock",
+                         "c": code_block_append4_no_name
+                         },
+                        {"t": "CodeBlock",
                          "c": code_block_d
                          },
                         {"t": "CodeBlock",
@@ -345,6 +362,12 @@ def test_expand():
     txt = code_blocks.expand('<<project_name_recurse()>>')
     assert txt == "<<project_name()>>"
 
+    # testing that none of the no name block got appended, even though
+    # they all the same name of None
+    assert code_blocks.get_code_block_by_code("no_name_1") is not None
+    assert code_blocks.get_code_block_by_code("no_name_2") is not None
+    assert code_blocks.get_code_block_by_code("no_name_3") is not None
+    assert code_blocks.get_code_block_by_code("no_name_4") is not None
 
 def test_parse_block():
     cb = omd.CodeBlock()
