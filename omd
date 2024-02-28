@@ -313,7 +313,7 @@ class CodeBlocks:
             fn(block)
 
 if __name__ == '__main__':
-    code_blocks = CodeBlocks("LIT.md")
+    code_blocks = CodeBlocks(os.getenv("OMD_ROOT_FILE", "LIT.md"))
     code_blocks.parse()
 
     if len(sys.argv) == 3:
