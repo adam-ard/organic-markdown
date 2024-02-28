@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import json
 import sys
 import re
@@ -201,7 +203,6 @@ class CodeBlocks:
         if curr_file is None:    # all done reading
             return
 
-        print(f"Parsing File: {curr_file}")
         self.parse_file(curr_file)
         self.parse()   # start over -- because new files might have gone into the list
 
