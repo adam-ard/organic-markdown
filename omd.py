@@ -5,6 +5,7 @@ import os
 import subprocess
 from textwrap import indent
 from pathlib import Path
+import pypandoc
 
 languages = ["bash", "python"]
 
@@ -176,11 +177,42 @@ class CodeBlock:
         return out
 
 class CodeBlocks:
-    def __init__(self):
+    def __init__(self, start_file):
         self.code_blocks = []
+        self.md_files = [[start_file, False]]
 
-    def parse(self, data):
+    def add_md_file(self, filename):
+        for f in self.md_files:
+            if f[0] == filename:
+                return
+
+        self.md_files.append([filename, False])
+
+    def get_next_unread(self):
+        for f in self.md_files:
+            if f[1] == False:
+                f[1] = True
+                return f[0]
+
+        return None
+
+    def parse(self):
+        curr_file = self.get_next_unread()
+        if curr_file is None:    # all done reading
+            return
+
+        print(f"Parsing File: {curr_file}")
+        self.parse_file(curr_file)
+        self.parse()   # start over -- because new files might have gone into the list
+
+    def parse_file(self, filename):
+        data = json.loads(pypandoc.convert_file(filename, 'json'))
+
         for section, constants in data['meta'].items():
+            if section == "includes":
+                for i in constants['c']:
+                    self.add_md_file(i['c'][0]['c'])
+
             if section == "constants":
                 for key, val in constants['c'].items():
                     cb = CodeBlock()
@@ -279,15 +311,9 @@ class CodeBlocks:
         for block in self.code_blocks:
             fn(block)
 
-
 if __name__ == '__main__':
-
-    data = json.loads(Path(sys.argv[1]).read_text())
-
-    code_blocks = CodeBlocks()
-    code_blocks.parse(data)
-
-    sys.argv.pop(0)
+    code_blocks = CodeBlocks("LIT.md")
+    code_blocks.parse()
 
     if len(sys.argv) == 3:
         if sys.argv[1] == "tangle":

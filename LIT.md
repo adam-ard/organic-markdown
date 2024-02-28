@@ -1,4 +1,6 @@
 ---
+includes:
+  - other1.md
 constants:
   code_dir: ~/code
   project_name_recurse: <<project_name()>>
