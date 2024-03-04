@@ -287,8 +287,8 @@ full_file = {"blocks": [{"t": "",
              }
 
 def test_expand():
-    code_blocks = omd.CodeBlocks()
-    code_blocks.parse(full_file)
+    code_blocks = omd.CodeBlocks("LIT.md")
+    code_blocks.parse_json(full_file)
 
     blk = code_blocks.get_code_block("three")
     assert blk != None

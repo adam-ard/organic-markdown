@@ -208,7 +208,9 @@ class CodeBlocks:
 
     def parse_file(self, filename):
         data = json.loads(pypandoc.convert_file(filename, 'json'))
+        self.parse_json(data)
 
+    def parse_json(self, data):
         for section, constants in data['meta'].items():
             if section == "includes":
                 for i in constants['c']:
