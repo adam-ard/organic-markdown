@@ -112,14 +112,6 @@ def parse_runnable_attrib(val):
 
     return str(val).lower() != "false" and str(val) != "0" and val is not None
 
-# make a string no longer match (to avoid infinite loop)
-def mark_no_match(txt):
-    return txt.replace("<<", "<X").replace(">>","X>")
-
-# put it back to how it was
-def unmark_no_match(txt):
-    return txt.replace("<X", "<<").replace("X>",">>")
-
 class CodeBlock:
     def __init__(self):
         self.name=None
@@ -322,7 +314,7 @@ class CodeBlocks:
     def expand(self, txt, args={}):
         match = get_match(txt)
         if match is None:    # base case, exit point for the recursion
-            return unmark_no_match(txt)
+            return txt
 
         name = match["name"]
         new_args = arg_parse(match["args"])
@@ -333,7 +325,7 @@ class CodeBlocks:
 
         blk = self.get_code_block(name)
         if blk is None:
-            return replace_fn(mark_no_match(match["full"]))
+            return replace_fn("")   # if block doesn't exist, return empty string
 
         if match["exec"]:
             return replace_fn(blk.run_return_results(args | new_args))

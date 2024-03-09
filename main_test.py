@@ -387,7 +387,10 @@ This is sentence 2 - 3"""
     assert txt == "~/code"
 
     txt = code_blocks.expand('<<project_name_recurse()>>')
-    assert txt == "<<project_name()>>"
+    assert txt == ""
+
+    txt = code_blocks.expand('<<asdfasdfasdf()>>')
+    assert txt == ""
 
     # testing that none of the no name block got appended, even though
     # they all the same name of None
@@ -538,6 +541,70 @@ def test_get_match():
     match = omd.get_match('<<one()[]>>')
     assert match is None
 
+    # match = omd.get_match('<<one()=1>>')
+    # assert match is not None
+    # assert match["start"] == 0
+    # assert match["end"] == len('<<one()=1>>')
+    # assert match["full"] == '<<one()=1>>'
+    # assert match["name"] == 'one'
+    # assert match["exec"] == False
+    # assert match["args"] == ''
+    # assert match["default"] == "1"
+
+    # match = omd.get_match('<<one()="1">>')
+    # assert match is not None
+    # assert match["start"] == 0
+    # assert match["end"] == len('<<one()="1">>')
+    # assert match["full"] == '<<one()="1">>'
+    # assert match["name"] == 'one'
+    # assert match["exec"] == False
+    # assert match["args"] == ''
+    # assert match["default"] == "1"
+
+    # cur='<<one()()="1">>'
+    # match = omd.get_match(cur)
+    # assert match is not None
+    # assert match["start"] == 0
+    # assert match["end"] == len(cur)
+    # assert match["full"] == cur
+    # assert match["name"] == 'one'
+    # assert match["exec"] == True
+    # assert match["args"] == ''
+    # assert match["default"] == "1"
+
+    # cur='<<one()()="lots of stuff">>'
+    # match = omd.get_match(cur)
+    # assert match is not None
+    # assert match["start"] == 0
+    # assert match["end"] == len(cur)
+    # assert match["full"] == cur
+    # assert match["name"] == 'one'
+    # assert match["exec"] == True
+    # assert match["args"] == ''
+    # assert match["default"] == "lots of stuff"
+
+    # cur='<<one()()="<<two()=5>>">>'
+    # match = omd.get_match(cur)
+    # assert match is not None
+    # assert match["start"] == 0
+    # assert match["end"] == len(cur)
+    # assert match["full"] == cur
+    # assert match["name"] == 'one'
+    # assert match["exec"] == True
+    # assert match["args"] == ''
+    # assert match["default"] == "<<two()=5>>"
+
+    # cur='<<one(two="<<two()=5>>")()>>'
+    # match = omd.get_match(cur)
+    # assert match is not None
+    # assert match["start"] == 0
+    # assert match["end"] == len(cur)
+    # assert match["full"] == cur
+    # assert match["name"] == 'one'
+    # assert match["exec"] == True
+    # assert match["args"] == 'two="<<two()=5>>"'
+    # assert match["default"] == None
+
     match = omd.get_match('<<two_sentences(one="<<three_lines()>>")>>')
     assert match is not None
     assert match["start"] == 0
@@ -594,6 +661,17 @@ def test_get_match():
     assert match["name"] == 'one'
     assert match["exec"] == True
     assert match["args"] == ''
+
+    # cur='<<one(two="<<three()()>>")()>>'
+    # match = omd.get_match(cur)
+    # assert match is not None
+    # assert match["start"] == 0
+    # assert match["end"] == len(cur)
+    # assert match["full"] == cur
+    # assert match["name"] == 'one'
+    # assert match["exec"] == True
+    # assert match["args"] == 'two="<<three()()>>"'
+    # assert match["default"] == None
 
     match = omd.get_match('<<one(arg1="val1")()>>')
     assert match is not None
