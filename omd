@@ -45,6 +45,7 @@ def get_match(txt):
 
 # TODO ignore \( \)
 # TODO handle <<one>>
+# TODO handle <<one=1>> with default value
 def parse_match(txt):
     # determine if this is exec=True
     exec = False
@@ -113,11 +114,11 @@ def parse_runnable_attrib(val):
 
 # make a string no longer match (to avoid infinite loop)
 def mark_no_match(txt):
-    return txt.replace("<<", "<<X").replace(">>","X>>")
+    return txt.replace("<<", "<X").replace(">>","X>")
 
 # put it back to how it was
 def unmark_no_match(txt):
-    return txt.replace("<<X", "<<").replace("X>>",">>")
+    return txt.replace("<X", "<<").replace("X>",">>")
 
 class CodeBlock:
     def __init__(self):
