@@ -102,6 +102,12 @@ code_block_append2_no_name = [["", [], []], "no_name_2"]
 code_block_append3_no_name = [["", [], []], "no_name_3"]
 code_block_append4_no_name = [["", [], []], "no_name_4"]
 
+code_block_3_lines = [["",
+                       [],
+                       [["name", "three_lines"],
+                        ]],
+                      "1\n2\n3"]
+
 code_block_b = [["",
                  [],
                  [["name", "b"],
@@ -131,6 +137,12 @@ code_block_2_1 = [["",
                    [["name", "two_1"],
                     ]],
                   "[This is the text from block one:<<one()()>>, wasn't that nice?]"]
+
+code_block_2_sentences = [["",
+                           [],
+                           [["name", "two_sentences"],
+                            ]],
+                          "This is sentence 1 - <<one()>>\nThis is sentence 2 - <<one()>>"]
 
 code_block_3 = [["",
                      [],
@@ -220,10 +232,16 @@ full_file = {"blocks": [{"t": "",
                          "c": code_block_1
                          },
                         {"t": "CodeBlock",
+                         "c": code_block_3_lines
+                         },
+                        {"t": "CodeBlock",
                          "c": code_block_b
                          },
                         {"t": "CodeBlock",
                          "c": code_block_append1
+                         },
+                        {"t": "CodeBlock",
+                         "c": code_block_2_sentences
                          },
                         {"t": "CodeBlock",
                          "c": code_block_append2
@@ -312,6 +330,15 @@ def test_expand():
 
     txt = code_blocks.expand('<<five(msg="asdf")()>>')
     assert txt == "I am python!! asdf\n"
+
+    txt = code_blocks.expand('<<two_sentences(one="<<three_lines()>>")>>')
+    assert txt == """\
+This is sentence 1 - 1
+This is sentence 1 - 2
+This is sentence 1 - 3
+This is sentence 2 - 1
+This is sentence 2 - 2
+This is sentence 2 - 3"""
 
     txt = code_blocks.expand('<<four(msg="here is a msg")()>>')
     assert txt == "here is a msg\n"
@@ -485,44 +512,115 @@ def test_insert_blk():
 
 
 def test_get_match():
-    match, exec = omd.get_match('')
-    assert match is None
-    assert exec == False
-
-    match, exec = omd.get_match('<<one(arg1="val1")>>')
-    assert match is not None
-    assert exec == False
-
-    match, exec = omd.get_match("<<one()>>")
-    assert match is not None
-    assert exec == False
-
-    match, exec = omd.get_match("<<one()>>asdf<<two()>>")
-    assert match is not None
-    assert exec == False
-
-    match, exec = omd.get_match("asdf<<one()>>asdf")
-    assert match is not None
-    assert exec == False
-
-    match, exec = omd.get_match("asdf<<one()>asdf")
+    match = omd.get_match('')
     assert match is None
 
-    match, exec = omd.get_match("<<one()()>>")
-    assert match is not None
-    assert exec == True
+    match = omd.get_match('<<one>>')
+    assert match is None
 
-    match, exec = omd.get_match('<<one(arg1="val1")()>>')
-    assert match is not None
-    assert exec == True
+    match = omd.get_match('<<one(>>')
+    assert match is None
 
-    match, exec = omd.get_match("<<one()()>>asdf<<two()()>>")
-    assert match is not None
-    assert exec == True
+    match = omd.get_match('<<one)(>>')
+    assert match is None
 
-    match, exec = omd.get_match("asdf<<one()()>>asdf")
-    assert match is not None
-    assert exec == True
+    # this should work by adding arg parse
+    #match = omd.get_match('<<one(())>>')
+    #assert match is None
 
-    match, exec = omd.get_match("asdf<<one()()>asdf")
+    # this should work by adding arg parse
+    #match = omd.get_match('<<one(()>>')
+    #assert match is None
+
+    match = omd.get_match('<<one()(>>')
+    assert match is None
+
+    match = omd.get_match('<<one()[]>>')
+    assert match is None
+
+    match = omd.get_match('<<two_sentences(one="<<three_lines()>>")>>')
+    assert match is not None
+    assert match["start"] == 0
+    assert match["end"] == len('<<two_sentences(one="<<three_lines()>>")>>')
+    assert match["full"] == '<<two_sentences(one="<<three_lines()>>")>>'
+    assert match["name"] == 'two_sentences'
+    assert match["exec"] == False
+    assert match["args"] == 'one="<<three_lines()>>"'
+
+    match = omd.get_match('<<one(arg1="val1")>>')
+    assert match is not None
+    assert match["start"] == 0
+    assert match["end"] == len('<<one(arg1="val1")>>')
+    assert match["full"] == '<<one(arg1="val1")>>'
+    assert match["name"] == 'one'
+    assert match["exec"] == False
+    assert match["args"] == 'arg1="val1"'
+
+    match = omd.get_match("<<one()>>")
+    assert match is not None
+    assert match["start"] == 0
+    assert match["end"] == len('<<one()>>')
+    assert match["full"] == '<<one()>>'
+    assert match["name"] == 'one'
+    assert match["exec"] == False
+    assert match["args"] == ''
+
+    match = omd.get_match("<<one()>>asdf<<two()>>")
+    assert match is not None
+    assert match["start"] == 0
+    assert match["end"] == len('<<one()>>')
+    assert match["full"] == '<<one()>>'
+    assert match["name"] == 'one'
+    assert match["exec"] == False
+    assert match["args"] == ''
+
+    match = omd.get_match("asdf<<one()>>asdf")
+    assert match is not None
+    assert match["start"] == 4
+    assert match["end"] == 4 + len('<<one()>>')
+    assert match["full"] == '<<one()>>'
+    assert match["name"] == 'one'
+    assert match["exec"] == False
+    assert match["args"] == ''
+
+    match = omd.get_match("asdf<<one()>asdf")
+    assert match is None
+
+    match = omd.get_match("<<one()()>>")
+    assert match is not None
+    assert match["start"] == 0
+    assert match["end"] == len('<<one()()>>')
+    assert match["full"] == '<<one()()>>'
+    assert match["name"] == 'one'
+    assert match["exec"] == True
+    assert match["args"] == ''
+
+    match = omd.get_match('<<one(arg1="val1")()>>')
+    assert match is not None
+    assert match["start"] == 0
+    assert match["end"] == len('<<one(arg1="val1")()>>')
+    assert match["full"] == '<<one(arg1="val1")()>>'
+    assert match["name"] == 'one'
+    assert match["exec"] == True
+    assert match["args"] == 'arg1="val1"'
+
+    match = omd.get_match("<<one()()>>asdf<<two()()>>")
+    assert match is not None
+    assert match["start"] == 0
+    assert match["end"] == len('<<one()()>>')
+    assert match["full"] == '<<one()()>>'
+    assert match["name"] == 'one'
+    assert match["exec"] == True
+    assert match["args"] == ''
+
+    match = omd.get_match("asdf<<one()()>>asdf")
+    assert match is not None
+    assert match["start"] == 4
+    assert match["end"] == 4 + len('<<one()()>>')
+    assert match["full"] == '<<one()()>>'
+    assert match["name"] == 'one'
+    assert match["exec"] == True
+    assert match["args"] == ''
+
+    match = omd.get_match("asdf<<one()()>asdf")
     assert match is None

@@ -2,7 +2,6 @@
 
 import json
 import sys
-import re
 import os
 import subprocess
 from textwrap import indent
@@ -10,24 +9,65 @@ from pathlib import Path
 import pypandoc
 
 languages = ["bash", "python"]
+o_sym = "<<"
+c_sym = ">>"
 
 # returns match (or None if there isn't one) and whether or not it is
-#  string replacement or results of a string execution replacement. There is no
-#  guarentee that the match will be first in string
+#  string replacement or results of a string execution replacement. It
+#  will return matches in a left to right order
 def get_match(txt):
-    pattern = re.compile(r'<<([^()]*?)\(([^()]*?)\)>>')
-    match = re.search(pattern, txt)
+    cur = 0
+    open_count = 0
+    start = -1
 
-    if match is not None:
-        return match, False
+    while cur < len(txt):
+        if txt[cur:cur+2] == o_sym:
+            if start == -1:
+                start = cur
+            open_count += 1
+            cur += len(o_sym) - 1
 
-    pattern = re.compile(r'<<([^()]*?)\(([^()]*?)\)\(\)>>')
-    match = re.search(pattern, txt)
+        elif txt[cur:cur+2] == c_sym:
+            open_count -= 1
+            cur += len(c_sym) - 1
 
-    if match is not None:
-        return match, True
+        if open_count < 1 and start != -1:
+            match = parse_match(txt[start + len(c_sym) : cur - 1])
+            if match is None:
+                print(f"content internal to {o_sym} and {c_sym} is invalid: {txt[start:cur + len(c_sym) - 1]}")
+                return None
+            return match | {"full": txt[start:cur + len(c_sym) - 1],
+                            "start": start,
+                            "end": cur + len(c_sym) - 1}
+        cur += 1
 
-    return None, False
+    return None
+
+# TODO ignore \( \)
+# TODO handle <<one>>
+def parse_match(txt):
+    # determine if this is exec=True
+    exec = False
+    if len(txt) > 2 and txt[-3:] == ")()":
+        exec = True
+        txt = txt[:-2]   # chop off the end
+
+    # parse name
+    cur = txt.find("(")
+    if cur == -1:
+        return None
+
+    end_args = txt.rfind(")", cur + 1)
+    if end_args == -1:
+        return None
+
+    if len(txt) != end_args + 1:
+        return None
+
+    return {"name": txt[:cur],
+            "exec": exec,
+            "args": txt[cur+1:end_args],
+            "default_val": None}
 
 def add_pre_post(code, prefix, postfix):
     lines = code.split('\n')
@@ -119,6 +159,7 @@ class CodeBlock:
         cmd = self.get_run_cmd()
         if cmd is None:
             print("Error running command")
+            return
 
         subprocess.call(cmd, shell=True)
 
@@ -126,6 +167,7 @@ class CodeBlock:
         cmd = self.get_run_cmd(args)
         if cmd is None:
             print("Error running command")
+            return
 
         output = subprocess.run(cmd, capture_output=True, shell=True)
         return output.stdout.decode("utf-8")
@@ -271,18 +313,18 @@ class CodeBlocks:
         def fn(replace_txt):
             return self.expand(insert_blk(txt,
                                           replace_txt,
-                                          match.start(),
-                                          match.end()),
+                                          match["start"],
+                                          match["end"]),
                                args)
         return fn
 
     def expand(self, txt, args={}):
-        match, exec = get_match(txt)
+        match = get_match(txt)
         if match is None:    # base case, exit point for the recursion
             return unmark_no_match(txt)
 
-        name = match.group(1)
-        new_args = arg_parse(match.group(2))
+        name = match["name"]
+        new_args = arg_parse(match["args"])
         replace_fn = self.replace_match(txt, match, args | new_args)
 
         if args is not None and name in args:
@@ -290,9 +332,9 @@ class CodeBlocks:
 
         blk = self.get_code_block(name)
         if blk is None:
-            return replace_fn(mark_no_match(match.group(0)))
+            return replace_fn(mark_no_match(match["full"]))
 
-        if exec:
+        if match["exec"]:
             return replace_fn(blk.run_return_results(args | new_args))
 
         return replace_fn(blk.code)
