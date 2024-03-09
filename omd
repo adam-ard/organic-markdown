@@ -12,6 +12,7 @@ languages = ["bash", "python"]
 o_sym = "<<"
 c_sym = ">>"
 
+# TODO ignore \< \>
 # returns match (or None if there isn't one) and whether or not it is
 #  string replacement or results of a string execution replacement. It
 #  will return matches in a left to right order
@@ -44,8 +45,8 @@ def get_match(txt):
     return None
 
 # TODO ignore \( \)
-# TODO handle <<one>>
-# TODO handle <<one=1>> with default value
+# TODO handle <<one>> ?
+# TODO handle <<one=1>> with default value ?
 def parse_match(txt):
     # determine if this is exec=True
     exec = False
@@ -77,6 +78,7 @@ def add_pre_post(code, prefix, postfix):
 
     return '\n'.join(lines)
 
+# TODO ignore \"
 def arg_parse(arg_str):
     if arg_str == '':
         return {}
