@@ -120,6 +120,28 @@ def parse_default(txt):
 
     return "", 0, False
 
+def parse_match_new(txt):
+    name, pos = parse_name(txt)
+    if name is None:
+        return None
+
+    name, exec, success = parse_exec(name)
+    if success == False:
+        return None
+
+    args, shift, success = parse_args(txt[pos:])
+    if success == False:
+        return None
+
+    default, shift, success = parse_default(txt[pos+shift:])
+    if success == False:
+        return None
+
+    return {"name": name,
+            "exec": exec,
+            "args": args,
+            "default": default.strip('"')}
+
 # TODO ignore \( \)
 # TODO handle <<one>> ?
 # TODO handle <<one=1>> with default value ?
@@ -145,7 +167,7 @@ def parse_match(txt):
     return {"name": txt[:cur],
             "exec": exec,
             "args": txt[cur+1:end_args],
-            "default_val": None}
+            "default": None}
 
 def add_pre_post(code, prefix, postfix):
     lines = code.split('\n')
