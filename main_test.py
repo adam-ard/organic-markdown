@@ -702,3 +702,161 @@ def test_get_match():
 
     match = omd.get_match("asdf<<one()()>asdf")
     assert match is None
+
+def test_parse_name():
+    name, pos = omd.parse_name("one")
+    assert name == "one"
+    assert pos == 3
+
+    name, pos = omd.parse_name("one'")
+    assert name == "one'"
+    assert pos == 4
+
+    name, pos = omd.parse_name("one_two")
+    assert name == "one_two"
+    assert pos == len("one_two")
+
+    name, pos = omd.parse_name("one_two(){}")
+    assert name == "one_two"
+    assert pos == len("one_two")
+
+    name, pos = omd.parse_name("one_two(){}")
+    assert name == "one_two"
+    assert pos == len("one_two")
+
+    name, pos = omd.parse_name("one_two()")
+    assert name == "one_two"
+    assert pos == len("one_two")
+
+    name, pos = omd.parse_name("one_two{}")
+    assert name == "one_two"
+    assert pos == len("one_two")
+
+    name, pos = omd.parse_name("one_two)")
+    assert name == None
+
+    name, pos = omd.parse_name("one_two}")
+    assert name == None
+
+    name, pos = omd.parse_name("one}_two")
+    assert name == None
+
+    name, pos = omd.parse_name("one<_two")
+    assert name == None
+
+    name, pos = omd.parse_name("one>_two")
+    assert name == None
+
+    name, pos = omd.parse_name("one=_two")
+    assert name == None
+
+    name, pos = omd.parse_name('one"_two')
+    assert name == None
+
+    name, pos = omd.parse_name('one two')
+    assert name == None
+
+def test_parse_exec():
+    name, exec, success = omd.parse_exec("")
+    assert success == False
+
+    name, exec, success = omd.parse_exec("'")
+    assert success == False
+
+    name, exec, success = omd.parse_exec("one")
+    assert name == "one"
+    assert exec == False
+    assert success == True
+
+    name, exec, success = omd.parse_exec("one'")
+    assert name == "one"
+    assert exec == True
+    assert success == True
+
+    name, exec, success = omd.parse_exec("a'")
+    assert name == "a"
+    assert exec == True
+    assert success == True
+
+def test_parse_args():
+    args, pos, success = omd.parse_args("")
+    assert args == ""
+    assert pos == 0
+    assert success
+
+    args, pos, success = omd.parse_args("{}")
+    assert args == ""
+    assert pos == 0
+    assert success
+
+    args, pos, success = omd.parse_args("aa")
+    assert success == False
+
+    args, pos, success = omd.parse_args("()")
+    assert args == ""
+    assert pos == 2
+    assert success
+
+    args, pos, success = omd.parse_args('(a=5 b=6)')
+    assert args == "a=5 b=6"
+    assert pos == 9
+    assert success
+
+    args, pos, success = omd.parse_args('(a="5" b="6")')
+    assert args == 'a="5" b="6"'
+    assert pos == 13
+    assert success
+
+    args, pos, success = omd.parse_args('(aasfd')
+    assert success == False
+
+    args, pos, success = omd.parse_args('(a=5 b=<<six()>>)')
+    assert args == "a=5 b=<<six()>>"
+    assert pos == 17
+    assert success
+
+    args, pos, success = omd.parse_args('(((())))')
+    assert args == "((()))"
+    assert pos == 8
+    assert success
+
+
+def test_parse_default():
+    default, pos, success = omd.parse_default("")
+    assert default == ""
+    assert pos == 0
+    assert success
+
+    default, pos, success = omd.parse_default("()")
+    assert success == False
+
+    default, pos, success = omd.parse_default("aa")
+    assert success == False
+
+    default, pos, success = omd.parse_default("{}")
+    assert default == ""
+    assert pos == 2
+    assert success
+
+    default, pos, success = omd.parse_default("{a}")
+    assert default == "a"
+    assert pos == 3
+    assert success
+
+    default, pos, success = omd.parse_default("{<<a>>}")
+    assert default == "<<a>>"
+    assert pos == 7
+    assert success
+
+    args, pos, success = omd.parse_default('{aasfd')
+    assert success == False
+
+    default, pos, success = omd.parse_default("{<<a{5}>>}")
+    assert default == "<<a{5}>>"
+    assert pos == 10
+    assert success
+
+    args, pos, success = omd.parse_default('{{{{{{}}}}}}')
+    assert args == "{{{{{}}}}}"
+    assert pos == 12
+    assert success
