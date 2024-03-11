@@ -118,23 +118,29 @@ def parse_default(txt):
 
         cur += 1
 
+    print(f'Error while parsing default from: "{txt}"')
     return "", 0, False
 
-def parse_match_new(txt):
+def parse_match(txt):
+    print(txt)
     name, pos = parse_name(txt)
     if name is None:
+        print(f'Error parsing name from: "{txt}"')
         return None
 
     name, exec, success = parse_exec(name)
     if success == False:
+        print(f'Error parsing exec from: "{name}"')
         return None
 
     args, shift, success = parse_args(txt[pos:])
     if success == False:
+        print(f'Error parsing args from: "{txt[pos:]}"')
         return None
 
     default, shift, success = parse_default(txt[pos+shift:])
     if success == False:
+        print(f'Error parsing default from: "{txt[pos+shift:]}"')
         return None
 
     return {"name": name,
@@ -145,7 +151,7 @@ def parse_match_new(txt):
 # TODO ignore \( \)
 # TODO handle <<one>> ?
 # TODO handle <<one=1>> with default value ?
-def parse_match(txt):
+def parse_match_old(txt):
     # determine if this is exec=True
     exec = False
     if len(txt) > 2 and txt[-3:] == ")()":
