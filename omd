@@ -62,7 +62,7 @@ def parse_exec(txt):
         print(f'name has zero length')
         return "", False, False
 
-    if txt[-1:] == "'":
+    if txt[-1:] == "*":
         if len(txt) == 1:
             print(f'name has zero length')
             return "", False, False

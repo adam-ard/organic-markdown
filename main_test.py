@@ -760,7 +760,7 @@ def test_parse_exec():
     name, exec, success = omd.parse_exec("")
     assert success == False
 
-    name, exec, success = omd.parse_exec("'")
+    name, exec, success = omd.parse_exec("*")
     assert success == False
 
     name, exec, success = omd.parse_exec("one")
@@ -768,12 +768,12 @@ def test_parse_exec():
     assert exec == False
     assert success == True
 
-    name, exec, success = omd.parse_exec("one'")
+    name, exec, success = omd.parse_exec("one*")
     assert name == "one"
     assert exec == True
     assert success == True
 
-    name, exec, success = omd.parse_exec("a'")
+    name, exec, success = omd.parse_exec("a*")
     assert name == "a"
     assert exec == True
     assert success == True
@@ -889,7 +889,7 @@ def test_parse_match():
     assert match["args"] == ""
     assert match["default"] == ""
 
-    match = omd.parse_match_new("one'(){}")
+    match = omd.parse_match_new("one*(){}")
     assert match is not None
     assert match["name"] == 'one'
     assert match["exec"] == True
@@ -903,7 +903,7 @@ def test_parse_match():
     assert match["args"] == ''
     assert match["default"] == "1"
 
-    match = omd.parse_match_new("one'(){1}")
+    match = omd.parse_match_new("one*(){1}")
     assert match is not None
     assert match["name"] == 'one'
     assert match["exec"] == True
@@ -917,14 +917,14 @@ def test_parse_match():
     assert match["args"] == ''
     assert match["default"] == '1'
 
-    match = omd.parse_match_new("one'(){lots of stuff}")
+    match = omd.parse_match_new("one*(){lots of stuff}")
     assert match is not None
     assert match["name"] == 'one'
     assert match["exec"] == True
     assert match["args"] == ''
     assert match["default"] == "lots of stuff"
 
-    match = omd.parse_match_new("one'(a=5 b=6){lots of stuff}")
+    match = omd.parse_match_new("one*(a=5 b=6){lots of stuff}")
     assert match is not None
     assert match["name"] == 'one'
     assert match["exec"] == True
@@ -945,13 +945,12 @@ def test_parse_match():
     assert match["args"] == 'two="<<two(){5}>>"'
     assert match["default"] == ""
 
-    # Stopped here
-    # match = omd.parse_match_new('<<two_sentences(one="<<three_lines()>>")>>')
-    # assert match is not None
-    # assert match["name"] == 'two_sentences'
-    # assert match["exec"] == False
-    # assert match["args"] == 'one="<<three_lines()>>"'
-    # assert match["default"] == "1"
+    match = omd.parse_match_new('two_sentences(one="<<three_lines()>>")')
+    assert match is not None
+    assert match["name"] == 'two_sentences'
+    assert match["exec"] == False
+    assert match["args"] == 'one="<<three_lines()>>"'
+    assert match["default"] == ""
 
     # match = omd.parse_match_new('<<one(arg1="val1")>>')
     # assert match is not None
