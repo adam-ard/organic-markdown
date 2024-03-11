@@ -952,71 +952,58 @@ def test_parse_match():
     assert match["args"] == 'one="<<three_lines()>>"'
     assert match["default"] == ""
 
-    # match = omd.parse_match_new('<<one(arg1="val1")>>')
-    # assert match is not None
-    # assert match["name"] == 'one'
-    # assert match["exec"] == False
-    # assert match["args"] == 'arg1="val1"'
-    # assert match["default"] == "1"
+    match = omd.parse_match_new('two_sentences*(one="<<three_lines()>>")')
+    assert match is not None
+    assert match["name"] == 'two_sentences'
+    assert match["exec"] == True
+    assert match["args"] == 'one="<<three_lines()>>"'
+    assert match["default"] == ""
 
-    # match = omd.parse_match_new("<<one()>>")
-    # assert match is not None
-    # assert match["name"] == 'one'
-    # assert match["exec"] == False
-    # assert match["args"] == ''
-    # assert match["default"] == "1"
+    match = omd.parse_match_new('one(arg1="val1")')
+    assert match is not None
+    assert match["name"] == 'one'
+    assert match["exec"] == False
+    assert match["args"] == 'arg1="val1"'
+    assert match["default"] == ""
 
-    # match = omd.parse_match_new("<<one()>>asdf<<two()>>")
-    # assert match is not None
-    # assert match["name"] == 'one'
-    # assert match["exec"] == False
-    # assert match["args"] == ''
-    # assert match["default"] == "1"
+    match = omd.parse_match_new("one()")
+    assert match is not None
+    assert match["name"] == 'one'
+    assert match["exec"] == False
+    assert match["args"] == ''
+    assert match["default"] == ""
 
-    # match = omd.parse_match_new("asdf<<one()>>asdf")
-    # assert match is not None
-    # assert match["name"] == 'one'
-    # assert match["exec"] == False
-    # assert match["args"] == ''
-    # assert match["default"] == "1"
+    match = omd.parse_match_new("one")
+    assert match is not None
+    assert match["name"] == 'one'
+    assert match["exec"] == False
+    assert match["args"] == ''
+    assert match["default"] == ""
 
-    # match = omd.parse_match_new("asdf<<one()>asdf")
-    # assert match is None
+    match = omd.parse_match_new("one*")
+    assert match is not None
+    assert match["name"] == 'one'
+    assert match["exec"] == True
+    assert match["args"] == ''
+    assert match["default"] == ""
 
-    # match = omd.parse_match_new("<<one()()>>")
-    # assert match is not None
-    # assert match["name"] == 'one'
-    # assert match["exec"] == True
-    # assert match["args"] == ''
-    # assert match["default"] == "1"
+    match = omd.parse_match_new("one*()")
+    assert match is not None
+    assert match["name"] == 'one'
+    assert match["exec"] == True
+    assert match["args"] == ''
+    assert match["default"] == ""
 
-    # match = omd.parse_match_new('one(two="<<three()()>>")()')
-    # assert match is not None
-    # assert match["name"] == 'one'
-    # assert match["exec"] == True
-    # assert match["args"] == 'two="<<three()()>>"'
-    # assert match["default"] == None
+    match = omd.parse_match_new('one*(two="<<three*()>>")')
+    assert match is not None
+    assert match["name"] == 'one'
+    assert match["exec"] == True
+    assert match["args"] == 'two="<<three*()>>"'
+    assert match["default"] == ""
 
-    # match = omd.parse_match_new('<<one(arg1="val1")()>>')
-    # assert match is not None
-    # assert match["name"] == 'one'
-    # assert match["exec"] == True
-    # assert match["args"] == 'arg1="val1"'
-    # assert match["default"] == "1"
-
-    # match = omd.parse_match_new("<<one()()>>asdf<<two()()>>")
-    # assert match is not None
-    # assert match["name"] == 'one'
-    # assert match["exec"] == True
-    # assert match["args"] == ''
-    # assert match["default"] == "1"
-
-    # match = omd.parse_match_new("asdf<<one()()>>asdf")
-    # assert match is not None
-    # assert match["name"] == 'one'
-    # assert match["exec"] == True
-    # assert match["args"] == ''
-    # assert match["default"] == "1"
-
-    # match = omd.parse_match_new("asdf<<one()()>asdf")
-    # assert match is None
+    match = omd.parse_match_new('one*(arg1="val1")')
+    assert match is not None
+    assert match["name"] == 'one'
+    assert match["exec"] == True
+    assert match["args"] == 'arg1="val1"'
+    assert match["default"] == ""
