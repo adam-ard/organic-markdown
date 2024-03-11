@@ -430,7 +430,7 @@ class CodeBlocks:
 
         blk = self.get_code_block(name)
         if blk is None:
-            return replace_fn("")   # if block doesn't exist, return empty string
+            return replace_fn(match["default"])   # if block doesn't exist, use default
 
         if match["exec"]:
             return replace_fn(blk.run_return_results(args | new_args))
