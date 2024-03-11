@@ -122,7 +122,6 @@ def parse_default(txt):
     return "", 0, False
 
 def parse_match(txt):
-    print(txt)
     name, pos = parse_name(txt)
     if name is None:
         print(f'Error parsing name from: "{txt}"')

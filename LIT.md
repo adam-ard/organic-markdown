@@ -208,6 +208,6 @@ void main()
     /*
      *  <<test_nesting()>>
      */
-    // <<test_exec(msg="wonderful->", num="15")()>>
+    // <<test_exec*(msg="wonderful->", num="15")>>
 }
 ```
