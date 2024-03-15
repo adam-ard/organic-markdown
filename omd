@@ -196,18 +196,6 @@ def arg_parse(arg_str):
 
     return args
 
-def insert_blk(txt, blk_txt, start, end):
-    lbreak = txt.rfind("\n", 0, start)
-    if lbreak == -1:
-        lbreak = -1
-
-    rbreak = txt.find("\n", end)
-    if rbreak == -1:
-        rbreak = len(txt)
-
-    pre_post = add_pre_post(blk_txt, txt[lbreak + 1 : start], txt[end : rbreak])
-    return txt[:lbreak + 1] + pre_post + txt[rbreak:]
-
 def parse_runnable_attrib(val):
     if isinstance(val, bool):
         return val
@@ -407,12 +395,21 @@ class CodeBlocks:
                 return block
         return None
 
-    def replace_match(self, txt, match, args):
+    def insert_blk(self, txt, blk_txt, start, end, args={}):
+        lbreak = txt.rfind("\n", 0, start)
+        rbreak = txt.find("\n", end)
+        if rbreak == -1:
+            rbreak = len(txt)
+
+        pre_post = add_pre_post(self.expand(blk_txt, args), txt[lbreak + 1 : start], txt[end : rbreak])
+        return txt[:lbreak + 1] + pre_post + txt[rbreak:]
+
+    def replace_match(self, txt, match, args, new_args):
         def fn(replace_txt):
-            return self.expand(insert_blk(txt,
-                                          replace_txt,
-                                          match["start"],
-                                          match["end"]),
+            return self.expand(self.insert_blk(txt,
+                                               replace_txt,
+                                               match["start"],
+                                               match["end"], args | new_args),
                                args)
         return fn
 
@@ -423,7 +420,7 @@ class CodeBlocks:
 
         name = match["name"]
         new_args = arg_parse(match["args"])
-        replace_fn = self.replace_match(txt, match, args | new_args)
+        replace_fn = self.replace_match(txt, match, args, new_args)
 
         if args is not None and name in args:
             return replace_fn(args[name])

@@ -499,20 +499,20 @@ three
 four"""
 
 def test_insert_blk():
-    assert omd.insert_blk("abcdefg", "xyz", 1, 6) == "axyzg"
-    assert omd.insert_blk("abcdefg", "xyz", 3, 4) == "abcxyzefg"
-    assert omd.insert_blk("abcdefg", "xyz", 0, 6) == "xyzg"
-    assert omd.insert_blk("abcdefg", "xyz", 0, 7) == "xyz"
-    assert omd.insert_blk("abcdefg", "xyz", -10, 10) == "xyz"
+    cbs = omd.CodeBlocks("LIT.md")
+    assert cbs.insert_blk("abcdefg", "xyz", 1, 6) == "axyzg"
+    assert cbs.insert_blk("abcdefg", "xyz", 3, 4) == "abcxyzefg"
+    assert cbs.insert_blk("abcdefg", "xyz", 0, 6) == "xyzg"
+    assert cbs.insert_blk("abcdefg", "xyz", 0, 7) == "xyz"
+    assert cbs.insert_blk("abcdefg", "xyz", -10, 10) == "xyz"
 
-    assert omd.insert_blk("ab\ncd\nefg", "1\n2", 3, 5) == "ab\n1\n2\nefg"
-    assert omd.insert_blk("ab\n--cd--\nefg", "1\n2", 5, 7) == "ab\n--1--\n--2--\nefg"
-    assert omd.insert_blk("ab\n---->cd--\nefg", "1\n2", 8, 10) == "ab\n---->1--\n---->2--\nefg"
-    assert omd.insert_blk("ab\n--cd<----\nefg", "1\n2", 5, 7) == "ab\n--1<----\n--2<----\nefg"
+    assert cbs.insert_blk("ab\ncd\nefg", "1\n2", 3, 5) == "ab\n1\n2\nefg"
+    assert cbs.insert_blk("ab\n--cd--\nefg", "1\n2", 5, 7) == "ab\n--1--\n--2--\nefg"
+    assert cbs.insert_blk("ab\n---->cd--\nefg", "1\n2", 8, 10) == "ab\n---->1--\n---->2--\nefg"
+    assert cbs.insert_blk("ab\n--cd<----\nefg", "1\n2", 5, 7) == "ab\n--1<----\n--2<----\nefg"
 
-    assert omd.insert_blk("ab\ncd\nef\ngh\nij\nkl\nm", "1\n2", 9, 11) == "ab\ncd\nef\n1\n2\nij\nkl\nm"
-    assert omd.insert_blk("ab\ncd\nef\n----gh----\nij\nkl\nm", "1\n2", 13, 15) == "ab\ncd\nef\n----1----\n----2----\nij\nkl\nm"
-
+    assert cbs.insert_blk("ab\ncd\nef\ngh\nij\nkl\nm", "1\n2", 9, 11) == "ab\ncd\nef\n1\n2\nij\nkl\nm"
+    assert cbs.insert_blk("ab\ncd\nef\n----gh----\nij\nkl\nm", "1\n2", 13, 15) == "ab\ncd\nef\n----1----\n----2----\nij\nkl\nm"
 
 def test_get_match():
     # this should work by adding arg parse
