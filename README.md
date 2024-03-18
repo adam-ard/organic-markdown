@@ -204,6 +204,16 @@ gcc main.c
 `````
 
 
+Now you can run:
+
+```bash
+omd tangle && omd run build && omd run app
+```
+
+And you should get: `Hello`
+
+
+
 ## Advanced Topics
 ### yaml block (includes and constants)
 ### executing code block and using the output
