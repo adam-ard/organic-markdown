@@ -50,18 +50,13 @@ pwd
 `````
 
 
-In your `LIT.md` file, you have created an executable code block. A
+In your `LIT.md` file, you have created an executable code block. An
 organic markdown code block has a language attribute followed by curly
 bracket delimited attributes. Notice that we have given the block a name, and set
 its runnable attribute to true.
 
-Now when you run `omd` in the same directory as your `LIT.md` file:
-
-```bash
-omd
-```
-
-You should see something like this:
+Now when you run `omd` in the same directory as your `LIT.md` file,
+you should see something like this:
 
 ```
 Commands:
@@ -87,11 +82,14 @@ pwd
 ```
 `````
 
-and run `omd run pwd` again. You should now get /var/log as output,
-since the bash command was executed in that directory. Also of note is
-that you can run with the number of your command, if you don't
+and run `omd run pwd` again. You should now get `/var/log` as output,
+since the bash command was now executed in that directory. Also of
+note is that you can run with the number of your command, if you don't
 want to type the whole name:
 
 ```bash
 omd run 0
 ```
+
+## Files
+
