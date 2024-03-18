@@ -23,5 +23,8 @@ in the `organic-markdown` directory, run:
 ln -s omd.py omd
 ```
 
-so that you can run organic markdown `omd` without the .py
-extention. Finally, add the organic-markdown directory to your path.
+so that you can run organic markdown (`omd`) without the .py
+extention. Finally, add the `organic-markdown` directory to your
+PATH variable.
+
+# Simple example
