@@ -210,7 +210,7 @@ Now you can run:
 omd tangle && omd run build && omd run app
 ```
 
-And you should get: `Hello`
+And you should see the word: `Hello` in your terminal.
 
 
 
