@@ -463,21 +463,148 @@ def test_parse_runnable():
     assert omd.parse_runnable_attrib(0) == False
     assert omd.parse_runnable_attrib(False) == False
 
-def test_arg_parse():
-    assert omd.arg_parse('') == {}
-    assert omd.arg_parse('a="v1" a="v2"') == {"a": "v1", "a": "v2"}
-    assert omd.arg_parse('arg1="val1" arg2="val2"') == {"arg1": "val1", "arg2": "val2"}
-    assert omd.arg_parse('arg1="val1" arg2="val2"') == {"arg1": "val1", "arg2": "val2"}
-    assert omd.arg_parse('arg1="val1"   arg2="val2"') == {"arg1": "val1", "arg2": "val2"}
-    assert omd.arg_parse('arg1  =   "val1" arg2  =   "val2"') == {"arg1": "val1", "arg2": "val2"}
-    assert omd.arg_parse('arg1="" arg2=""') == {"arg1": "", "arg2": ""}
-    assert omd.arg_parse('arg1=" " arg2=" "') == {"arg1": " ", "arg2": " "}
-    assert omd.arg_parse('arg1="val one"   arg2="val one"') == {"arg1": "val one", "arg2": "val one"}
-    assert omd.arg_parse('   arg1  =  " val1 "   arg2  =  " val2 "') == {"arg1": " val1 ", "arg2": " val2 "}
-    assert omd.arg_parse('ret_name="parsed_bool" ret="bool value, float one" name="myFunc" args="char *filename, float two"') == {"ret_name": "parsed_bool",
-                                                                                                                             "ret": "bool value, float one",
-                                                                                                                             "name": "myFunc",
-                                                                                                                             "args": "char *filename, float two"}
+def test_eat_ws():
+    assert omd.eat_ws("   ") == ""
+    assert omd.eat_ws("   \t   ") == ""
+    assert omd.eat_ws("   \n\t   ") == ""
+
+def test_eat_eq():
+    assert omd.eat_eq("=asdfasdf") == "asdfasdf"
+    assert omd.eat_eq("=\"") == "\""
+    assert omd.eat_eq("") == None
+    assert omd.eat_eq(" = ") == None   # the whitespace should get eaten in the calling function
+    assert omd.eat_eq("asdf") == None
+
+def test_parse_attrib_value():
+    value, txt = omd.parse_attrib_value("")
+    assert value == None
+
+    value, txt = omd.parse_attrib_value("  ")
+    assert value == None
+
+    value, txt = omd.parse_attrib_value("val1")
+    assert value == "val1"
+    assert txt == ""
+
+    value, txt = omd.parse_attrib_value("val1 name2=val2")
+    assert value == "val1"
+    assert txt == " name2=val2"
+
+    value, txt = omd.parse_attrib_value('"val1 val2" name2=val2')
+    assert value == "val1 val2"
+    assert txt == " name2=val2"
+
+    value, txt = omd.parse_attrib_value('"val1 val2"name2=val2')
+    assert value == "val1 val2"
+    assert txt == "name2=val2"
+
+    value, txt = omd.parse_attrib_value('<<one>> name2=val2')
+    assert value == "<<one>>"
+    assert txt == " name2=val2"
+
+    value, txt = omd.parse_attrib_value('<<one(two="frog toads")>> name2=val2')
+    assert value == '<<one(two="frog toads")>>'
+    assert txt == " name2=val2"
+
+    value, txt = omd.parse_attrib_value('"<<one(two="frog toads")>> <<three>>" name2=val2')
+    assert value == '<<one(two="frog toads")>> <<three>>'
+    assert txt == " name2=val2"
+
+    value, txt = omd.parse_attrib_value("val1\\<< name2=val2")
+    assert value == "val1\\<<"
+    assert txt == " name2=val2"
+
+    value, txt = omd.parse_attrib_value('val1\\" name2=val2')
+    assert value == 'val1\\"'
+    assert txt == " name2=val2"
+
+    value, txt = omd.parse_attrib_value('val1\\>> name2=val2')
+    assert value == 'val1\\>>'
+    assert txt == " name2=val2"
+
+
+def test_parse_attrib_name():
+    name, txt = omd.parse_attrib_name("")
+    assert name == None
+
+    name, txt = omd.parse_attrib_name("name=value")
+    assert name == "name"
+    assert txt == "=value"
+
+    name, txt = omd.parse_attrib_name("name  ")
+    assert name == "name"
+    assert txt == "  "
+
+    name, txt = omd.parse_attrib_name("name=")
+    assert name == "name"
+    assert txt == "="
+
+    name, txt = omd.parse_attrib_name(" stuff")
+    assert name == None
+
+    name, txt = omd.parse_attrib_name("name1=value1")
+    assert name == "name1"
+    assert txt == "=value1"
+
+    name, txt = omd.parse_attrib_name("name1 = value1")
+    assert name == "name1"
+    assert txt == " = value1"
+
+    name, txt = omd.parse_attrib_name("name1 \t = value1")
+    assert name == "name1"
+    assert txt == " \t = value1"
+
+def test_parse_attrib_name_value():
+    name, value, txt = omd.parse_attrib_name_value("name=val1")
+    assert name == "name"
+    assert value == "val1"
+    assert txt == ""
+
+    name, value, txt = omd.parse_attrib_name_value("name=val1 name2=asdf")
+    assert name == "name"
+    assert value == "val1"
+    assert txt == " name2=asdf"
+
+    name, value, txt = omd.parse_attrib_name_value("name = val1")
+    assert name == "name"
+    assert value == "val1"
+    assert txt == ""
+
+    name, value, txt = omd.parse_attrib_name_value("name \t = \t val1")
+    assert name == "name"
+    assert value == "val1"
+    assert txt == ""
+
+    name, value, txt = omd.parse_attrib_name_value('name = "val1 val2"')
+    assert name == "name"
+    assert value == "val1 val2"
+    assert txt == ""
+
+    name, value, txt = omd.parse_attrib_name_value('name = "<<one(two = "blah blah")>> <<three>>" name2=asdf')
+    assert name == "name"
+    assert value == '<<one(two = "blah blah")>> <<three>>'
+    assert txt == " name2=asdf"
+
+def test_parse_attribs():
+    assert omd.parse_attribs('') == {}
+    assert omd.parse_attribs('a1=v1 a2=v2') == {"a1": "v1", "a2": "v2"}
+    assert omd.parse_attribs(' a1 = v1 a2 = v2 ') == {"a1": "v1", "a2": "v2"}
+
+    assert omd.parse_attribs('a1="v1" a2="v2"') == {"a1": "v1", "a2": "v2"}
+    assert omd.parse_attribs('arg1="val1" arg2="val2"') == {"arg1": "val1", "arg2": "val2"}
+    assert omd.parse_attribs('arg1="val1" arg2="val2"') == {"arg1": "val1", "arg2": "val2"}
+    assert omd.parse_attribs('arg1="val1"   arg2="val2"') == {"arg1": "val1", "arg2": "val2"}
+    assert omd.parse_attribs('arg1  =   "val1" arg2  =   "val2"') == {"arg1": "val1", "arg2": "val2"}
+    assert omd.parse_attribs('arg1="" arg2=""') == {"arg1": "", "arg2": ""}
+    assert omd.parse_attribs('arg1=" " arg2=" "') == {"arg1": " ", "arg2": " "}
+    assert omd.parse_attribs('arg1="val one"   arg2="val one"') == {"arg1": "val one", "arg2": "val one"}
+    assert omd.parse_attribs('   arg1  =  " val1 "   arg2  =  " val2 "') == {"arg1": " val1 ", "arg2": " val2 "}
+
+    txt = 'ret_name="parsed_bool" ret="bool value, float one" name="myFunc" args="char *filename, float two"'
+    assert omd.parse_attribs(txt) == {"ret_name": "parsed_bool",
+                                      "ret": "bool value, float one",
+                                      "name": "myFunc",
+                                      "args": "char *filename, float two"}
 
 def test_add_pre_post():
     assert omd.add_pre_post("word", "---->", "<----") == "---->word<----"
@@ -658,6 +785,10 @@ def test_parse_name():
 
     name, txt = omd.parse_name('one\\()()')
     assert name == 'one\\()'
+    assert txt == "()"
+
+    name, txt = omd.parse_name('one\\{}()')
+    assert name == 'one\\{}'
     assert txt == "()"
 
 

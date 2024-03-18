@@ -12,7 +12,8 @@ languages = ["bash", "python"]
 o_sym = "<<"
 c_sym = ">>"
 
-# TODO ignore \< \>
+# TODO ignore \<
+# TODO use cur + len(o_sym) instead of hard coded 2
 # returns match (or None if there isn't one) and whether or not it is
 #  string replacement or results of a string execution replacement. It
 #  will return matches in a left to right order
@@ -22,13 +23,13 @@ def get_match(txt):
     start = -1
 
     while cur < len(txt):
-        if txt[cur:cur+2] == o_sym:
+        if cur + 2 <= len(txt) and txt[cur:cur+2] == o_sym:
             if start == -1:
                 start = cur
             open_count += 1
             cur += len(o_sym) - 1
 
-        elif txt[cur:cur+2] == c_sym:
+        elif cur + 2 <= len(txt) and txt[cur:cur+2] == c_sym:
             open_count -= 1
             cur += len(c_sym) - 1
 
@@ -98,7 +99,6 @@ def parse_args(txt):
             return args, txt[1:]
 
         args += txt[0]
-        print(args)
         txt = txt[1:]
 
     return None, False
@@ -164,19 +164,102 @@ def add_pre_post(code, prefix, postfix):
 
     return '\n'.join(lines)
 
-# TODO ignore \"
-def arg_parse(arg_str):
-    if arg_str == '':
-        return {}
+def eat_ws(txt):
+    return txt.lstrip()
 
-    arg_lst = arg_str.split("\"")
+def eat_eq(txt):
+    if len(txt) == 0:
+        return None
 
+    if txt[0] == "=":
+        return txt[1:]
+    return None
+
+def parse_attrib_name(txt):
+    if txt == "" or txt[0].isspace():
+        return None, txt
+
+    name = ""
+    while len(txt) > 0:
+        if txt[0].isspace() or txt[0] == "=":
+            return name, txt
+
+        name += txt[0]
+        txt = txt[1:]
+
+    return name, txt
+
+def parse_attrib_value(txt):
+    if txt == "" or txt[0].isspace():
+        return None, txt
+
+    value = ""
+    quoted = False
+    in_ref = 0
+
+    if txt[0] == '"':
+        quoted = True
+        txt = txt[1:]
+
+    while len(txt) > 0:
+        if len(txt) > 1 and txt[0] == "\\" and txt[1] in [o_sym[0], c_sym[0], '"']:
+            value += txt[:2]
+            txt = txt[2:]
+
+        if len(txt) >= len(o_sym) and txt[:len(o_sym)] == o_sym:
+            in_ref += 1
+            value += o_sym
+            txt = txt[len(o_sym):]
+            continue
+
+        if len(txt) >= len(c_sym) and txt[:len(c_sym)] == c_sym:
+            in_ref -= 1
+            value += c_sym
+            txt = txt[len(c_sym):]
+            continue
+
+        if not quoted and in_ref < 1 and txt[0].isspace():
+            return value, txt
+
+        if quoted and in_ref < 1 and txt[0] == '"':
+            return value, txt[1:]
+
+        value += txt[0]
+        txt = txt[1:]
+
+    return value, txt
+
+def parse_attrib_name_value(txt):
+    txt = eat_ws(txt)
+    if txt == "":
+        return "", "", ""
+
+    name, txt = parse_attrib_name(txt)
+    if name == None:
+        return None, None, ""
+
+    txt = eat_ws(txt)
+    txt = eat_eq(txt)
+    if txt == None:
+        return None, None, ""
+
+    txt = eat_ws(txt)
+    value, txt = parse_attrib_value(txt)
+    if value == None:
+        return None, None, ""
+
+    return name, value, txt
+
+# TODO return None for errors
+def parse_attribs(txt):
     args = {}
-    i = 0
-    while arg_lst[i] != "" and i < len(arg_lst):
-        args[arg_lst[i].strip().strip("=").strip()] = arg_lst[i+1]
-        i += 2
-
+    while len(txt) > 0:
+        name, value, txt = parse_attrib_name_value(txt)
+        if name == None:
+            return {}   # TODO switch this to error
+        if name == "":
+            return args
+        args[name] = value
     return args
 
 def parse_runnable_attrib(val):
@@ -396,13 +479,14 @@ class CodeBlocks:
                                args)
         return fn
 
+    # TODO handle errors for parse_attribs
     def expand(self, txt, args={}):
         match = get_match(txt)
         if match is None:    # base case, exit point for the recursion
             return txt
 
         name = match["name"]
-        new_args = arg_parse(match["args"])
+        new_args = parse_attribs(match["args"])
         replace_fn = self.replace_match(txt, match, args, new_args)
 
         if args is not None and name in args:
