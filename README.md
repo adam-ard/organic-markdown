@@ -39,14 +39,14 @@ mardown extention - `*.md`. By default, `omd` looks for a file call
 empty directory `test` with a single file called `LIT.md`. Put the
 following content in the file:
 
-```markdown
+`````markdown
 This is a organic markdown test. To create a notebook style command,
 create a code bock with some simple bash code in it:
 
 ```bash {name="pwd"}
 pwd
 ```
-```
+`````
 
 
 
