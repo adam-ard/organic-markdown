@@ -75,7 +75,7 @@ def parse_exec(txt):
 
     return txt, False, True
 
-def parse_args(txt):
+def parse_args_str(txt):
     args = ""
     if len(txt) == 0:
         return args, txt
@@ -142,7 +142,7 @@ def parse_match(txt):
         print(f'Error parsing exec from: "{name}"')
         return None
 
-    args, txt = parse_args(txt)
+    args, txt = parse_args_str(txt)
     if args == None:
         print(f'Error parsing args from: "{o_txt}"')
         return None
@@ -175,7 +175,7 @@ def eat_eq(txt):
         return txt[1:]
     return None
 
-def parse_attrib_name(txt):
+def parse_arg_name(txt):
     if txt == "" or txt[0].isspace():
         return None, txt
 
@@ -189,7 +189,7 @@ def parse_attrib_name(txt):
 
     return name, txt
 
-def parse_attrib_value(txt):
+def parse_arg_value(txt):
     if txt == "" or txt[0].isspace():
         return None, txt
 
@@ -229,12 +229,12 @@ def parse_attrib_value(txt):
 
     return value, txt
 
-def parse_attrib_name_value(txt):
+def parse_arg_name_value(txt):
     txt = eat_ws(txt)
     if txt == "":
         return "", "", ""
 
-    name, txt = parse_attrib_name(txt)
+    name, txt = parse_arg_name(txt)
     if name == None:
         return None, None, ""
 
@@ -244,17 +244,17 @@ def parse_attrib_name_value(txt):
         return None, None, ""
 
     txt = eat_ws(txt)
-    value, txt = parse_attrib_value(txt)
+    value, txt = parse_arg_value(txt)
     if value == None:
         return None, None, ""
 
     return name, value, txt
 
 # TODO return None for errors
-def parse_attribs(txt):
+def parse_args(txt):
     args = {}
     while len(txt) > 0:
-        name, value, txt = parse_attrib_name_value(txt)
+        name, value, txt = parse_arg_name_value(txt)
         if name == None:
             return {}   # TODO switch this to error
         if name == "":
@@ -479,14 +479,14 @@ class CodeBlocks:
                                args)
         return fn
 
-    # TODO handle errors for parse_attribs
+    # TODO handle errors for parse_args
     def expand(self, txt, args={}):
         match = get_match(txt)
         if match is None:    # base case, exit point for the recursion
             return txt
 
         name = match["name"]
-        new_args = parse_attribs(match["args"])
+        new_args = parse_args(match["args"])
         replace_fn = self.replace_match(txt, match, args, new_args)
 
         if args is not None and name in args:
