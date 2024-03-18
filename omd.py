@@ -306,6 +306,7 @@ class CodeBlock:
 
     def info(self):
         print(self)
+        return None
 
     def run(self):
         cmd = self.get_run_cmd()
@@ -313,7 +314,7 @@ class CodeBlock:
             print("Error running command")
             return
 
-        subprocess.call(cmd, shell=True)
+        return subprocess.call(cmd, shell=True)
 
     def run_return_results(self, args={}):
         cmd = self.get_run_cmd(args)
@@ -333,6 +334,7 @@ class CodeBlock:
             f.write(code)
             f.write("\n")  # put a newline at the end of the file
             f.close()
+        return None
 
     def parse(self, the_json):
         self.code = the_json[1]
@@ -519,7 +521,9 @@ class CodeBlocks:
             print("Error")
             return
 
-        fn(block)
+        res = fn(block)
+        if res != None:
+            exit(res)
 
     def run_all_blocks_fn(self, fn):
         for block in self.code_blocks:

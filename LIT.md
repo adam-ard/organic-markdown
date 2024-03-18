@@ -18,6 +18,16 @@ constants:
 mkdir -p <<project_name()>>
 ```
 
+## Failed bash command
+```{name="failed" lang="bash" runnable="true"}
+ls asdfasdfasdf
+```
+
+## Successful bash command
+```{name="success" lang="bash" runnable="true"}
+ls LIT.md
+```
+
 ## Append
 ``` {name="copyright_year"}
 hello
