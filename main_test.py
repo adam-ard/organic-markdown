@@ -515,14 +515,6 @@ def test_insert_blk():
     assert cbs.insert_blk("ab\ncd\nef\n----gh----\nij\nkl\nm", "1\n2", 13, 15) == "ab\ncd\nef\n----1----\n----2----\nij\nkl\nm"
 
 def test_get_match():
-    # this should work by adding arg parse
-    #match = omd.get_match('<<one(())>>')
-    #assert match is None
-
-    # this should work by adding arg parse
-    #match = omd.get_match('<<one(()>>')
-    #assert match is None
-
     test_data = [
         ['', False, '', False, '', ''],
         ['<<one()[]>>', False, '', False, '', ''],
@@ -600,57 +592,74 @@ def test_get_match():
     assert match is None
 
 def test_parse_name():
-    name, pos = omd.parse_name("one")
+    name, txt = omd.parse_name("one")
     assert name == "one"
-    assert pos == 3
+    assert txt == ""
 
-    name, pos = omd.parse_name("one'")
+    name, txt = omd.parse_name("one'")
     assert name == "one'"
-    assert pos == 4
+    assert txt == ""
 
-    name, pos = omd.parse_name("one_two")
+    name, txt = omd.parse_name("one*")
+    assert name == "one*"
+    assert txt == ""
+
+    name, txt = omd.parse_name("one_two")
     assert name == "one_two"
-    assert pos == len("one_two")
+    assert txt == ""
 
-    name, pos = omd.parse_name("one_two(){}")
+    name, txt = omd.parse_name("one_two(){}")
     assert name == "one_two"
-    assert pos == len("one_two")
+    assert txt == "(){}"
 
-    name, pos = omd.parse_name("one_two(){}")
+    name, txt = omd.parse_name("one_two(){}")
     assert name == "one_two"
-    assert pos == len("one_two")
+    assert txt == "(){}"
 
-    name, pos = omd.parse_name("one_two()")
+    name, txt = omd.parse_name("one_two()")
     assert name == "one_two"
-    assert pos == len("one_two")
+    assert txt == "()"
 
-    name, pos = omd.parse_name("one_two{}")
+    name, txt = omd.parse_name("one_two{}")
     assert name == "one_two"
-    assert pos == len("one_two")
+    assert txt == "{}"
 
-    name, pos = omd.parse_name("one_two)")
-    assert name == None
+    name, txt = omd.parse_name("one_two)")
+    assert name == "one_two)"
+    assert txt == ""
 
-    name, pos = omd.parse_name("one_two}")
-    assert name == None
+    name, txt = omd.parse_name("one_two}")
+    assert name == "one_two}"
+    assert txt == ""
 
-    name, pos = omd.parse_name("one}_two")
-    assert name == None
+    name, txt = omd.parse_name("one}_two")
+    assert name == "one}_two"
+    assert txt == ""
 
-    name, pos = omd.parse_name("one<_two")
-    assert name == None
+    name, txt = omd.parse_name("one<_two")
+    assert name == "one<_two"
+    assert txt == ""
 
-    name, pos = omd.parse_name("one>_two")
-    assert name == None
+    name, txt = omd.parse_name("one>_two")
+    assert name == "one>_two"
+    assert txt == ""
 
-    name, pos = omd.parse_name("one=_two")
-    assert name == None
+    name, txt = omd.parse_name("one=_two")
+    assert name == "one=_two"
+    assert txt == ""
 
-    name, pos = omd.parse_name('one"_two')
-    assert name == None
+    name, txt = omd.parse_name('one"_two')
+    assert name == 'one"_two'
+    assert txt == ""
 
-    name, pos = omd.parse_name('one two')
-    assert name == None
+    name, txt = omd.parse_name('one two')
+    assert name == 'one two'
+    assert txt == ""
+
+    name, txt = omd.parse_name('one\\()()')
+    assert name == 'one\\()'
+    assert txt == "()"
+
 
 def test_parse_exec():
     name, exec, success = omd.parse_exec("")
@@ -675,87 +684,77 @@ def test_parse_exec():
     assert success == True
 
 def test_parse_args():
-    args, pos, success = omd.parse_args("")
+    args, txt = omd.parse_args("")
     assert args == ""
-    assert pos == 0
-    assert success
+    assert txt == ""
 
-    args, pos, success = omd.parse_args("{}")
+    args, txt = omd.parse_args("{}")
     assert args == ""
-    assert pos == 0
-    assert success
+    assert txt == "{}"
 
-    args, pos, success = omd.parse_args("aa")
-    assert success == False
+    args, txt = omd.parse_args("aa")
+    assert args == None
 
-    args, pos, success = omd.parse_args("()")
+    args, txt = omd.parse_args("()")
     assert args == ""
-    assert pos == 2
-    assert success
+    assert txt == ""
 
-    args, pos, success = omd.parse_args('(a=5 b=6)')
+    args, txt = omd.parse_args('(a=5 b=6)')
     assert args == "a=5 b=6"
-    assert pos == 9
-    assert success
+    assert txt == ""
 
-    args, pos, success = omd.parse_args('(a="5" b="6")')
+    args, txt = omd.parse_args('(a=5 b=6)asdf')
+    assert args == "a=5 b=6"
+    assert txt == "asdf"
+
+    args, txt = omd.parse_args('(a="5" b="6")')
     assert args == 'a="5" b="6"'
-    assert pos == 13
-    assert success
+    assert txt == ""
 
-    args, pos, success = omd.parse_args('(aasfd')
-    assert success == False
+    args, txt = omd.parse_args('(aasfd')
+    assert args == None
 
-    args, pos, success = omd.parse_args('(a=5 b=<<six()>>)')
+    args, txt = omd.parse_args('(a=5 b=<<six()>>)')
     assert args == "a=5 b=<<six()>>"
-    assert pos == 17
-    assert success
+    assert txt == ""
 
-    args, pos, success = omd.parse_args('(((())))')
+    args, txt = omd.parse_args('(((())))')
     assert args == "((()))"
-    assert pos == 8
-    assert success
-
+    assert txt == ""
 
 def test_parse_default():
-    default, pos, success = omd.parse_default("")
+    default, txt= omd.parse_default("")
     assert default == ""
-    assert pos == 0
-    assert success
+    assert txt == ""
 
-    default, pos, success = omd.parse_default("()")
-    assert success == False
+    default, txt= omd.parse_default("()")
+    assert default == None
 
-    default, pos, success = omd.parse_default("aa")
-    assert success == False
+    default, txt= omd.parse_default("aa")
+    assert default == None
 
-    default, pos, success = omd.parse_default("{}")
+    default, txt= omd.parse_default("{}")
     assert default == ""
-    assert pos == 2
-    assert success
+    assert txt == ""
 
-    default, pos, success = omd.parse_default("{a}")
+    default, txt= omd.parse_default("{a}")
     assert default == "a"
-    assert pos == 3
-    assert success
+    assert txt == ""
 
-    default, pos, success = omd.parse_default("{<<a>>}")
+    default, txt= omd.parse_default("{<<a>>}")
     assert default == "<<a>>"
-    assert pos == 7
-    assert success
+    assert txt == ""
 
-    args, pos, success = omd.parse_default('{aasfd')
-    assert success == False
+    default, txt= omd.parse_default('{aasfd')
+    assert default == None
 
-    default, pos, success = omd.parse_default("{<<a{5}>>}")
+    default, txt= omd.parse_default("{<<a{5}>>}")
     assert default == "<<a{5}>>"
-    assert pos == 10
-    assert success
+    assert txt == ""
 
-    args, pos, success = omd.parse_default('{{{{{{}}}}}}')
-    assert args == "{{{{{}}}}}"
-    assert pos == 12
-    assert success
+    default, txt= omd.parse_default('{{{{{{}}}}}}')
+    assert default == "{{{{{}}}}}"
+    assert txt == ""
 
 def test_parse_match():
     match = omd.parse_match('')

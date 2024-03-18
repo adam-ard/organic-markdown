@@ -45,17 +45,20 @@ def get_match(txt):
     return None
 
 def parse_name(txt):
-    cur = 0
-    while cur < len(txt):
-        if txt[cur] in [')', '}', '<', '>', '=', '"', ' ']:
-            print(f'Bad char: {txt[cur]} while parsing name from: "{txt}"')
-            return None, 0
+    o_txt = txt
+    name = ""
+    while len(txt) > 0:
+        if len(txt) > 1 and txt[0] == "\\" and txt[1] in ['(', '{']:
+            name += txt[:2]
+            txt = txt[2:]
+            continue
 
-        if txt[cur] in ['(', '{']:
+        if txt[0] in ['(', '{']:
             break
 
-        cur += 1
-    return txt[:cur], cur
+        name += txt[0]
+        txt = txt[1:]
+    return name, txt
 
 def parse_exec(txt):
     if len(txt) == 0:
@@ -72,59 +75,66 @@ def parse_exec(txt):
     return txt, False, True
 
 def parse_args(txt):
+    args = ""
     if len(txt) == 0:
-        return "", 0, True
+        return args, txt
 
     if txt[0] == '{':
-        return "", 0, True
+        return args, txt
 
     if txt[0] != '(':
         print(f'Bad char: {txt[0]} while parsing args from: "{txt}"')
-        return "", 0, False
+        return None, txt
 
-    cur = 1
+    txt = txt[1:]    # eat the opening paren
     open_count = 1
-    while cur < len(txt):
-        if txt[cur] == '(':
+    while len(txt) > 0:
+        if txt[0] == '(':
             open_count += 1
-        elif txt[cur] == ')':
+        elif txt[0] == ')':
             open_count -= 1
 
         if open_count < 1:
-            return txt[1:cur], cur + 1, True
+            return args, txt[1:]
 
-        cur += 1
+        args += txt[0]
+        print(args)
+        txt = txt[1:]
 
-    return "", 0, False
+    return None, False
 
 def parse_default(txt):
     if len(txt) == 0:
-        return "", 0, True
+        return "", txt
 
     if txt[0] != "{":
         print(f'Bad char: {txt[0]} while parsing default from: "{txt}"')
-        return "", 0, False
+        return None, txt
 
-    cur = 1
     open_count = 1
-    while cur < len(txt):
-        if txt[cur] == '{':
+    default = ""
+    o_txt = txt
+    txt = txt[1:]
+    while len(txt) > 0:
+        if txt[0] == '{':
             open_count += 1
-        elif txt[cur] == '}':
+        elif txt[0] == '}':
             open_count -= 1
 
         if open_count < 1:
-            return txt[1:cur], cur + 1, True
+            return default, txt[1:]
 
-        cur += 1
+        default += txt[0]
+        txt = txt[1:]
 
-    print(f'Error while parsing default from: "{txt}"')
-    return "", 0, False
+    print(f'End of string before getting a "}}" char: "{o_txt}"')
+    return None, txt
 
 def parse_match(txt):
-    name, pos = parse_name(txt)
+    o_txt = txt
+    name, txt = parse_name(txt)
     if name is None:
-        print(f'Error parsing name from: "{txt}"')
+        print(f'Error parsing name from: "{o_txt}"')
         return None
 
     name, exec, success = parse_exec(name)
@@ -132,47 +142,20 @@ def parse_match(txt):
         print(f'Error parsing exec from: "{name}"')
         return None
 
-    args, shift, success = parse_args(txt[pos:])
-    if success == False:
-        print(f'Error parsing args from: "{txt[pos:]}"')
+    args, txt = parse_args(txt)
+    if args == None:
+        print(f'Error parsing args from: "{o_txt}"')
         return None
 
-    default, shift, success = parse_default(txt[pos+shift:])
-    if success == False:
-        print(f'Error parsing default from: "{txt[pos+shift:]}"')
+    default, txt = parse_default(txt)
+    if default == None:
+        print(f'Error parsing default from: "{o_txt}"')
         return None
 
     return {"name": name,
             "exec": exec,
             "args": args,
             "default": default.strip('"')}
-
-# TODO ignore \( \)
-# TODO handle <<one>> ?
-# TODO handle <<one=1>> with default value ?
-def parse_match_old(txt):
-    # determine if this is exec=True
-    exec = False
-    if len(txt) > 2 and txt[-3:] == ")()":
-        exec = True
-        txt = txt[:-2]   # chop off the end
-
-    # parse name
-    cur = txt.find("(")
-    if cur == -1:
-        return None
-
-    end_args = txt.rfind(")", cur + 1)
-    if end_args == -1:
-        return None
-
-    if len(txt) != end_args + 1:
-        return None
-
-    return {"name": txt[:cur],
-            "exec": exec,
-            "args": txt[cur+1:end_args],
-            "default": None}
 
 def add_pre_post(code, prefix, postfix):
     lines = code.split('\n')
