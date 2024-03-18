@@ -44,12 +44,52 @@ LIT.md
 This is a organic markdown test file. To create a notebook style command,
 create a code bock with some simple bash code in it:
 
-```bash {name="pwd"}
+```bash {name=pwd runnable=true}
 pwd
 ```
 `````
 
 
+In your `LIT.md` file, you have created an executable code block. A
+organic markdown code block has a language attribute followed by curly
+bracket delimited attributes. Here we give the block a name, and set
+its runnable attribute to true.
 
+Now when you run `omd` in the same directory as your `LIT.md` file:
 
+```bash
+omd
+```
 
+You should see something like this:
+
+```
+Commands:
+    0. pwd
+
+Files:
+```
+
+You will see that you have one command available (the `pwd` command we
+just created) and no files to be create (we'll explain this in a
+second). To run the command run:
+
+```bash
+omd run pwd
+```
+
+To run this command in another directory, simply add the dir attribute:
+
+`````markdown
+```bash {name=pwd runnable=true dir=/var/log}
+pwd
+```
+`````
+
+and run `omd run pwd` again. Alternatively, you can run with the
+number in your `Commands` list, if you don't want to type the whole
+name:
+
+```bash
+omd run 0
+```
