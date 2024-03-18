@@ -52,7 +52,7 @@ pwd
 
 In your `LIT.md` file, you have created an executable code block. A
 organic markdown code block has a language attribute followed by curly
-bracket delimited attributes. Here we give the block a name, and set
+bracket delimited attributes. Notice that we have given the block a name, and set
 its runnable attribute to true.
 
 Now when you run `omd` in the same directory as your `LIT.md` file:
@@ -70,15 +70,16 @@ Commands:
 Files:
 ```
 
-You will see that you have one command available (the `pwd` command we
-just created) and no files to be create (we'll explain this in a
-second). To run the command run:
+You have one command available (the `pwd` command you just created)
+and no files to be tangled (we'll explain this in a second). To run
+your new command, run the following command:
 
 ```bash
 omd run pwd
 ```
 
-To run this command in another directory, simply add the dir attribute:
+You should see the output of the `pwd` bash command. To run this
+command in another directory, simply add the dir attribute:
 
 `````markdown
 ```bash {name=pwd runnable=true dir=/var/log}
@@ -86,9 +87,10 @@ pwd
 ```
 `````
 
-and run `omd run pwd` again. Alternatively, you can run with the
-number in your `Commands` list, if you don't want to type the whole
-name:
+and run `omd run pwd` again. You should now get /var/log as output,
+since the bash command was executed in that directory. Also of note is
+that you can run with the number of your command, if you don't
+want to type the whole name:
 
 ```bash
 omd run 0
