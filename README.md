@@ -41,7 +41,7 @@ following content in the file:
 
 LIT.md
 `````markdown
-# Simple example
+# Simple command
 
 This is a organic markdown test file. To create a notebook style command,
 create a code bock with some simple bash code in it:
@@ -95,3 +95,80 @@ omd run 0
 
 ## Files
 
+In addition to notebooks style functionality, organic markdown also
+provides more traditional literate programming with weaving and
+tangling. For example, you can write (tangle) a file by adding a
+`tangle` attribute to a code block:
+
+`````markdown
+# An example script file
+
+```bash {name=script_file tangle=test.sh}
+#!/bin/bash
+
+echo "This is a bash script"
+```
+`````
+
+To write the file, run:
+
+```bash
+omd tangle script_file
+```
+
+A new script called `test.sh` should appear in your directory. You
+should also see this file list when you run `omd`.
+
+```bash
+Commands:
+    0. pwd
+
+Files:
+    1. script_file
+```
+
+You can also write (tangle) your file by number instead of name by
+running `omd tangle 1`. It is not required to give a name as well as a
+path to files. If you leave off the name, the listing will show the
+target path for the file, in which case you must use the number to
+tangle the file.
+
+```bash
+Commands:
+    0. pwd
+
+Files:
+    1. test.sh
+```
+
+If you run `omd tangle` with no arguments, `omd` will tangle all files
+listed in you markdown file. This makes for a handy command to run
+automatically in your editor everytime you save your markdown file. To
+create an easy command to test your script add:
+
+`````markdown
+# To run your script
+
+```bash {name=script runnable=true}
+bash test.sh
+```
+`````
+
+Then you can run:
+
+```bash
+omd run script
+```
+
+
+## Literate references
+
+The benifits of coding this way are that you can keep your
+documentation located right next your code. You are more likely to to
+write documentation that way, because it is right there. Additionally,
+the documentation is more likely to stay updated and in sync with your
+actual code. But this isn't the only reason that literate programming
+is helpful. Once you start adding literate references that `omd` will
+automatically assemble for you when running `tangle`, it becomes much
+easier to present your code in smaller chunks alongside the
+documentation.
