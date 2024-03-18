@@ -163,12 +163,17 @@ omd run script
 
 ## Literate references
 
-The benifits of coding this way are that you can keep your
+One of the benifits of literate programming is that you can keep your
 documentation located right next your code. You are more likely to to
-write documentation that way, because it is right there. Additionally,
-the documentation is more likely to stay updated and in sync with your
-actual code. But this isn't the only reason that literate programming
-is helpful. Once you start adding literate references that `omd` will
-automatically assemble for you when running `tangle`, it becomes much
-easier to present your code in smaller chunks alongside the
-documentation.
+write documentation this way. Additionally, the documentation is more
+likely to stay updated and in sync with your actual code. But this
+isn't the only reason that literate programming is helpful. Once you
+start adding literate references that `omd` can read and automatically
+assemble for you while `tangling`, it becomes much easier to present
+your code in smaller chunks alongside the documentation.
+
+Here is a more complete example, that could serve as starting point
+for a literate programming project.
+
+`````markdown
+`````
