@@ -41,6 +41,8 @@ following content in the file:
 
 LIT.md
 `````markdown
+# Simple example
+
 This is a organic markdown test file. To create a notebook style command,
 create a code bock with some simple bash code in it:
 
