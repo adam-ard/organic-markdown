@@ -168,12 +168,44 @@ documentation located right next your code. You are more likely to to
 write documentation this way. Additionally, the documentation is more
 likely to stay updated and in sync with your actual code. But this
 isn't the only reason that literate programming is helpful. Once you
-start adding literate references that `omd` can read and automatically
-assemble for you while `tangling`, it becomes much easier to present
-your code in smaller chunks alongside the documentation.
+start adding literate references (names surround by `<<` and `>>`)
+that `omd` can read and automatically assemble for you while
+`tangling`, it becomes much easier to present your code in smaller
+chunks alongside the documentation.
 
 Here is a more complete example, that could serve as starting point
 for a literate programming project.
 
 `````markdown
+# Say Hello
+
+Say Hello is a simple c program that says hello. We start with a
+simple main:
+
+```C {tangle=main.c}
+#include <stdio.h>
+
+void main()
+{
+    printf("Hello\n");
+}
+```
+
+# Build/Run Program
+
+```bash {name=build runnable=true}
+gcc main.c
+```
+
+```bash {name=app runnable=true}
+./a.out
+```
+
 `````
+
+
+## Advanced Topics
+### yaml block (includes and constants)
+### executing code block and using the output
+### passing arguments to omd refs
+### default argument to omd refs
