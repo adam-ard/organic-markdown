@@ -18,6 +18,11 @@ constants:
 mkdir -p <<project_name()>>
 ```
 
+## Append
+``` {name="copyright_year"}
+hello
+```
+
 ## Copyright Notice
 
 ```{name="copyright-c" lang="C"}

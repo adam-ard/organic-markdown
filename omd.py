@@ -404,6 +404,15 @@ class CodeBlocks:
         data = json.loads(pypandoc.convert_file(filename, 'json'))
         self.parse_json(data)
 
+    def add_code_block(self, code_block):
+        if code_block.name is not None:
+            blk = self.get_code_block(code_block.name)
+            if blk is not None:
+                code_block.code = blk.code + "\n" + code_block.code
+                self.code_blocks.remove(blk)
+
+        self.code_blocks.append(code_block)
+
     def parse_json(self, data):
         for section, constants in data['meta'].items():
             if section == "includes":
@@ -416,7 +425,11 @@ class CodeBlocks:
                     cb.name = key
                     cb.code = val['c'][0]['c']
                     cb.code_blocks = self
-                    self.code_blocks.append(cb)
+
+                    # append the code block contents if the name is the same
+                    # Note: the yaml parser only uses the last value for any given name, so you utilize more than
+                    # one entry with the same name.
+                    self.add_code_block(cb)
 
         for block in data['blocks']:
             if block['t'] == "CodeBlock":
@@ -425,13 +438,7 @@ class CodeBlocks:
                 cb.code_blocks = self
 
                 # append the code block contents if the name is the same
-                if cb.name is not None:
-                    blk = self.get_code_block(cb.name)
-                    if blk is not None:
-                        cb.code = blk.code + "\n" + cb.code
-                        self.code_blocks.remove(blk)
-
-                self.code_blocks.append(cb)
+                self.add_code_block(cb)
 
     def print_summary(self):
         print("Commands:")
