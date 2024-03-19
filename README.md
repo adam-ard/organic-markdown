@@ -173,8 +173,7 @@ that `omd` can read and automatically assemble for you while
 `tangling`, it becomes much easier to present your code in smaller
 chunks alongside the documentation.
 
-Here is a more complete example, that could serve as starting point
-for a literate programming project.
+Here is a more complete example to demonstrate how `omd` refs work.
 
 `````markdown
 # Say Hello
@@ -210,7 +209,107 @@ Now you can run:
 omd tangle && omd run build && omd run app
 ```
 
-And you should see the word: `Hello` in your terminal.
+And you should see the word: `Hello` in your terminal. But now we add
+some refs, so that what we show first serves more as a scaffolding
+that we can use to add functions to.
+
+`````markdown
+# Say Hello
+
+Say Hello is a simple c program that says hello. We start with an **outline**
+simple main:
+
+```C {tangle=main.c}
+#include <<includes>>
+
+void main()
+{
+    <<main>>
+}
+```
+
+# Code for saying hello
+
+In order to print we need to add the `stdio` include:
+
+```C {name="includes"}
+<stdio.h>
+```
+
+Following is code to say hello:
+
+```C {name="main"}
+printf("Hello\n");
+```
+
+# Build/Run Program
+
+```bash {name=build runnable=true}
+gcc main.c
+```
+
+```bash {name=app runnable=true}
+./a.out
+```
+`````
+
+In this update example, notice the references that we have add:
+`<<includes>>` and `<<main>>`. When `omd` tangles `main.c` it will go
+and find any code with those names and insert it into those spots. But
+it doesn't just do a simple text substitution. It is smarter than
+that. It will look at what comes before and after each reference on
+the same line, and will add the before and after each line of the code
+being referenced. That is how `#include` will get prefix to all code
+tagged as `includes`. That is also how code the come from `<<main>>`
+will get indented correctly. To confirm this is the case run:
+
+```bash
+omd tangle
+```
+
+and inspect the contents of `main.c`. Everything should be in the
+right place. Now lets add some more code, and confirm that it goes in
+the right places as well. Add the follow section right before the
+`Build/Run Program` section:
+
+`````markdown
+# Code for saying hello, a second way
+
+In order to get the time, we need to include:
+
+```C {name="includes"}
+<time.h>
+```
+
+Following is code to say hello with the date:
+
+```C {name="main"}
+time_t t = time(NULL);
+struct tm *tm = localtime(&t);
+
+printf("Hello it's %s\n", ctime(&t));
+```
+`````
+
+now run:
+
+```bash
+omd tangle && omd run build && omd run app
+```
+
+you should see something like this:
+
+```
+Hello
+Hello it's Mon Mar 18 19:13:51 2024
+```
+
+If you inspect `main.c`, you'll see that the new include and new main
+code was inserted in the right place! Pretty awesome! But I can't take
+credit for the idea, this type of literate programming comes from
+[Donald Knuth](http://www.literateprogramming.com/knuthweb.pdf). He is
+known to say that literate programming is better than sliced bread --
+and I have to agree.
 
 
 
