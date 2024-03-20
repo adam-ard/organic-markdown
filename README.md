@@ -314,7 +314,7 @@ and I have to agree.
 # Reference Arguments
 
 Expanding on Donald Knuth's idea, and to make it a little easier to
-reuse code blocks, in organic markdown you can pass arguments to a
+reuse code blocks, in organic markdown you can pass arguments to
 literate refs. For example, say we would like to reuse the scaffolding
 we built above for any source files with main in it, we can pull this
 code block (and some explanation) into it's own file, and call it
@@ -325,7 +325,7 @@ code block (and some explanation) into it's own file, and call it
 
 A reusable template for any file that has a main in it:
 
-```C {name="main_template.md"}
+```C {name="main_template"}
 #include <<includes>>
 
 void main()
@@ -335,8 +335,8 @@ void main()
 ```
 `````
 
-And then reference is where ever we want, using an include in a yaml
-header block. Like this:
+And then reference it in other files using an include in a yaml header
+block. Like this:
 
 `````markdown
 ---
@@ -346,8 +346,7 @@ includes:
 
 # Say Hello
 
-Say Hello is a simple c program that says hello. We start with an **outline**
-simple main:
+Say Hello is a simple c program that says hello. Here is our simple main:
 
 ```C {tangle=main.c}
 <<main_template(includes=<<hello_includes>>
@@ -374,12 +373,59 @@ non-main source file, etc.. This makes creating new files -- that all
 stay very uniform with each other and that can be modified in one
 place and reflected everywhere -- very quick and easy.
 
+# Yaml Header Constants
+
+The other thing you can do in a yaml header block is define constants
+for short snippets that don't have any attributes except a name. This
+makes your files more concise. For example, you may want to reference
+the project name in you code:
+
+`````markdown
+---
+includes:
+ - main_template.md
+constants:
+  project_name: Hello-Example-Project
+---
+
+# Say Hello
+
+Say Hello is a simple c program that says hello. Here is our simple main:
+
+```C {tangle=main.c}
+<<main_template(includes=<<hello_includes>>
+                main=<<hello_main>>)>>
+```
+
+# Code for saying hello
+
+In order to print we need to add the `stdio` include:
+
+```C {name="hello_includes"}
+<stdio.h>
+```
+
+Following is code to say hello:
+
+```C {name="hello_main"}
+printf("<<project_name>>: Hello\n");
+```
+
+# Build/Run Program
+
+```bash {name=build runnable=true}
+gcc main.c
+```
+
+```bash {name=app runnable=true}
+./a.out
+```
+`````
+
 
 
 
 
 ## Advanced Topics
-### yaml block (includes and constants)
 ### executing code block and using the output
-### passing arguments to omd refs
 ### default argument to omd refs
