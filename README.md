@@ -4,7 +4,7 @@ The most natural (and delicious!!) way to program. Organic Mardown
 takes advantage of the markdown extensions used by
 [pandoc](https://pandoc.org/MANUAL.html) -- specifically yaml blocks
 at the top of a file, and attributes for fenced code blocks -- to
-create literate, notebook style documents.
+create next-gen literate, notebook style documents.
 
 ## Installation
 
@@ -456,3 +456,34 @@ undefined: 0.0.0: Hello
 ```
 
 # executing code block and using the output
+
+The final tweak that organic markdown makes to the literate reference
+syntax is to allow you to use the results of executing a code
+snippet. This gives you the power of any language (currently only
+python and bash are supported but more are comming soon) to automate
+you literate programming. Let say you would like to print the
+architecture of the machine that you are build your app on. You can do this:
+
+`````markdown
+```bash {name=arch runnable=true}
+echo -n `uname -m`   # use echo -n to strip off the newline for the substition
+```
+
+Following is code to say hello:
+
+```C {name="hello_main"}
+printf("Hello from my: <<arch*>>\n");
+```
+`````
+
+Adding a '*' to any ref name means: substitute the results of running
+this code block. When I run this on my machine, I get this output:
+
+```bash
+Hello from my: x86_64
+```
+
+We use `echo -n` with `uname` so that we can strip off the newline
+character, because if we have multi-line input from a literate ref, we
+have special string substitution behavior (explained above) that isn't
+what we want here.
