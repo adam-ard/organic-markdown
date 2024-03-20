@@ -51,7 +51,10 @@ def get_match_inner(txt, cur):
                             "end": cur + len(c_sym) - 1}, start + len(o_sym)
         cur += 1
 
-    return None, cur
+    if start == -1:
+        return None, len(txt)
+
+    return None, start + len(o_sym)
 
 def parse_name(txt):
     o_txt = txt
