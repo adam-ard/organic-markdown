@@ -179,7 +179,7 @@ Here is a more complete example to demonstrate how `omd` refs work.
 `````markdown
 # Say Hello
 
-Say Hello is a simple c program that says hello. We start with a
+Say Hello is a simple c program that says hello. First we start with a
 simple main:
 
 ```C {tangle=main.c}
@@ -259,9 +259,9 @@ with those names and insert it into those spots. But it doesn't just
 do a simple text substitution. It is smarter than that. It will look
 at what comes before and after each reference on the same line, and
 will add it before and after each line of the code being
-referenced. That is how `#include` will get prefixed to all code tagged
-as `includes`. That is also how code the come from `<<main>>` will get
-indented correctly. To confirm this is the case run:
+referenced. That is how `#include` will get prefixed to all code
+tagged as `includes`. That is also how code coming from `<<main>>`
+will get indented correctly. To confirm this is the case run:
 
 ```bash
 omd tangle
@@ -317,8 +317,8 @@ have to agree.
 
 Expanding on Donald Knuth's idea, and to make it a little easier to
 reuse code blocks, in organic markdown you can pass arguments to
-literate refs. For example, say we would like to reuse the scaffolding
-we built above for any source files with main in it, we can pull this
+literate refs. For example, say you would like to reuse the scaffolding
+you built above for any source files with main in it, you can pull this
 code block (and some explanation) into it's own file, and call it
 `main_template.md`:
 
