@@ -378,7 +378,7 @@ place and reflected everywhere -- very quick and easy.
 The other thing you can do in a yaml header block is define constants
 for short snippets that don't have any attributes except a name. This
 makes your files more concise. For example, you may want to reference
-the project name in you code:
+a project name or version in your source code:
 
 `````markdown
 ---
@@ -386,6 +386,7 @@ includes:
  - main_template.md
 constants:
   project_name: Hello-Example-Project
+  version: 1.23
 ---
 
 # Say Hello
@@ -408,24 +409,50 @@ In order to print we need to add the `stdio` include:
 Following is code to say hello:
 
 ```C {name="hello_main"}
-printf("<<project_name>>: Hello\n");
-```
-
-# Build/Run Program
-
-```bash {name=build runnable=true}
-gcc main.c
-```
-
-```bash {name=app runnable=true}
-./a.out
+printf("<<project_name>>: <<version>>: Hello\n");
 ```
 `````
 
+# defaults
 
+Each literate ref can also have a default value in case that
+particular ref is not define anywhere. Say we never set the version
+and project_name. We can specify a default placeholder:
 
+`````markdown
+---
+includes:
+ - main_template.md
+---
 
+# Say Hello
 
-## Advanced Topics
-### executing code block and using the output
-### default argument to omd refs
+Say Hello is a simple c program that says hello. Here is our simple main:
+
+```C {tangle=main.c}
+<<main_template(includes=<<hello_includes>>
+                main=<<hello_main>>)>>
+```
+
+# Code for saying hello
+
+In order to print we need to add the `stdio` include:
+
+```C {name="hello_includes"}
+<stdio.h>
+```
+
+Following is code to say hello:
+
+```C {name="hello_main"}
+printf("<<project_name{undefined}>>: <<version{0.0.0}>>: Hello\n");
+```
+`````
+
+Then when you run, you should get this output:
+
+```bash
+undefined: 0.0.0: Hello
+```
+
+# executing code block and using the output
