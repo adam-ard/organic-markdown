@@ -311,6 +311,71 @@ credit for the idea, this type of literate programming comes from
 known to say that literate programming is better than sliced bread --
 and I have to agree.
 
+# Reference Arguments
+
+Expanding on Donald Knuth's idea, and to make it a little easier to
+reuse code blocks, in organic markdown you can pass arguments to a
+literate refs. For example, say we would like to reuse the scaffolding
+we built above for any source files with main in it, we can pull this
+code block (and some explanation) into it's own file, and call it
+`main_template.md`:
+
+`````markdown
+# A template for main
+
+A reusable template for any file that has a main in it:
+
+```C {name="main_template.md"}
+#include <<includes>>
+
+void main()
+{
+    <<main>>
+}
+```
+`````
+
+And then reference is where ever we want, using an include in a yaml
+header block. Like this:
+
+`````markdown
+---
+includes:
+  - main_template.md
+---
+
+# Say Hello
+
+Say Hello is a simple c program that says hello. We start with an **outline**
+simple main:
+
+```C {tangle=main.c}
+<<main_template(includes=<<hello_includes>>
+                main=<<hello_main>>)>>
+```
+
+# Code for saying hello
+
+In order to print we need to add the `stdio` include:
+
+```C {name="hello_includes"}
+<stdio.h>
+```
+
+Following is code to say hello:
+
+```C {name="hello_main"}
+printf("Hello\n");
+```
+`````
+
+You can easily imagine doing this for a header file template, and
+non-main source file, etc.. This makes creating new files -- that all
+stay very uniform with each other and that can be modified in one
+place and reflected everywhere -- very quick and easy.
+
+
+
 
 
 ## Advanced Topics
