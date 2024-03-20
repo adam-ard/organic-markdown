@@ -35,9 +35,9 @@ PATH variable.
 
 To create an organic literate file, create an empty file with the
 mardown extention - `*.md`. By default, `omd` looks for a file call
-`LIT.md` in the current directory, so let's start with that. Create an
-empty directory `test` with a single file called `LIT.md`. Put the
-following content in the file:
+`LIT.md` in the current directory. Let's create an empty directory
+`test` with a single file called `LIT.md`. Put the following content
+in the file:
 
 LIT.md
 `````markdown
@@ -117,7 +117,7 @@ omd tangle script_file
 ```
 
 A new script called `test.sh` should appear in your directory. You
-should also see this file list when you run `omd`.
+should also see this file listed when you run `omd`.
 
 ```bash
 Commands:
@@ -142,9 +142,9 @@ Files:
 ```
 
 If you run `omd tangle` with no arguments, `omd` will tangle all files
-listed in you markdown file. This makes for a handy command to run
+listed in your markdown file. This makes for a handy command to run
 automatically in your editor everytime you save your markdown file. To
-create an easy command to test your script add:
+create a command to test your script add:
 
 `````markdown
 # To run your script
@@ -209,9 +209,8 @@ Now you can run:
 omd tangle && omd run build && omd run app
 ```
 
-And you should see the word: `Hello` in your terminal. But now we add
-some refs, so that what we show first serves more as a scaffolding
-that we can use to add functions to.
+And you should see the word: `Hello` in your terminal. Now we'll add
+some refs to make a simple outline or scaffolding for our main file:
 
 `````markdown
 # Say Hello
@@ -253,15 +252,15 @@ gcc main.c
 ```
 `````
 
-In this update example, notice the references that we have add:
-`<<includes>>` and `<<main>>`. When `omd` tangles `main.c` it will go
-and find any code with those names and insert it into those spots. But
-it doesn't just do a simple text substitution. It is smarter than
-that. It will look at what comes before and after each reference on
-the same line, and will add the before and after each line of the code
-being referenced. That is how `#include` will get prefix to all code
-tagged as `includes`. That is also how code the come from `<<main>>`
-will get indented correctly. To confirm this is the case run:
+In this version we have add two references: `<<includes>>` and
+`<<main>>`. When `omd` tangles `main.c` it will go and find any code
+with those names and insert it into those spots. But it doesn't just
+do a simple text substitution. It is smarter than that. It will look
+at what comes before and after each reference on the same line, and
+will add it before and after each line of the code being
+referenced. That is how `#include` will get prefixed to all code tagged
+as `includes`. That is also how code the come from `<<main>>` will get
+indented correctly. To confirm this is the case run:
 
 ```bash
 omd tangle
@@ -305,11 +304,13 @@ Hello it's Mon Mar 18 19:13:51 2024
 ```
 
 If you inspect `main.c`, you'll see that the new include and new main
-code was inserted in the right place! Pretty awesome! But I can't take
-credit for the idea, this type of literate programming comes from
-[Donald Knuth](http://www.literateprogramming.com/knuthweb.pdf). He is
-known to say that literate programming is better than sliced bread --
-and I have to agree.
+code was inserted in the right place as well. This is because when you
+reference something with the same name a second time, the text is
+appended to the previous text. Pretty awesome! [Donald
+Knuth](http://www.literateprogramming.com/knuthweb.pdf) really knew
+what he was doing when he designed literate programming. He is known
+to say that literate programming is better than sliced bread -- and I
+have to agree.
 
 # Reference Arguments
 
@@ -346,7 +347,7 @@ includes:
 
 # Say Hello
 
-Say Hello is a simple c program that says hello. Here is our simple main:
+'Say Hello' is a simple c program that says hello. Here is our simple main:
 
 ```C {tangle=main.c}
 <<main_template(includes=<<hello_includes>>
@@ -368,10 +369,10 @@ printf("Hello\n");
 ```
 `````
 
-You can easily imagine doing this for a header file template, and
-non-main source file, etc.. This makes creating new files -- that all
-stay very uniform with each other and that can be modified in one
-place and reflected everywhere -- very quick and easy.
+You can easily imagine doing this for a header files, and non-main
+source files as well. This makes creating new files -- that all stay
+very uniform with each other and that can be modified in one place and
+reflected everywhere -- very quick and easy.
 
 # Yaml Header Constants
 
@@ -416,8 +417,8 @@ printf("<<project_name>>: <<version>>: Hello\n");
 # defaults
 
 Each literate ref can also have a default value in case that
-particular ref is not define anywhere. Say we never set the version
-and project_name. We can specify a default placeholder:
+particular ref is not define anywhere. Say we never set the version or
+project_name. We can specify a default placeholder:
 
 `````markdown
 ---
@@ -461,8 +462,9 @@ The final tweak that organic markdown makes to the literate reference
 syntax is to allow you to use the results of executing a code
 snippet. This gives you the power of any language (currently only
 python and bash are supported but more are comming soon) to automate
-you literate programming. Let say you would like to print the
-architecture of the machine that you are build your app on. You can do this:
+your literate programming. Let say you would like to print the
+architecture of the machine that you are building your app on. You can
+do this:
 
 `````markdown
 ```bash {name=arch runnable=true}
@@ -483,7 +485,7 @@ this code block. When I run this on my machine, I get this output:
 Hello from my: x86_64
 ```
 
-We use `echo -n` with `uname` so that we can strip off the newline
+Note: We use `echo -n` with `uname` so that we can strip off the newline
 character, because if we have multi-line input from a literate ref, we
 have special string substitution behavior (explained above) that isn't
 what we want here.
