@@ -19,31 +19,39 @@ c_sym = ">>"
 #  will return matches in a left to right order
 def get_match(txt):
     cur = 0
+    while cur < len(txt):
+        res, cur = get_match_inner(txt, cur)
+        if res is not None:
+            return res
+    return None
+
+def get_match_inner(txt, cur):
     open_count = 0
     start = -1
 
     while cur < len(txt):
-        if cur + 2 <= len(txt) and txt[cur:cur+2] == o_sym:
+        if cur + len(o_sym) <= len(txt) and txt[cur : cur + len(o_sym)] == o_sym:
             if start == -1:
                 start = cur
             open_count += 1
             cur += len(o_sym) - 1
 
-        elif cur + 2 <= len(txt) and txt[cur:cur+2] == c_sym:
-            open_count -= 1
+        elif cur + len(c_sym) <= len(txt) and txt[cur:cur+len(c_sym)] == c_sym:
+            if start != -1:
+                open_count -= 1
             cur += len(c_sym) - 1
 
         if open_count < 1 and start != -1:
-            match = parse_match(txt[start + len(c_sym) : cur - 1])
+            match = parse_match(txt[start + len(o_sym) : cur - 1])
             if match is None:
                 print(f"content internal to {o_sym} and {c_sym} is invalid: {txt[start:cur + len(c_sym) - 1]}")
-                return None
+                return None, start + len(o_sym)
             return match | {"full": txt[start:cur + len(c_sym) - 1],
                             "start": start,
-                            "end": cur + len(c_sym) - 1}
+                            "end": cur + len(c_sym) - 1}, start + len(o_sym)
         cur += 1
 
-    return None
+    return None, cur
 
 def parse_name(txt):
     o_txt = txt

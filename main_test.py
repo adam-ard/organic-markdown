@@ -718,6 +718,16 @@ def test_get_match():
     match = omd.get_match("asdf<<one*()>asdf")
     assert match is None
 
+    match = omd.get_match("asdf<<asdf() asdf() asdf()>>asdf<<asdf>>asdf")
+    assert match is not None
+    assert match["start"] == 32
+    assert match["end"] == 32 + len('<<asdf>>')
+    assert match["full"] == '<<asdf>>'
+    assert match["name"] == 'asdf'
+    assert match["exec"] == False
+    assert match["args"] == ''
+
+
 def test_parse_name():
     name, txt = omd.parse_name("one")
     assert name == "one"
