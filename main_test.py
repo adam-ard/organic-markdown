@@ -33,7 +33,7 @@ code_block = [["",
                 ["lang", "bash"],
                 ["what_is_this", "blah"],
                 ["docker", "<<docker_container_name()>>"],
-                ["runnable", "true"],
+                ["menu", "true"],
                 ["dir", "<<project_name()>>"],
                 ["tangle", "<<project_name()>>/main.c"]
                 ]],
@@ -44,7 +44,7 @@ code_block_alt_syntax = [["",
                           [["name", "build_project"],
                            ["what_is_this", "blah"],
                            ["docker", "<<docker_container_name()>>"],
-                           ["runnable", "true"],
+                           ["menu", "true"],
                            ["dir", "<<project_name()>>"],
                            ["tangle", "<<project_name()>>/main.c"]
                            ]],
@@ -55,7 +55,7 @@ code_block_alt_syntax2 = [["",
                            [["name", "build_project"],
                             ["what_is_this", "blah"],
                             ["docker", "<<docker_container_name()>>"],
-                            ["runnable", "true"],
+                            ["menu", "true"],
                             ["dir", "<<project_name()>>"],
                             ["tangle", "<<project_name()>>/main.c"]
                             ]],
@@ -66,7 +66,7 @@ code_block_alt_syntax3 = [["",
                            [["name", "build_project"],
                             ["what_is_this", "blah"],
                             ["docker", "<<docker_container_name()>>"],
-                            ["runnable", "true"],
+                            ["menu", "true"],
                             ["dir", "<<project_name()>>"],
                             ["tangle", "<<project_name()>>/main.c"]
                             ]],
@@ -160,7 +160,7 @@ code_block_4 = [["",
                     [],
                     [["name", "four"],
                      ["lang", "bash"],
-                     ["runnable", "true"],
+                     ["menu", "true"],
                      ["dir", "."],
                      ]],
                    'echo <<msg()>>']
@@ -169,7 +169,7 @@ code_block_5 = [["",
                     [],
                     [["name", "five"],
                      ["lang", "python"],
-                     ["runnable", "true"],
+                     ["menu", "true"],
                      ["dir", "."],
                      ]],
                    'print("I am python!! <<msg()>>")']
@@ -408,7 +408,7 @@ def test_parse_block():
     assert cb.lang == "bash"
     assert cb.cwd == "<<project_name()>>"
     assert cb.tangle_file == "<<project_name()>>/main.c"
-    assert cb.is_runnable == True
+    assert cb.in_menu == True
     assert cb.docker_container == "<<docker_container_name()>>"
 
 
@@ -421,7 +421,7 @@ def test_parse_block_alt_syntax():
     assert cb.lang == "python"
     assert cb.cwd == "<<project_name()>>"
     assert cb.tangle_file == "<<project_name()>>/main.c"
-    assert cb.is_runnable == True
+    assert cb.in_menu == True
     assert cb.docker_container == "<<docker_container_name()>>"
 
     cb = omd.CodeBlock()
@@ -432,7 +432,7 @@ def test_parse_block_alt_syntax():
     assert cb.lang == "bash"
     assert cb.cwd == "<<project_name()>>"
     assert cb.tangle_file == "<<project_name()>>/main.c"
-    assert cb.is_runnable == True
+    assert cb.in_menu == True
     assert cb.docker_container == "<<docker_container_name()>>"
 
     cb = omd.CodeBlock()
@@ -443,25 +443,25 @@ def test_parse_block_alt_syntax():
     assert cb.lang == None
     assert cb.cwd == "<<project_name()>>"
     assert cb.tangle_file == "<<project_name()>>/main.c"
-    assert cb.is_runnable == True
+    assert cb.in_menu == True
     assert cb.docker_container == "<<docker_container_name()>>"
 
-def test_parse_runnable():
-    assert omd.parse_runnable_attrib("true") == True
-    assert omd.parse_runnable_attrib("True") == True
-    assert omd.parse_runnable_attrib("1") == True
-    assert omd.parse_runnable_attrib(1) == True
-    assert omd.parse_runnable_attrib(True) == True
-    assert omd.parse_runnable_attrib("asdf") == True
+def test_parse_menu():
+    assert omd.parse_menu_attrib("true") == True
+    assert omd.parse_menu_attrib("True") == True
+    assert omd.parse_menu_attrib("1") == True
+    assert omd.parse_menu_attrib(1) == True
+    assert omd.parse_menu_attrib(True) == True
+    assert omd.parse_menu_attrib("asdf") == True
 
-    assert omd.parse_runnable_attrib("false") == False
-    assert omd.parse_runnable_attrib("False") == False
-    assert omd.parse_runnable_attrib("FaLse") == False
-    assert omd.parse_runnable_attrib("0") == False
-    assert omd.parse_runnable_attrib("") == False
-    assert omd.parse_runnable_attrib(None) == False
-    assert omd.parse_runnable_attrib(0) == False
-    assert omd.parse_runnable_attrib(False) == False
+    assert omd.parse_menu_attrib("false") == False
+    assert omd.parse_menu_attrib("False") == False
+    assert omd.parse_menu_attrib("FaLse") == False
+    assert omd.parse_menu_attrib("0") == False
+    assert omd.parse_menu_attrib("") == False
+    assert omd.parse_menu_attrib(None) == False
+    assert omd.parse_menu_attrib(0) == False
+    assert omd.parse_menu_attrib(False) == False
 
 def test_eat_ws():
     assert omd.eat_ws("   ") == ""

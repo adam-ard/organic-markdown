@@ -273,7 +273,7 @@ def parse_args(txt):
         args[name] = value
     return args
 
-def parse_runnable_attrib(val):
+def parse_menu_attrib(val):
     if isinstance(val, bool):
         return val
 
@@ -289,14 +289,11 @@ class CodeBlock:
         self.lang=None
         self.cwd="."
         self.tangle_file=None
-        self.is_runnable = False
+        self.in_menu = False
         self.code_blocks = None
         self.docker_container=None
 
     def get_run_cmd(self, args={}):
-        if not self.is_runnable:
-            return None
-
         code = self.code_blocks.expand(self.code, args)
         if self.lang == "bash":
             cmd = code
@@ -355,8 +352,8 @@ class CodeBlock:
                 self.lang = attrib
 
         for attrib in the_json[0][2]:
-            if attrib[0] == "runnable":
-                self.is_runnable = parse_runnable_attrib(attrib[1])
+            if attrib[0] == "menu":
+                self.in_menu = parse_menu_attrib(attrib[1])
             elif attrib[0] == "lang":
                 self.lang = attrib[1]
             elif attrib[0] == "name":
@@ -379,8 +376,8 @@ class CodeBlock:
         if self.lang is not None:
             out += f"lang={self.lang}, "
         out += f"dir={self.code_blocks.expand(self.cwd)}, "
-        if self.is_runnable:
-            out += f"runnable={self.is_runnable}, "
+        if self.in_menu:
+            out += f"menu={self.in_menu}, "
         out += ")\n"
         out += f"{{\n{indent(self.code_blocks.expand(self.code), '    ')}\n}}"
         return out
@@ -456,7 +453,7 @@ class CodeBlocks:
     def print_summary(self):
         print("Commands:")
         for num, block in enumerate(self.code_blocks):
-            if block.is_runnable:
+            if block.in_menu:
                 print(f"    {num}. {block.name}")
 
         print("\nFiles:")

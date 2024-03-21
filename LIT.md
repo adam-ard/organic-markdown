@@ -14,17 +14,17 @@ constants:
 # This is an Organic Markdown file
 
 ## Mkdir
-```{name="mkdir" lang="bash" runnable="true"}
+```{name="mkdir" lang="bash" menu="true"}
 mkdir -p <<project_name()>>
 ```
 
 ## Failed bash command
-```{name="failed" lang="bash" runnable="true"}
+```{name="failed" lang="bash" menu="true"}
 ls asdfasdfasdf
 ```
 
 ## Successful bash command
-```{name="success" lang="bash" runnable="true"}
+```{name="success" lang="bash" menu="true"}
 ls LIT.md
 ```
 
@@ -90,19 +90,19 @@ WORKDIR /home/<<username()>>
 
 ## Docker Shell
 
-```{name="shell" lang="bash" runnable="true"}
+```{name="shell" lang="bash" menu="true"}
 docker exec -it <<docker_container_name()>> /bin/bash
 ```
 
 ## Docker Build
 
-```{name="build_container" lang="bash" runnable="true" dir=<<project_name()>>}
+```{name="build_container" lang="bash" menu="true" dir=<<project_name()>>}
 docker build -t <<docker_image_name()>> .
 ```
 
 ## Start Docker Container
 
-```{name="start_container" lang="bash" runnable="true" dir="."}
+```{name="start_container" lang="bash" menu="true" dir="."}
 docker run --rm --name <<docker_container_name()>> -d \
        -v ${PWD}:${PWD} \
        <<docker_image_name()>> \
@@ -111,13 +111,13 @@ docker run --rm --name <<docker_container_name()>> -d \
 
 ## Stop Docker Container
 
-```{name="stop_container" lang="bash" runnable="true"}
+```{name="stop_container" lang="bash" menu="true"}
 docker stop <<docker_container_name()>>
 ```
 
 ## Run something in the container
 
-```{name="in container" lang="bash" runnable="true" docker=<<docker_container_name()>> dir=<<project_name()>>}
+```{name="in container" lang="bash" menu="true" docker=<<docker_container_name()>> dir=<<project_name()>>}
 hostname
 pwd
 ls -al <<project_name()>>
@@ -125,7 +125,7 @@ ls -al <<project_name()>>
 
 ## Run something outside a container
 
-```{name="out container" lang="bash" runnable="true" dir=<<project_name()>>}
+```{name="out container" lang="bash" menu="true" dir=<<project_name()>>}
 hostname
 pwd
 ls -al <<project_name()>>
@@ -140,7 +140,7 @@ ls -al <<project_name()>>
 
 To build this project
 
-```{name="build_project" lang="bash" runnable="true" docker=<<docker_container_name()>> dir=<<project_name()>>}
+```{name="build_project" lang="bash" menu="true" docker=<<docker_container_name()>> dir=<<project_name()>>}
 gcc main.c
 ```
 
@@ -148,7 +148,7 @@ gcc main.c
 
 Run this project
 
-```{name="run_project" lang="bash" runnable="true" docker=<<docker_container_name()>> dir=<<project_name()>>}
+```{name="run_project" lang="bash" menu="true" docker=<<docker_container_name()>> dir=<<project_name()>>}
 ./a.out
 ```
 
@@ -190,13 +190,13 @@ begin->
 <-end2
 ```
 
-```{name="test_exec" lang="bash" runnable="true" dir="."}
+```{name="test_exec" lang="bash" menu="true" dir="."}
 for i in $(seq 1 <<num()>>); do
   echo "<<msg()>> $i <<msg2()>>"
 done
 ```
 
-```python {name="test_exec_python" lang="python" runnable="true" dir="."}
+```python {name="test_exec_python" lang="python" menu="true" dir="."}
 testing="testing"
 print(f"Here goes nothing {testing} 1")
 print(f"Here goes nothing {testing} 2")

@@ -47,7 +47,7 @@ LIT.md
 This is a organic markdown test file. To create a notebook style command,
 create a code bock with some simple bash code in it:
 
-```bash {name=pwd runnable=true}
+```bash {name=pwd menu=true}
 pwd
 ```
 `````
@@ -56,7 +56,7 @@ pwd
 In your `LIT.md` file, you have created an executable code block. An
 organic markdown code block has a language attribute followed by curly
 bracket delimited attributes. Notice that we have given the block a name, and set
-its runnable attribute to true.
+its menu attribute to true.
 
 Now when you run `omd` in the same directory as your `LIT.md` file,
 you should see something like this:
@@ -80,7 +80,7 @@ You should see the output of the `pwd` bash command. To run this
 command in another directory, simply add the dir attribute:
 
 `````markdown
-```bash {name=pwd runnable=true dir=/var/log}
+```bash {name=pwd menu=true dir=/var/log}
 pwd
 ```
 `````
@@ -150,7 +150,7 @@ create a command to test your script add:
 `````markdown
 # To run your script
 
-```bash {name=script runnable=true}
+```bash {name=script menu=true}
 bash test.sh
 ```
 `````
@@ -193,11 +193,11 @@ void main()
 
 # Build/Run Program
 
-```bash {name=build runnable=true}
+```bash {name=build menu=true}
 gcc main.c
 ```
 
-```bash {name=app runnable=true}
+```bash {name=app menu=true}
 ./a.out
 ```
 
@@ -244,11 +244,11 @@ printf("Hello\n");
 
 # Build/Run Program
 
-```bash {name=build runnable=true}
+```bash {name=build menu=true}
 gcc main.c
 ```
 
-```bash {name=app runnable=true}
+```bash {name=app menu=true}
 ./a.out
 ```
 `````
@@ -468,7 +468,7 @@ architecture of the machine that you are building your app on. You can
 do this:
 
 `````markdown
-```bash {name=arch runnable=true}
+```bash {name=arch menu=true}
 echo -n `uname -m`   # use echo -n to strip off the newline for the substition
 ```
 
