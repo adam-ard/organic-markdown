@@ -13,8 +13,6 @@ languages = ["bash", "python"]
 o_sym = "<<"
 c_sym = ">>"
 
-# TODO ignore \<
-# TODO use cur + len(o_sym) instead of hard coded 2
 # returns match (or None if there isn't one) and whether or not it is
 #  string replacement or results of a string execution replacement. It
 #  will return matches in a left to right order
