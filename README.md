@@ -35,12 +35,12 @@ PATH variable.
 ## Getting Started
 
 To create an organic literate file, create an empty file with the
-mardown extention - `*.md`. By default, `omd` looks for a file call
-`LIT.md` in the current directory. Let's create an empty directory
-`test` with a single file called `LIT.md`. Put the following content
-in the file:
+mardown extention - `*.omd`. By default, `omd` reads all files that
+have a `.omd` extension in the current directory. Let's create an
+empty directory `test` with a single file called `LIT.omd` and put the
+following contents in it:
 
-LIT.md
+LIT.omd
 `````markdown
 # Simple command
 
@@ -53,12 +53,12 @@ pwd
 `````
 
 
-In your `LIT.md` file, you have created an executable code block. An
+In your `LIT.omd` file, you have created an executable code block. An
 organic markdown code block has a language attribute followed by curly
 bracket delimited attributes. Notice that we have given the block a name, and set
 its menu attribute to true.
 
-Now when you run `omd` in the same directory as your `LIT.md` file,
+Now when you run `omd` in the same directory as your `LIT.omd` file,
 you should see something like this:
 
 ```
@@ -320,7 +320,7 @@ reuse code blocks, in organic markdown you can pass arguments to
 literate refs. For example, say you would like to reuse the scaffolding
 you built above for any source files with main in it, you can pull this
 code block (and some explanation) into it's own file, and call it
-`main_template.md`:
+`main_template.omd`:
 
 `````markdown
 # A template for main
@@ -337,15 +337,10 @@ void main()
 ```
 `````
 
-And then reference it in other files using an include in a yaml header
-block. Like this:
+Then you can use the template in another file in the same directory,
+like this:
 
 `````markdown
----
-includes:
-  - main_template.md
----
-
 # Say Hello
 
 'Say Hello' is a simple c program that says hello. Here is our simple main:
@@ -377,15 +372,13 @@ reflected everywhere -- very quick and easy.
 
 # Yaml Header Constants
 
-The other thing you can do in a yaml header block is define constants
-for short snippets that don't have any attributes except a name. This
-makes your files more concise. For example, you may want to reference
-a project name or version in your source code:
+Another thing you can do is use a yaml header block to define
+constants for short snippets that don't have any attributes except a
+name. This makes your files more concise. For example, you may want to
+reference a project name or version in your source code:
 
 `````markdown
 ---
-includes:
- - main_template.md
 constants:
   project_name: Hello-Example-Project
   version: 1.23
@@ -422,11 +415,6 @@ particular ref is not define anywhere. Say we never set the version or
 project_name. We can specify a default placeholder:
 
 `````markdown
----
-includes:
- - main_template.md
----
-
 # Say Hello
 
 Say Hello is a simple c program that says hello. Here is our simple main:

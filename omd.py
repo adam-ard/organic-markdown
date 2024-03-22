@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import glob
 import json
 import sys
 import os
@@ -383,35 +384,22 @@ class CodeBlock:
         return out
 
 class CodeBlocks:
-    def __init__(self, start_file):
+    def __init__(self):
         self.code_blocks = []
-        self.md_files = [[start_file, False]]
-
-    def add_md_file(self, filename):
-        for f in self.md_files:
-            if f[0] == filename:
-                return
-
-        self.md_files.append([filename, False])
-
-    def get_next_unread(self):
-        for f in self.md_files:
-            if f[1] == False:
-                f[1] = True
-                return f[0]
-
-        return None
 
     def parse(self):
-        curr_file = self.get_next_unread()
-        if curr_file is None:    # all done reading
-            return
+        # read all file in the curr directory with .omd extenstion
+        # TODO: eventually read all files in subdirs as well?
 
-        self.parse_file(curr_file)
-        self.parse()   # start over -- because new files might have gone into the list
+        # Get a list of all files with the .omd extension in the current directory
+        files = glob.glob("*.omd")
+
+        # Loop through each file and parse it
+        for curr_file in files:
+            self.parse_file(curr_file)
 
     def parse_file(self, filename):
-        data = json.loads(pypandoc.convert_file(filename, 'json'))
+        data = json.loads(pypandoc.convert_file(filename, 'json', format="md"))
         self.parse_json(data)
 
     def add_code_block(self, code_block):
@@ -425,10 +413,6 @@ class CodeBlocks:
 
     def parse_json(self, data):
         for section, constants in data['meta'].items():
-            if section == "includes":
-                for i in constants['c']:
-                    self.add_md_file(i['c'][0]['c'])
-
             if section == "constants":
                 for key, val in constants['c'].items():
                     cb = CodeBlock()
@@ -538,7 +522,7 @@ class CodeBlocks:
             fn(block)
 
 if __name__ == '__main__':
-    code_blocks = CodeBlocks(os.getenv("OMD_ROOT_FILE", "LIT.md"))
+    code_blocks = CodeBlocks()
     code_blocks.parse()
 
     if len(sys.argv) == 3:

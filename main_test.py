@@ -305,7 +305,7 @@ full_file = {"blocks": [{"t": "",
              }
 
 def test_expand():
-    code_blocks = omd.CodeBlocks("LIT.md")
+    code_blocks = omd.CodeBlocks()
     code_blocks.parse_json(full_file)
 
     blk = code_blocks.get_code_block("three")
@@ -626,7 +626,7 @@ three
 four"""
 
 def test_insert_blk():
-    cbs = omd.CodeBlocks("LIT.md")
+    cbs = omd.CodeBlocks()
     assert cbs.insert_blk("abcdefg", "xyz", 1, 6) == "axyzg"
     assert cbs.insert_blk("abcdefg", "xyz", 3, 4) == "abcxyzefg"
     assert cbs.insert_blk("abcdefg", "xyz", 0, 6) == "xyzg"
