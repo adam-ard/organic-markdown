@@ -413,9 +413,16 @@ class CodeBlocks:
         for section, constants in data['meta'].items():
             if section == "constants":
                 for key, val in constants['c'].items():
+                    str = ""
+                    for i in val['c']:
+                        if i['t'] == "Str":
+                            str += i['c']
+                        if i['t'] == "Space":
+                            str += " "
+
                     cb = CodeBlock()
                     cb.name = key
-                    cb.code = val['c'][0]['c']
+                    cb.code = str
                     cb.code_blocks = self
 
                     # append the code block contents if the name is the same
