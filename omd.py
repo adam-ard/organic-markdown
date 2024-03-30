@@ -283,6 +283,7 @@ def parse_menu_attrib(val):
 
 class CodeBlock:
     def __init__(self):
+        self.origin_file=None
         self.name=None
         self.code=None
         self.lang=None
@@ -291,6 +292,9 @@ class CodeBlock:
         self.in_menu = False
         self.code_blocks = None
         self.docker_container=None
+
+    def origin(self):
+        print(self.origin_file)
 
     def get_run_cmd(self, args={}):
         code = self.code_blocks.expand(self.code, args)
@@ -370,6 +374,8 @@ class CodeBlock:
         out = "CodeBlock("
         if self.name is not None:
             out += f"name={self.name}, "
+        if self.origin_file is not None:
+            out += f"origin={self.origin_file}, "
         if self.docker_container is not None:
             out += f"docker={self.code_blocks.expand(self.docker_container)}, "
         if self.lang is not None:
@@ -386,19 +392,16 @@ class CodeBlocks:
         self.code_blocks = []
 
     def parse(self):
-        # read all file in the curr directory with .omd extenstion
-        # TODO: eventually read all files in subdirs as well?
-
-        # Get a list of all files with the .omd extension in the current directory
-        files = glob.glob("*.omd")
-
-        # Loop through each file and parse it
-        for curr_file in files:
-            self.parse_file(curr_file)
+        # read all file in the curren directory (recursively) with .omd extenstion
+        for root, dirs, files in os.walk("."):
+            for cur_file in files:
+                cur_full_file = f"{root}/{cur_file}"
+                if cur_full_file.endswith(".omd"):
+                    self.parse_file(cur_full_file)
 
     def parse_file(self, filename):
         data = json.loads(pypandoc.convert_file(filename, 'json', format="md"))
-        self.parse_json(data)
+        self.parse_json(data, filename)
 
     def add_code_block(self, code_block):
         if code_block.name is not None:
@@ -409,7 +412,7 @@ class CodeBlocks:
 
         self.code_blocks.append(code_block)
 
-    def parse_json(self, data):
+    def parse_json(self, data, origin_file):
         for section, constants in data['meta'].items():
             if section == "constants":
                 for key, val in constants['c'].items():
@@ -421,6 +424,7 @@ class CodeBlocks:
                             str += " "
 
                     cb = CodeBlock()
+                    cb.origin_file = origin_file
                     cb.name = key
                     cb.code = str
                     cb.code_blocks = self
@@ -433,6 +437,7 @@ class CodeBlocks:
         for block in data['blocks']:
             if block['t'] == "CodeBlock":
                 cb = CodeBlock()
+                cb.origin_file = origin_file
                 cb.parse(block['c'])
                 cb.code_blocks = self
 
@@ -537,6 +542,8 @@ if __name__ == '__main__':
             code_blocks.run_block_fn(sys.argv[2], CodeBlock.run)
         elif sys.argv[1] == "info":
             code_blocks.run_block_fn(sys.argv[2], CodeBlock.info)
+        elif sys.argv[1] == "origin":
+            code_blocks.run_block_fn(sys.argv[2], CodeBlock.origin)
 
     elif len(sys.argv) == 2:
         if sys.argv[1] == "tangle":
