@@ -392,11 +392,11 @@ class CodeBlocks:
         self.code_blocks = []
 
     def parse(self):
-        # read all file in the curren directory (recursively) with .omd extenstion
+        # read all file in the curren directory (recursively) with .md extenstion
         for root, dirs, files in os.walk("."):
             for cur_file in files:
                 cur_full_file = f"{root}/{cur_file}"
-                if cur_full_file.endswith(".omd"):
+                if cur_full_file.endswith(".md"):
                     self.parse_file(cur_full_file)
 
     def parse_file(self, filename):

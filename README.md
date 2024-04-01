@@ -35,12 +35,13 @@ PATH variable.
 ## Getting Started
 
 To create an organic literate file, create an empty file with the
-mardown extention - `*.omd`. By default, `omd` reads all files that
-have a `.omd` extension in the current directory. Let's create an
-empty directory `test` with a single file called `LIT.omd` and put the
-following contents in it:
+mardown extention - `*.md`. By default, `omd` reads all files that
+have a `.md` extension in the current directory (and any
+subdirectories recursively). Let's create an empty directory `test`
+with a single file called `LIT.md` and put the following contents in
+it:
 
-LIT.omd
+LIT.md
 `````markdown
 # Simple command
 
@@ -53,12 +54,12 @@ pwd
 `````
 
 
-In your `LIT.omd` file, you have created an executable code block. An
+In your `LIT.md` file, you have created an executable code block. An
 organic markdown code block has a language attribute followed by curly
 bracket delimited attributes. Notice that we have given the block a name, and set
 its menu attribute to true.
 
-Now when you run `omd` in the same directory as your `LIT.omd` file,
+Now when you run `omd` in the same directory as your `LIT.md` file,
 you should see something like this:
 
 ```
@@ -320,7 +321,7 @@ reuse code blocks, in organic markdown you can pass arguments to
 literate refs. For example, say you would like to reuse the scaffolding
 you built above for any source files with main in it, you can pull this
 code block (and some explanation) into it's own file, and call it
-`main_template.omd`:
+`main_template.md`:
 
 `````markdown
 # A template for main
