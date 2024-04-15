@@ -170,7 +170,7 @@ documentation located right next your code. You are more likely to to
 write documentation this way. Additionally, the documentation is more
 likely to stay updated and in sync with your actual code. But this
 isn't the only reason that literate programming is helpful. Once you
-start adding literate references (names surround by `<<` and `>>`)
+start adding literate references (names surround by `@<` and `@>`)
 that `omd` can read and automatically assemble for you while
 `tangling`, it becomes much easier to present your code in smaller
 chunks alongside the documentation.
@@ -221,11 +221,11 @@ Say Hello is a simple c program that says hello. We start with an **outline**
 simple main:
 
 ```C {tangle=main.c}
-#include <<includes>>
+#include @<includes@>
 
 void main()
 {
-    <<main>>
+    @<main@>
 }
 ```
 
@@ -254,14 +254,14 @@ gcc main.c
 ```
 `````
 
-In this version we have add two references: `<<includes>>` and
-`<<main>>`. When `omd` tangles `main.c` it will go and find any code
+In this version we have add two references: `@<includes@>` and
+`@<main@>`. When `omd` tangles `main.c` it will go and find any code
 with those names and insert it into those spots. But it doesn't just
 do a simple text substitution. It is smarter than that. It will look
 at what comes before and after each reference on the same line, and
 will add it before and after each line of the code being
 referenced. That is how `#include` will get prefixed to all code
-tagged as `includes`. That is also how code coming from `<<main>>`
+tagged as `includes`. That is also how code coming from `@<main@>`
 will get indented correctly. To confirm this is the case run:
 
 ```bash
@@ -329,11 +329,11 @@ code block (and some explanation) into it's own file, and call it
 A reusable template for any file that has a main in it:
 
 ```C {name="main_template"}
-#include <<includes>>
+#include @<includes@>
 
 void main()
 {
-    <<main>>
+    @<main@>
 }
 ```
 `````
@@ -347,8 +347,8 @@ like this:
 'Say Hello' is a simple c program that says hello. Here is our simple main:
 
 ```C {tangle=main.c}
-<<main_template(includes=<<hello_includes>>
-                main=<<hello_main>>)>>
+@<main_template(includes=@<hello_includes@>
+                main=@<hello_main@>)@>
 ```
 
 # Code for saying hello
@@ -390,8 +390,8 @@ constants:
 Say Hello is a simple c program that says hello. Here is our simple main:
 
 ```C {tangle=main.c}
-<<main_template(includes=<<hello_includes>>
-                main=<<hello_main>>)>>
+@<main_template(includes=@<hello_includes@>
+                main=@<hello_main@>)@>
 ```
 
 # Code for saying hello
@@ -405,7 +405,7 @@ In order to print we need to add the `stdio` include:
 Following is code to say hello:
 
 ```C {name="hello_main"}
-printf("<<project_name>>: <<version>>: Hello\n");
+printf("@<project_name@>: @<version@>: Hello\n");
 ```
 `````
 
@@ -421,9 +421,21 @@ project_name. We can specify a default placeholder:
 Say Hello is a simple c program that says hello. Here is our simple main:
 
 ```C {tangle=main.c}
-<<main_template(includes=<<hello_includes>>
-                main=<<hello_main>>)>>
+@<main_template(includes=@<hello_includes@>
+                main=@<hello_main@>)@>
 ```
+
+
+## Note:
+
+If you use the `@<name@>` notation in the yaml block at the top of the file, you must prefix the first `@<` with a escape `\` char, like this:
+
+```
+constants:
+  testing: \@<testing@>
+```
+
+yaml doesn't like the `@` being the first char in the value field.
 
 # Code for saying hello
 
@@ -436,7 +448,7 @@ In order to print we need to add the `stdio` include:
 Following is code to say hello:
 
 ```C {name="hello_main"}
-printf("<<project_name{undefined}>>: <<version{0.0.0}>>: Hello\n");
+printf("@<project_name{undefined}@>: @<version{0.0.0}@>: Hello\n");
 ```
 `````
 
@@ -464,7 +476,7 @@ echo -n `uname -m`   # use echo -n to strip off the newline for the substition
 Following is code to say hello:
 
 ```C {name="hello_main"}
-printf("Hello from my: <<arch*>>\n");
+printf("Hello from my: @<arch*@>\n");
 ```
 `````
 

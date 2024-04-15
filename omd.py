@@ -10,8 +10,8 @@ from pathlib import Path
 import pypandoc
 
 languages = ["bash", "python"]
-o_sym = "<<"
-c_sym = ">>"
+o_sym = "@<"
+c_sym = "@>"
 
 # returns match (or None if there isn't one) and whether or not it is
 #  string replacement or results of a string execution replacement. It

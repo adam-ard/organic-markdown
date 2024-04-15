@@ -18,7 +18,7 @@ meta_block = { "constants": {
             "c": [
                 {
                     "t": "Str",
-                    "c": "<<project_name>>"
+                    "c": "@<project_name@>"
                 }
             ]
         }
@@ -31,10 +31,10 @@ code_block = [["",
                [["name", "build_project"],
                 ["lang", "bash"],
                 ["what_is_this", "blah"],
-                ["docker", "<<docker_container_name>>"],
+                ["docker", "@<docker_container_name@>"],
                 ["menu", "true"],
-                ["dir", "<<project_name>>"],
-                ["tangle", "<<project_name>>/main.c"]
+                ["dir", "@<project_name@>"],
+                ["tangle", "@<project_name@>/main.c"]
                 ]],
               "gcc --version"]
 
@@ -42,10 +42,10 @@ code_block_alt_syntax = [["",
                           ["python"],
                           [["name", "build_project"],
                            ["what_is_this", "blah"],
-                           ["docker", "<<docker_container_name>>"],
+                           ["docker", "@<docker_container_name@>"],
                            ["menu", "true"],
-                           ["dir", "<<project_name>>"],
-                           ["tangle", "<<project_name>>/main.c"]
+                           ["dir", "@<project_name@>"],
+                           ["tangle", "@<project_name@>/main.c"]
                            ]],
                          "gcc --version"]
 
@@ -53,10 +53,10 @@ code_block_alt_syntax2 = [["",
                            ["bash"],
                            [["name", "build_project"],
                             ["what_is_this", "blah"],
-                            ["docker", "<<docker_container_name>>"],
+                            ["docker", "@<docker_container_name@>"],
                             ["menu", "true"],
-                            ["dir", "<<project_name>>"],
-                            ["tangle", "<<project_name>>/main.c"]
+                            ["dir", "@<project_name@>"],
+                            ["tangle", "@<project_name@>/main.c"]
                             ]],
                           "gcc --version"]
 
@@ -64,10 +64,10 @@ code_block_alt_syntax3 = [["",
                            [],
                            [["name", "build_project"],
                             ["what_is_this", "blah"],
-                            ["docker", "<<docker_container_name>>"],
+                            ["docker", "@<docker_container_name@>"],
                             ["menu", "true"],
-                            ["dir", "<<project_name>>"],
-                            ["tangle", "<<project_name>>/main.c"]
+                            ["dir", "@<project_name@>"],
+                            ["tangle", "@<project_name@>/main.c"]
                             ]],
                           "gcc --version"]
 
@@ -129,25 +129,25 @@ code_block_2 = [["",
                    [],
                    [["name", "two"],
                     ]],
-                  "[This is the text from block one:<<one>>, wasn't that nice?]"]
+                  "[This is the text from block one:@<one@>, wasn't that nice?]"]
 
 code_block_2_1 = [["",
                    [],
                    [["name", "two_1"],
                     ]],
-                  "[This is the text from block one:<<one*>>, wasn't that nice?]"]
+                  "[This is the text from block one:@<one*@>, wasn't that nice?]"]
 
 code_block_2_sentences = [["",
                            [],
                            [["name", "two_sentences"],
                             ]],
-                          "This is sentence 1 - <<one>>\nThis is sentence 2 - <<one>>"]
+                          "This is sentence 1 - @<one@>\nThis is sentence 2 - @<one@>"]
 
 code_block_3 = [["",
                      [],
                      [["name", "three"],
                       ]],
-                    "[This is the text from block two:<<two>>, can you believe it?]"]
+                    "[This is the text from block two:@<two@>, can you believe it?]"]
 
 code_block_3_1 = [["",
                    [],
@@ -162,7 +162,7 @@ code_block_4 = [["",
                      ["menu", "true"],
                      ["dir", "."],
                      ]],
-                   'echo <<msg>>']
+                   'echo @<msg@>']
 
 code_block_5 = [["",
                     [],
@@ -171,7 +171,7 @@ code_block_5 = [["",
                      ["menu", "true"],
                      ["dir", "."],
                      ]],
-                   'print("I am python!! <<msg>>")']
+                   'print("I am python!! @<msg@>")']
 
 
 indent_2 = [["",
@@ -200,7 +200,7 @@ indent_4 = [["",
              [["name", "indent_4"],
               ]],
             """indent_block {
-    <<indent_3>>
+    @<indent_3@>
 }"""]
 
 indent_5 = [["",
@@ -219,7 +219,7 @@ indent_6 = [["",
              [["name", "indent_6"],
               ]],
             """indent_block {
-    // <<indent_5>>
+    // @<indent_5@>
 }"""]
 
 
@@ -324,23 +324,23 @@ def test_expand():
     assert txt == "[This is the text from block two:[This is the text from block one:[This is some text], wasn't that nice?], can you believe it?]"
 
     # test with args
-    txt = code_blocks.expand('<<three(two="asdf")>>')
+    txt = code_blocks.expand('@<three(two="asdf")@>')
     assert txt == "[This is the text from block two:asdf, can you believe it?]"
 
-    txt = code_blocks.expand('<<two(one="qwerty")>>')
+    txt = code_blocks.expand('@<two(one="qwerty")@>')
     assert txt == "[This is the text from block one:qwerty, wasn't that nice?]"
 
     # this one takes some work, worth doing in the future?
-    # txt = code_blocks.expand('<<three(one="asdf")>>')
+    # txt = code_blocks.expand('@<three(one="asdf")@>')
     # assert txt == "[This is the text from block two:[This is the text from block one:asdf, wasn't that nice?], can you believe it?]"
 
-    txt = code_blocks.expand('<<four*>>')
+    txt = code_blocks.expand('@<four*@>')
     assert txt == "this is great\n"
 
-    txt = code_blocks.expand('<<five*(msg="asdf")>>')
+    txt = code_blocks.expand('@<five*(msg="asdf")@>')
     assert txt == "I am python!! asdf\n"
 
-    txt = code_blocks.expand('<<two_sentences(one="<<three_lines>>")>>')
+    txt = code_blocks.expand('@<two_sentences(one="@<three_lines@>")@>')
     assert txt == """\
 This is sentence 1 - 1
 This is sentence 1 - 2
@@ -349,13 +349,13 @@ This is sentence 2 - 1
 This is sentence 2 - 2
 This is sentence 2 - 3"""
 
-    txt = code_blocks.expand('<<four*(msg="here is a msg")>>')
+    txt = code_blocks.expand('@<four*(msg="here is a msg")@>')
     assert txt == "here is a msg\n"
 
-    txt = code_blocks.expand('<<two_1(one="qwerty")>>')
+    txt = code_blocks.expand('@<two_1(one="qwerty")@>')
     assert txt == "[This is the text from block one:qwerty, wasn't that nice?]"
 
-    txt = code_blocks.expand('<<indent_4>>')
+    txt = code_blocks.expand('@<indent_4@>')
     assert txt == f"""indent_block {{
     one
         {""}
@@ -365,7 +365,7 @@ This is sentence 2 - 3"""
     four
 }}"""
 
-    txt = code_blocks.expand('<<indent_6>>')
+    txt = code_blocks.expand('@<indent_6@>')
     assert txt == f"""indent_block {{
     // one
     // {"    "}
@@ -375,13 +375,13 @@ This is sentence 2 - 3"""
     // four
 }}"""
 
-    txt = code_blocks.expand('---><<indent_2>><<one>><-----')
+    txt = code_blocks.expand('--->@<indent_2@>@<one@><-----')
     assert txt == """--->one[This is some text]<-----
 --->two[This is some text]<-----
 --->three[This is some text]<-----
 --->four[This is some text]<-----"""
 
-    txt = code_blocks.expand('a<<b>>c<<d>>e')  # this will cause an infinite loop if we do this wrong
+    txt = code_blocks.expand('a@<b@>c@<d@>e')  # this will cause an infinite loop if we do this wrong
     lines = txt.split("\n")
     assert len(lines) == 4
     assert "a1c3e" in lines
@@ -389,16 +389,16 @@ This is sentence 2 - 3"""
     assert "a2c3e" in lines
     assert "a2c4e" in lines
 
-    txt = code_blocks.expand('<<append>>')
+    txt = code_blocks.expand('@<append@>')
     assert txt == "1\n2\n3\n4"
 
-    txt = code_blocks.expand('<<code_dir>>')
+    txt = code_blocks.expand('@<code_dir@>')
     assert txt == "~/code"
 
-    txt = code_blocks.expand('<<project_name_recurse>>')
+    txt = code_blocks.expand('@<project_name_recurse@>')
     assert txt == ""
 
-    txt = code_blocks.expand('<<asdfasdfasdf>>')
+    txt = code_blocks.expand('@<asdfasdfasdf@>')
     assert txt == ""
 
     # testing that none of the no name block got appended, even though
@@ -415,10 +415,10 @@ def test_parse_block():
     assert cb.name == "build_project"
     assert cb.code == "gcc --version"
     assert cb.lang == "bash"
-    assert cb.cwd == "<<project_name>>"
-    assert cb.tangle_file == "<<project_name>>/main.c"
+    assert cb.cwd == "@<project_name@>"
+    assert cb.tangle_file == "@<project_name@>/main.c"
     assert cb.in_menu == True
-    assert cb.docker_container == "<<docker_container_name>>"
+    assert cb.docker_container == "@<docker_container_name@>"
 
 
 def test_parse_block_alt_syntax():
@@ -428,10 +428,10 @@ def test_parse_block_alt_syntax():
     assert cb.name == "build_project"
     assert cb.code == "gcc --version"
     assert cb.lang == "python"
-    assert cb.cwd == "<<project_name>>"
-    assert cb.tangle_file == "<<project_name>>/main.c"
+    assert cb.cwd == "@<project_name@>"
+    assert cb.tangle_file == "@<project_name@>/main.c"
     assert cb.in_menu == True
-    assert cb.docker_container == "<<docker_container_name>>"
+    assert cb.docker_container == "@<docker_container_name@>"
 
     cb = omd.CodeBlock()
     cb.parse(code_block_alt_syntax2)
@@ -439,10 +439,10 @@ def test_parse_block_alt_syntax():
     assert cb.name == "build_project"
     assert cb.code == "gcc --version"
     assert cb.lang == "bash"
-    assert cb.cwd == "<<project_name>>"
-    assert cb.tangle_file == "<<project_name>>/main.c"
+    assert cb.cwd == "@<project_name@>"
+    assert cb.tangle_file == "@<project_name@>/main.c"
     assert cb.in_menu == True
-    assert cb.docker_container == "<<docker_container_name>>"
+    assert cb.docker_container == "@<docker_container_name@>"
 
     cb = omd.CodeBlock()
     cb.parse(code_block_alt_syntax3)
@@ -450,10 +450,10 @@ def test_parse_block_alt_syntax():
     assert cb.name == "build_project"
     assert cb.code == "gcc --version"
     assert cb.lang == None
-    assert cb.cwd == "<<project_name>>"
-    assert cb.tangle_file == "<<project_name>>/main.c"
+    assert cb.cwd == "@<project_name@>"
+    assert cb.tangle_file == "@<project_name@>/main.c"
     assert cb.in_menu == True
-    assert cb.docker_container == "<<docker_container_name>>"
+    assert cb.docker_container == "@<docker_container_name@>"
 
 def test_parse_menu():
     assert omd.parse_menu_attrib("true") == True
@@ -507,28 +507,28 @@ def test_parse_arg_value():
     assert value == "val1 val2"
     assert txt == "name2=val2"
 
-    value, txt = omd.parse_arg_value('<<one>> name2=val2')
-    assert value == "<<one>>"
+    value, txt = omd.parse_arg_value('@<one@> name2=val2')
+    assert value == "@<one@>"
     assert txt == " name2=val2"
 
-    value, txt = omd.parse_arg_value('<<one(two="frog toads")>> name2=val2')
-    assert value == '<<one(two="frog toads")>>'
+    value, txt = omd.parse_arg_value('@<one(two="frog toads")@> name2=val2')
+    assert value == '@<one(two="frog toads")@>'
     assert txt == " name2=val2"
 
-    value, txt = omd.parse_arg_value('"<<one(two="frog toads")>> <<three>>" name2=val2')
-    assert value == '<<one(two="frog toads")>> <<three>>'
+    value, txt = omd.parse_arg_value('"@<one(two="frog toads")@> @<three@>" name2=val2')
+    assert value == '@<one(two="frog toads")@> @<three@>'
     assert txt == " name2=val2"
 
-    value, txt = omd.parse_arg_value("val1\\<< name2=val2")
-    assert value == "val1\\<<"
+    value, txt = omd.parse_arg_value("val1\\@< name2=val2")
+    assert value == "val1\\@<"
     assert txt == " name2=val2"
 
     value, txt = omd.parse_arg_value('val1\\" name2=val2')
     assert value == 'val1\\"'
     assert txt == " name2=val2"
 
-    value, txt = omd.parse_arg_value('val1\\>> name2=val2')
-    assert value == 'val1\\>>'
+    value, txt = omd.parse_arg_value('val1\\@> name2=val2')
+    assert value == 'val1\\@>'
     assert txt == " name2=val2"
 
 
@@ -589,9 +589,9 @@ def test_parse_arg_name_value():
     assert value == "val1 val2"
     assert txt == ""
 
-    name, value, txt = omd.parse_arg_name_value('name = "<<one(two = "blah blah")>> <<three>>" name2=asdf')
+    name, value, txt = omd.parse_arg_name_value('name = "@<one(two = "blah blah")@> @<three@>" name2=asdf')
     assert name == "name"
-    assert value == '<<one(two = "blah blah")>> <<three>>'
+    assert value == '@<one(two = "blah blah")@> @<three@>'
     assert txt == " name2=asdf"
 
 def test_parse_args():
@@ -653,23 +653,23 @@ def test_insert_blk():
 def test_get_match():
     test_data = [
         ['', False, '', False, '', ''],
-        ['<<one()[]>>', False, '', False, '', ''],
-        ['<<one()(>>', False, '', False, '', ''],
-        ['<<one(){>>', False, '', False, '', ''],
-        ['<<one)(>>', False, '', False, '', ''],
-        ['<<one(>>', False, '', False, '', ''],
-        ['<<one>>', True, 'one', False, '', ''],
-        ['<<one>>', True, 'one', False, '', ''],
-        ['<<one*>>', True, 'one', True, '', ''],
-        ['<<one(arg1="val1")>>', True, 'one', False, 'arg1="val1"', ''],
-        ['<<one*(arg1="val1")>>', True, 'one', True, 'arg1="val1"', ''],
-        ['<<one(){1}>>', True, 'one', False, '', '1'],
-        ['<<one*(){1}>>', True, 'one', True, '', '1'],
-        ['<<one*(){lots of stuff}>>', True, 'one', True, '', 'lots of stuff'],
-        ['<<one*(){<<two(){5}>>}>>', True, 'one', True, '', '<<two(){5}>>'],
-        ['<<one*(two="<<two(){5}>>")>>', True, 'one', True, 'two="<<two(){5}>>"', ''],
-        ['<<two_sentences(one="<<three_lines>>")>>', True, 'two_sentences', False, 'one="<<three_lines>>"', ''],
-        ['<<one*(two="<<three*>>")>>', True, 'one', True, 'two="<<three*>>"', ''],
+        ['@<one()[]@>', False, '', False, '', ''],
+        ['@<one()(@>', False, '', False, '', ''],
+        ['@<one(){@>', False, '', False, '', ''],
+        ['@<one)(@>', False, '', False, '', ''],
+        ['@<one(@>', False, '', False, '', ''],
+        ['@<one@>', True, 'one', False, '', ''],
+        ['@<one@>', True, 'one', False, '', ''],
+        ['@<one*@>', True, 'one', True, '', ''],
+        ['@<one(arg1="val1")@>', True, 'one', False, 'arg1="val1"', ''],
+        ['@<one*(arg1="val1")@>', True, 'one', True, 'arg1="val1"', ''],
+        ['@<one(){1}@>', True, 'one', False, '', '1'],
+        ['@<one*(){1}@>', True, 'one', True, '', '1'],
+        ['@<one*(){lots of stuff}@>', True, 'one', True, '', 'lots of stuff'],
+        ['@<one*(){@<two(){5}@>}@>', True, 'one', True, '', '@<two(){5}@>'],
+        ['@<one*(two="@<two(){5}@>")@>', True, 'one', True, 'two="@<two(){5}@>"', ''],
+        ['@<two_sentences(one="@<three_lines@>")@>', True, 'two_sentences', False, 'one="@<three_lines@>"', ''],
+        ['@<one*(two="@<three*@>")@>', True, 'one', True, 'two="@<three*@>"', ''],
     ]
     for test_datum in test_data:
         match = omd.get_match(test_datum[0])
@@ -685,53 +685,53 @@ def test_get_match():
             assert match["args"] == test_datum[4]
             assert match["default"] == test_datum[5]
 
-    match = omd.get_match("<<one>>asdf<<two>>")
+    match = omd.get_match("@<one@>asdf@<two@>")
     assert match is not None
     assert match["start"] == 0
-    assert match["end"] == len('<<one>>')
-    assert match["full"] == '<<one>>'
+    assert match["end"] == len('@<one@>')
+    assert match["full"] == '@<one@>'
     assert match["name"] == 'one'
     assert match["exec"] == False
     assert match["args"] == ''
 
-    match = omd.get_match("asdf<<one>>asdf")
+    match = omd.get_match("asdf@<one@>asdf")
     assert match is not None
     assert match["start"] == 4
-    assert match["end"] == 4 + len('<<one>>')
-    assert match["full"] == '<<one>>'
+    assert match["end"] == 4 + len('@<one@>')
+    assert match["full"] == '@<one@>'
     assert match["name"] == 'one'
     assert match["exec"] == False
     assert match["args"] == ''
 
-    match = omd.get_match("asdf<<one()>asdf")
+    match = omd.get_match("asdf@<one()>asdf")
     assert match is None
 
-    match = omd.get_match("<<one*>>asdf<<two*>>")
+    match = omd.get_match("@<one*@>asdf@<two*@>")
     assert match is not None
     assert match["start"] == 0
-    assert match["end"] == len('<<one*>>')
-    assert match["full"] == '<<one*>>'
+    assert match["end"] == len('@<one*@>')
+    assert match["full"] == '@<one*@>'
     assert match["name"] == 'one'
     assert match["exec"] == True
     assert match["args"] == ''
 
-    match = omd.get_match("asdf<<one*>>asdf")
+    match = omd.get_match("asdf@<one*@>asdf")
     assert match is not None
     assert match["start"] == 4
-    assert match["end"] == 4 + len('<<one*>>')
-    assert match["full"] == '<<one*>>'
+    assert match["end"] == 4 + len('@<one*@>')
+    assert match["full"] == '@<one*@>'
     assert match["name"] == 'one'
     assert match["exec"] == True
     assert match["args"] == ''
 
-    match = omd.get_match("asdf<<one*()>asdf")
+    match = omd.get_match("asdf@<one*()>asdf")
     assert match is None
 
-    match = omd.get_match("asdf<<asdf() asdf() asdf>>asdf<<asdf>>asdf")
+    match = omd.get_match("asdf@<asdf() asdf() asdf@>asdf@<asdf@>asdf")
     assert match is not None
     assert match["start"] == 30
-    assert match["end"] == 30 + len('<<asdf>>')
-    assert match["full"] == '<<asdf>>'
+    assert match["end"] == 30 + len('@<asdf@>')
+    assert match["full"] == '@<asdf@>'
     assert match["name"] == 'asdf'
     assert match["exec"] == False
     assert match["args"] == ''
@@ -864,8 +864,8 @@ def test_parse_args_str():
     args, txt = omd.parse_args_str('(aasfd')
     assert args == None
 
-    args, txt = omd.parse_args_str('(a=5 b=<<six>>)')
-    assert args == "a=5 b=<<six>>"
+    args, txt = omd.parse_args_str('(a=5 b=@<six@>)')
+    assert args == "a=5 b=@<six@>"
     assert txt == ""
 
     args, txt = omd.parse_args_str('(((())))')
@@ -891,15 +891,15 @@ def test_parse_default():
     assert default == "a"
     assert txt == ""
 
-    default, txt= omd.parse_default("{<<a>>}")
-    assert default == "<<a>>"
+    default, txt= omd.parse_default("{@<a@>}")
+    assert default == "@<a@>"
     assert txt == ""
 
     default, txt= omd.parse_default('{aasfd')
     assert default == None
 
-    default, txt= omd.parse_default("{<<a{5}>>}")
-    assert default == "<<a{5}>>"
+    default, txt= omd.parse_default("{@<a{5}@>}")
+    assert default == "@<a{5}@>"
     assert txt == ""
 
     default, txt= omd.parse_default('{{{{{{}}}}}}')
@@ -976,32 +976,32 @@ def test_parse_match():
     assert match["args"] == 'a=5 b=6'
     assert match["default"] == "lots of stuff"
 
-    match = omd.parse_match('one(){<<two(){5}>>}')
+    match = omd.parse_match('one(){@<two(){5}@>}')
     assert match is not None
     assert match["name"] == 'one'
     assert match["exec"] == False
     assert match["args"] == ''
-    assert match["default"] == "<<two(){5}>>"
+    assert match["default"] == "@<two(){5}@>"
 
-    match = omd.parse_match('one(two="<<two(){5}>>")')
+    match = omd.parse_match('one(two="@<two(){5}@>")')
     assert match is not None
     assert match["name"] == 'one'
     assert match["exec"] == False
-    assert match["args"] == 'two="<<two(){5}>>"'
+    assert match["args"] == 'two="@<two(){5}@>"'
     assert match["default"] == ""
 
-    match = omd.parse_match('two_sentences(one="<<three_lines>>")')
+    match = omd.parse_match('two_sentences(one="@<three_lines@>")')
     assert match is not None
     assert match["name"] == 'two_sentences'
     assert match["exec"] == False
-    assert match["args"] == 'one="<<three_lines>>"'
+    assert match["args"] == 'one="@<three_lines@>"'
     assert match["default"] == ""
 
-    match = omd.parse_match('two_sentences*(one="<<three_lines>>")')
+    match = omd.parse_match('two_sentences*(one="@<three_lines@>")')
     assert match is not None
     assert match["name"] == 'two_sentences'
     assert match["exec"] == True
-    assert match["args"] == 'one="<<three_lines>>"'
+    assert match["args"] == 'one="@<three_lines@>"'
     assert match["default"] == ""
 
     match = omd.parse_match('one(arg1="val1")')
@@ -1039,11 +1039,11 @@ def test_parse_match():
     assert match["args"] == ''
     assert match["default"] == ""
 
-    match = omd.parse_match('one*(two="<<three*>>")')
+    match = omd.parse_match('one*(two="@<three*@>")')
     assert match is not None
     assert match["name"] == 'one'
     assert match["exec"] == True
-    assert match["args"] == 'two="<<three*>>"'
+    assert match["args"] == 'two="@<three*@>"'
     assert match["default"] == ""
 
     match = omd.parse_match('one*(arg1="val1")')

@@ -1,11 +1,11 @@
 ---
 constants:
   code_dir: ~/code
-  project_name_recurse: <<project_name()>>
+  project_name_recurse: \@<project_name()@>
   docker_image_name: omarkdown-example
   docker_container_name: omarkdown-example1
   username: aard
-  project_name: /home/<\<username>>/code/organic-markdown/samples
+  project_name: /home/@<username@>/code/organic-markdown/samples
   copyright_year: 2024
   multi_word: 'one two three four               five'
 ---
@@ -14,7 +14,7 @@ constants:
 
 ## Mkdir
 ```{name="mkdir" lang="bash" menu="true"}
-mkdir -p <<project_name>>
+mkdir -p @<project_name@>
 ```
 
 ## Failed bash command
@@ -36,7 +36,7 @@ hello
 
 ```{name="copyright-c" lang="C"}
 /*
-  Copyright <<copyright_year>> Adam Ard
+  Copyright @<copyright_year@> Adam Ard
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -53,7 +53,7 @@ hello
 ```
 
 ```Dockerfile {name="copyright-dockerfile"}
-#  Copyright <<copyright_year>> Adam Ard
+#  Copyright @<copyright_year@> Adam Ard
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -70,8 +70,8 @@ hello
 
 ## Dockerfile
 
-```Dockerfile {tangle=<<project_name>>/Dockerfile}
-<<copyright-dockerfile>>
+```Dockerfile {tangle=@<project_name@>/Dockerfile}
+@<copyright-dockerfile@>
 
 FROM ubuntu:22.04
 
@@ -82,70 +82,70 @@ RUN apt-get update && \
     cmake \
     build-essential
 
-RUN useradd -ms /bin/bash <<username>>
-USER <<username>>
-WORKDIR /home/<<username>>
+RUN useradd -ms /bin/bash @<username@>
+USER @<username@>
+WORKDIR /home/@<username@>
 ```
 
 ## Docker Shell
 
 ```{name="shell" lang="bash" menu="true"}
-docker exec -it <<docker_container_name>> /bin/bash
+docker exec -it @<docker_container_name@> /bin/bash
 ```
 
 ## Docker Build
 
-```{name="build_container" lang="bash" menu="true" dir=<<project_name>>}
-docker build -t <<docker_image_name>> .
+```{name="build_container" lang="bash" menu="true" dir=@<project_name@>}
+docker build -t @<docker_image_name@> .
 ```
 
 ## Start Docker Container
 
 ```{name="start_container" lang="bash" menu="true" dir="."}
-docker run --rm --name <<docker_container_name>> -d \
+docker run --rm --name @<docker_container_name@> -d \
        -v ${PWD}:${PWD} \
-       <<docker_image_name>> \
+       @<docker_image_name@> \
        tail -f /dev/null
 ```
 
 ## Stop Docker Container
 
 ```{name="stop_container" lang="bash" menu="true"}
-docker stop <<docker_container_name>>
+docker stop @<docker_container_name@>
 ```
 
 ## Run something in the container
 
 ```bash {name="in container" menu=true}
-<<docker(txt=<<dir(txt=<<lang.bash(txt=<<in_cont>>)>> cwd=<<project_name>>)>> cont=<<docker_container_name>>)>>
+@<docker(txt=@<dir(txt=@<lang.bash(txt=@<in_cont@>)@> cwd=@<project_name@>)@> cont=@<docker_container_name@>)@>
 ```
 
 ^ This works the same as this (except above does line pre-post fixing):
 
-```bash {name="in_cont" dir=<<project_name>> docker=<<docker_container_name>> menu=true}
+```bash {name="in_cont" dir=@<project_name@> docker=@<docker_container_name@> menu=true}
 hostname
 pwd
-ls -al <<project_name>>
+ls -al @<project_name@>
 ```
 
 ## Run something outside a container
 
-```bash {name="out container" menu="true" dir=<<project_name>>}
+```bash {name="out container" menu="true" dir=@<project_name@>}
 hostname
 pwd
-ls -al <<project_name>>
+ls -al @<project_name@>
 ```
 
 ## Run something with a name with spaces in it
 ```{name="call_spaces"}
-<<out container*>>
+@<out container*@>
 ```
 
 ## Build
 
 To build this project
 
-```{name="build_project" lang="bash" menu="true" docker=<<docker_container_name>> dir=<<project_name>>}
+```{name="build_project" lang="bash" menu="true" docker=@<docker_container_name@> dir=@<project_name@>}
 gcc main.c
 ```
 
@@ -153,7 +153,7 @@ gcc main.c
 
 Run this project
 
-```{name="run_project" lang="bash" menu="true" docker=<<docker_container_name>> dir=<<project_name>>}
+```{name="run_project" lang="bash" menu="true" docker=@<docker_container_name@> dir=@<project_name@>}
 ./a.out
 ```
 
@@ -162,8 +162,8 @@ Run this project
 
 Print x, num times
 ```{name="print_x_num_times" lang="python"}
-for i in range(<<num>>):
-    print(<<x>>)
+for i in range(@<num@>):
+    print(@<x@>)
 ```
 
 ```{name="test_indent" lang="C"}
@@ -173,13 +173,13 @@ printf("testing\n");
 ```
 
 ```{name="test_nesting" lang="C"}
-printf("<<testing_nesting_inner>>-1\n");
+printf("@<testing_nesting_inner@>-1\n");
 
-printf("<<testing_nesting_inner>>-2\n");
+printf("@<testing_nesting_inner@>-2\n");
 
-printf("<<testing_nesting_inner>>-3\n");
+printf("@<testing_nesting_inner@>-3\n");
 
-printf("<<testing_nesting_inner>>-5\n");
+printf("@<testing_nesting_inner@>-5\n");
 ```
 
 ```{name="testing_nesting_inner" lang="C"}
@@ -196,8 +196,8 @@ begin->
 ```
 
 ```{name="test_exec" lang="bash" menu="true" dir="."}
-for i in $(seq 1 <<num>>); do
-  echo "<<msg>> $i <<msg2>>"
+for i in $(seq 1 @<num@>); do
+  echo "@<msg@> $i @<msg2@>"
 done
 ```
 
@@ -221,18 +221,18 @@ print(f"Here goes nothing {testing} 2")
 
 ## Test Main
 
-```C {tangle=<<project_name>>/main.c}
-<<copyright-c(copyright_year="2014", more="asdf",even_more="qwerty")>>
+```C {tangle=@<project_name@>/main.c}
+@<copyright-c(copyright_year="2014", more="asdf",even_more="qwerty")@>
 
-#include <<includes>>
+#include @<includes@>
 
 void main()
 {
     printf("Hello Organic Markdown World\n");
-    <<test_nesting>>
+    @<test_nesting@>
     /*
-     *  <<test_nesting>>
+     *  @<test_nesting@>
      */
-    // <<test_exec*(msg="wonderful->", num="15")>>
+    // @<test_exec*(msg="wonderful->", num="15")@>
 }
 ```
