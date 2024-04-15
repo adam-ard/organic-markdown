@@ -42,7 +42,7 @@ with a single file called `LIT.md` and put the following contents in
 it:
 
 LIT.md
-`````markdown
+``````markdown
 # Simple command
 
 This is a organic markdown test file. To create a notebook style command,
@@ -51,7 +51,7 @@ create a code bock with some simple bash code in it:
 ```bash {name=pwd menu=true}
 pwd
 ```
-`````
+``````
 
 
 In your `LIT.md` file, you have created an executable code block. An
@@ -80,11 +80,11 @@ omd run pwd
 You should see the output of the `pwd` bash command. To run this
 command in another directory, simply add the dir attribute:
 
-`````markdown
+``````markdown
 ```bash {name=pwd menu=true dir=/var/log}
 pwd
 ```
-`````
+``````
 
 and run `omd run pwd` again. You should now get `/var/log` as output,
 since the bash command was now executed in that directory. Also of
@@ -102,7 +102,7 @@ provides more traditional literate programming with weaving and
 tangling. For example, you can write (tangle) a file by adding a
 `tangle` attribute to a code block:
 
-`````markdown
+``````markdown
 # An example script file
 
 ```bash {name=script_file tangle=test.sh}
@@ -110,7 +110,7 @@ tangling. For example, you can write (tangle) a file by adding a
 
 echo "This is a bash script"
 ```
-`````
+``````
 
 To write the file, run:
 
@@ -148,13 +148,13 @@ listed in your markdown file. This makes for a handy command to run
 automatically in your editor everytime you save your markdown file. To
 create a command to test your script add:
 
-`````markdown
+``````markdown
 # To run your script
 
 ```bash {name=script menu=true}
 bash test.sh
 ```
-`````
+``````
 
 Then you can run:
 
@@ -177,7 +177,7 @@ chunks alongside the documentation.
 
 Here is a more complete example to demonstrate how `omd` refs work.
 
-`````markdown
+``````markdown
 # Say Hello
 
 Say Hello is a simple c program that says hello. First we start with a
@@ -202,7 +202,7 @@ gcc main.c
 ./a.out
 ```
 
-`````
+``````
 
 
 Now you can run:
@@ -214,7 +214,7 @@ omd tangle && omd run build && omd run app
 And you should see the word: `Hello` in your terminal. Now we'll add
 some refs to make a simple outline or scaffolding for our main file:
 
-`````markdown
+``````markdown
 # Say Hello
 
 Say Hello is a simple c program that says hello. We start with an **outline**
@@ -252,7 +252,7 @@ gcc main.c
 ```bash {name=app menu=true}
 ./a.out
 ```
-`````
+``````
 
 In this version we have add two references: `@<includes@>` and
 `@<main@>`. When `omd` tangles `main.c` it will go and find any code
@@ -273,7 +273,7 @@ right place. Now lets add some more code, and confirm that it goes in
 the right places as well. Add the follow section right before the
 `Build/Run Program` section:
 
-`````markdown
+``````markdown
 # Code for saying hello, a second way
 
 In order to get the time, we need to include:
@@ -290,7 +290,7 @@ struct tm *tm = localtime(&t);
 
 printf("Hello it's %s\n", ctime(&t));
 ```
-`````
+``````
 
 now run:
 
@@ -323,7 +323,7 @@ you built above for any source files with main in it, you can pull this
 code block (and some explanation) into it's own file, and call it
 `main_template.md`:
 
-`````markdown
+``````markdown
 # A template for main
 
 A reusable template for any file that has a main in it:
@@ -336,12 +336,12 @@ void main()
     @<main@>
 }
 ```
-`````
+``````
 
 Then you can use the template in another file in the same directory,
 like this:
 
-`````markdown
+``````markdown
 # Say Hello
 
 'Say Hello' is a simple c program that says hello. Here is our simple main:
@@ -364,7 +364,7 @@ Following is code to say hello:
 ```C {name="hello_main"}
 printf("Hello\n");
 ```
-`````
+``````
 
 You can easily imagine doing this for a header files, and non-main
 source files as well. This makes creating new files -- that all stay
@@ -378,7 +378,7 @@ constants for short snippets that don't have any attributes except a
 name. This makes your files more concise. For example, you may want to
 reference a project name or version in your source code:
 
-`````markdown
+``````markdown
 ---
 constants:
   project_name: Hello-Example-Project
@@ -407,24 +407,7 @@ Following is code to say hello:
 ```C {name="hello_main"}
 printf("@<project_name@>: @<version@>: Hello\n");
 ```
-`````
-
-# defaults
-
-Each literate ref can also have a default value in case that
-particular ref is not define anywhere. Say we never set the version or
-project_name. We can specify a default placeholder:
-
-`````markdown
-# Say Hello
-
-Say Hello is a simple c program that says hello. Here is our simple main:
-
-```C {tangle=main.c}
-@<main_template(includes=@<hello_includes@>
-                main=@<hello_main@>)@>
-```
-
+``````
 
 ## Note:
 
@@ -436,6 +419,24 @@ constants:
 ```
 
 yaml doesn't like the `@` being the first char in the value field.
+
+
+# defaults
+
+Each literate ref can also have a default value in case that
+particular ref is not define anywhere. Say we never set the version or
+project_name. We can specify a default placeholder:
+
+``````markdown
+# Say Hello
+
+Say Hello is a simple c program that says hello. Here is our simple main:
+
+```C {tangle=main.c}
+@<main_template(includes=@<hello_includes@>
+                main=@<hello_main@>)@>
+```
+
 
 # Code for saying hello
 
@@ -450,7 +451,7 @@ Following is code to say hello:
 ```C {name="hello_main"}
 printf("@<project_name{undefined}@>: @<version{0.0.0}@>: Hello\n");
 ```
-`````
+``````
 
 Then when you run, you should get this output:
 
@@ -468,7 +469,7 @@ your literate programming. Let say you would like to print the
 architecture of the machine that you are building your app on. You can
 do this:
 
-`````markdown
+``````markdown
 ```bash {name=arch menu=true}
 echo -n `uname -m`   # use echo -n to strip off the newline for the substition
 ```
@@ -478,7 +479,7 @@ Following is code to say hello:
 ```C {name="hello_main"}
 printf("Hello from my: @<arch*@>\n");
 ```
-`````
+``````
 
 Adding a '*' to any ref name means: substitute the results of running
 this code block. When I run this on my machine, I get this output:
