@@ -544,6 +544,8 @@ if __name__ == '__main__':
             code_blocks.run_block_fn(sys.argv[2], CodeBlock.info)
         elif sys.argv[1] == "origin":
             code_blocks.run_block_fn(sys.argv[2], CodeBlock.origin)
+        elif sys.argv[1] == "expand":
+            print(code_blocks.expand(sys.argv[2]))
 
     elif len(sys.argv) == 2:
         if sys.argv[1] == "tangle":
