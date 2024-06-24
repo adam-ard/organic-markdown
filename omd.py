@@ -327,7 +327,7 @@ class CodeBlock:
             return
 
         output = subprocess.run(cmd, capture_output=True, shell=True)
-        return output.stdout.decode("utf-8").strip()
+        return output.stdout.decode("utf-8")
 
     def tangle(self):
         if self.tangle_file is not None:
@@ -474,9 +474,6 @@ class CodeBlocks:
         return max
 
     def intersperse(self, sections):
-        if len(sections) > 0 and sections[-1] == "":
-            return self.intersperse(sections[:-1])
-
         out = []
         max_lines = self.get_max_lines(sections)
         for i in range(max_lines):
@@ -500,12 +497,10 @@ class CodeBlocks:
         while True:
             match = get_match(txt)
             if match is None:
-                if txt != "":
-                    out.append(txt)
+                out.append(txt)
                 break
 
-            if txt[:match["start"]] != "":
-                out.append(txt[:match["start"]])
+            out.append(txt[:match["start"]])
 
             name = match["name"]
             new_args = parse_args(match["args"])
