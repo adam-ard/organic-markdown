@@ -472,45 +472,59 @@ class CodeBlocks:
                 return block
         return None
 
-    def insert_blk(self, txt, blk_txt, start, end, args={}):
-        lbreak = txt.rfind("\n", 0, start)
-        rbreak = txt.find("\n", end)
-        if rbreak == -1:
-            rbreak = len(txt)
+    def get_max_lines(self, sections):
+        max = 0
+        for s in sections:
+            num_lines = s.split("\n")
+            if len(num_lines) > max:
+                max = len(num_lines)
+        return max
 
-        pre_post = add_pre_post(self.expand(blk_txt, args), txt[lbreak + 1 : start], txt[end : rbreak])
-        return txt[:lbreak + 1] + pre_post + txt[rbreak:]
+    def intersperse(self, sections):
+        out = []
+        max_lines = self.get_max_lines(sections)
+        for i in range(max_lines):
+            line = ""
+            for s in sections:
+                lines = s.split('\n')
+                if i < len(lines):
+                    line += lines[i]
+                else:
+                    line += lines[-1]
+            out.append(line)
+        return "\n".join(out)
 
-    def replace_match(self, txt, match, args, new_args):
-        def fn(replace_txt):
-            return self.expand(self.insert_blk(txt,
-                                               replace_txt,
-                                               match["start"],
-                                               match["end"], args | new_args),
-                               args)
-        return fn
-
-    # TODO handle errors for parse_args
     def expand(self, txt, args={}):
-        match = get_match(txt)
-        if match is None:    # base case, exit point for the recursion
-            return txt
+        return "\n".join(
+            [self.expand_line(x, args) for x in txt.split('\n')]
+        )
 
-        name = match["name"]
-        new_args = parse_args(match["args"])
-        replace_fn = self.replace_match(txt, match, args, new_args)
+    def expand_line(self, txt, args={}):
+        out = []
+        while True:
+            match = get_match(txt)
+            if match is None:
+                out.append(txt)
+                break
 
-        if args is not None and name in args:
-            return replace_fn(args[name])
+            name = match["name"]
+            new_args = parse_args(match["args"])
+            out.append(txt[:match["start"]])
+            blk = self.get_code_block(name)
 
-        blk = self.get_code_block(name)
-        if blk is None:
-            return replace_fn(match["default"])   # if block doesn't exist, use default
+            # if there is an argument passed in with that name, replace with that.
+            if args is not None and name in args:
+                out.append(self.expand(args[name], args | new_args))
+            elif blk is None:
+                out.append(self.expand(match["default"], args | new_args))   # if block doesn't exist, use default
+            # replace ref with the result of running the command
+            elif match["exec"]:
+                out.append(self.expand(blk.run_return_results(args | new_args), args | new_args))
+            else:
+                out.append(self.expand(blk.code, args | new_args))
+            txt = txt[match["end"]:]
 
-        if match["exec"]:
-            return replace_fn(blk.run_return_results(args | new_args))
-
-        return replace_fn(blk.code)
+        return self.intersperse(out)
 
     def run_block_fn(self, identifier, fn):
         block = None
