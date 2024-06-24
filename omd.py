@@ -504,12 +504,15 @@ class CodeBlocks:
         while True:
             match = get_match(txt)
             if match is None:
-                out.append(txt)
+                if txt != "":
+                    out.append(txt)
                 break
+
+            if txt[:match["start"]] != "":
+                out.append(txt[:match["start"]])
 
             name = match["name"]
             new_args = parse_args(match["args"])
-            out.append(txt[:match["start"]])
             blk = self.get_code_block(name)
 
             # if there is an argument passed in with that name, replace with that.
