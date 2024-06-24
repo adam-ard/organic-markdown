@@ -335,10 +335,10 @@ def test_expand():
     # assert txt == "[This is the text from block two:[This is the text from block one:asdf, wasn't that nice?], can you believe it?]"
 
     txt = code_blocks.expand('@<four*@>')
-    assert txt == "this is great\n"
+    assert txt == "this is great"
 
     txt = code_blocks.expand('@<five*(msg="asdf")@>')
-    assert txt == "I am python!! asdf\n"
+    assert txt == "I am python!! asdf"
 
     txt = code_blocks.expand('@<two_sentences(one="@<three_lines@>")@>')
     assert txt == """\
@@ -350,7 +350,7 @@ This is sentence 2 - 2
 This is sentence 2 - 3"""
 
     txt = code_blocks.expand('@<four*(msg="here is a msg")@>')
-    assert txt == "here is a msg\n"
+    assert txt == "here is a msg"
 
     txt = code_blocks.expand('@<two_1(one="qwerty")@>')
     assert txt == "[This is the text from block one:qwerty, wasn't that nice?]"
