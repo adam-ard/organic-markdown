@@ -327,7 +327,14 @@ class CodeBlock:
             return
 
         output = subprocess.run(cmd, capture_output=True, shell=True)
-        return output.stdout.decode("utf-8").strip()
+        out_decode = output.stdout.decode("utf-8")
+
+        # remove at most one newline, it one exists at the end of the output
+        if len(out_decode) > 0 and out_decode[-1] == "\n":
+            out_decode = out_decode[:-1]
+
+        return out_decode
+
 
     def tangle(self):
         if self.tangle_file is not None:
