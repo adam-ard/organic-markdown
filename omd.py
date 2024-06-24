@@ -475,7 +475,7 @@ class CodeBlocks:
 
     def intersperse(self, sections):
         if len(sections) > 0 and sections[-1] == "":
-            sections = sections[:-1]
+            return self.intersperse(sections[:-1])
 
         out = []
         max_lines = self.get_max_lines(sections)
