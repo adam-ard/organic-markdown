@@ -167,13 +167,6 @@ def parse_match(txt):
             "args": args,
             "default": default.strip('"')}
 
-def add_pre_post(code, prefix, postfix):
-    lines = code.split('\n')
-    for i, line in enumerate(lines):
-        lines[i] = prefix + line + postfix
-
-    return '\n'.join(lines)
-
 def eat_ws(txt):
     return txt.lstrip()
 
@@ -481,6 +474,9 @@ class CodeBlocks:
         return max
 
     def intersperse(self, sections):
+        if len(sections) > 0 and sections[-1] == "":
+            sections = sections[:-1]
+
         out = []
         max_lines = self.get_max_lines(sections)
         for i in range(max_lines):

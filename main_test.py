@@ -613,25 +613,6 @@ def test_parse_args():
                                       "name": "myFunc",
                                       "args": "char *filename, float two"}
 
-def test_add_pre_post():
-    assert omd.add_pre_post("word", "---->", "<----") == "---->word<----"
-    assert omd.add_pre_post("word", "", "") == "word"
-    assert omd.add_pre_post("""one
-two
-three
-four""", "---->", "<----") == """---->one<----
----->two<----
----->three<----
----->four<----"""
-
-    assert omd.add_pre_post("""one
-two
-three
-four""", "", "") == """one
-two
-three
-four"""
-
 def test_get_match():
     test_data = [
         ['', False, '', False, '', ''],
