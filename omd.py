@@ -490,7 +490,7 @@ class CodeBlocks:
                 if i < len(lines):
                     line += lines[i]
                 else:
-                    line += lines[-1]
+                    line += lines[-1]   # just repeat the last entry until we need something more
             out.append(line)
         return "\n".join(out)
 
