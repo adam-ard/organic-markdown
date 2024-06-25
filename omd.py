@@ -13,6 +13,22 @@ languages = ["bash", "python"]
 o_sym = "@<"
 c_sym = "@>"
 
+def split_lines(txt):
+    new_lines = [""]
+    lines = txt.split('\n')
+
+    j = 0
+    for i, line in enumerate(lines):
+        if len(line) > 0 and line[-1:] == "\\":
+            new_lines[j] += line[:-1]
+        else:
+            new_lines[j] += line
+            if i < len(lines) - 1:  # don't add if it is the last one
+                new_lines.append("")
+                j+=1
+
+    return new_lines
+
 # returns match (or None if there isn't one) and whether or not it is
 #  string replacement or results of a string execution replacement. It
 #  will return matches in a left to right order
@@ -496,7 +512,7 @@ class CodeBlocks:
 
     def expand(self, txt, args={}):
         return "\n".join(
-            [self.expand_line(x, args) for x in txt.split('\n')]
+            [self.expand_line(x, args) for x in split_lines(txt)]
         )
 
     def expand_line(self, txt, args={}):

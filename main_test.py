@@ -330,10 +330,6 @@ def test_expand():
     txt = code_blocks.expand('@<two(one="qwerty")@>')
     assert txt == "[This is the text from block one:qwerty, wasn't that nice?]"
 
-    # this one takes some work, worth doing in the future?
-    # txt = code_blocks.expand('@<three(one="asdf")@>')
-    # assert txt == "[This is the text from block two:[This is the text from block one:asdf, wasn't that nice?], can you believe it?]"
-
     txt = code_blocks.expand('@<four*@>')
     assert txt == "this is great"
 
@@ -387,6 +383,13 @@ This is sentence 2 - 3"""
     assert "a1c3e" in lines
     assert "a2c4e" in lines
 
+    # multi-line
+    txt = code_blocks.expand("a@<b@>\\\nc@<d@>e")
+    lines = txt.split("\n")
+    assert len(lines) == 2
+    assert "a1c3e" in lines
+    assert "a2c4e" in lines
+
     txt = code_blocks.expand('@<append@>')
     assert txt == "1\n2\n3\n4"
 
@@ -405,6 +408,25 @@ This is sentence 2 - 3"""
     assert code_blocks.get_code_block_by_code("no_name_2") is not None
     assert code_blocks.get_code_block_by_code("no_name_3") is not None
     assert code_blocks.get_code_block_by_code("no_name_4") is not None
+
+def test_split_lines():
+    res = omd.split_lines("test")
+    assert res == ["test"]
+
+    res = omd.split_lines("test\ntest")
+    assert res == ["test", "test"]
+
+    res = omd.split_lines("test\\\ntest")
+    assert res == ["testtest"]
+
+    res = omd.split_lines("A\\\nB\\\nC")
+    assert res == ["ABC"]
+
+    res = omd.split_lines("A\\\nB\\\nC\n")
+    assert res == ["ABC", ""]
+
+    res = omd.split_lines("A\\\nB\nC\n")
+    assert res == ["AB", "C", ""]
 
 def test_parse_block():
     cb = omd.CodeBlock()

@@ -12,6 +12,18 @@ constants:
 
 # This is an Organic Markdown file
 
+``` {name=multiline-ref}
+This is @<one@> thing that I said.
+This is another: @<two@>.
+And this: @<three@>
+```
+
+``` {name=multiline-test}
+@<multiline-ref(one=1 \
+                two=2 \
+                three=3)@>
+```
+
 ## Mkdir
 ```{name="mkdir" lang="bash" menu="true"}
 mkdir -p @<project_name@>
@@ -30,6 +42,14 @@ ls LIT.md
 ## Append
 ``` {name="copyright_year"}
 hello
+```
+
+```{name=msg1}
+this is great
+```
+
+```bash {name=four menu=true dir="."}
+echo @<msg1@>
 ```
 
 ## Copyright Notice
