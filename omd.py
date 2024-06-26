@@ -577,8 +577,7 @@ class CodeBlocks:
             return
 
         res = fn(block)
-        if res != None:
-            exit(res)
+        print(res)
 
     def run_all_blocks_fn(self, fn):
         for block in self.code_blocks:
