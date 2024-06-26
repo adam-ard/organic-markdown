@@ -384,11 +384,8 @@ This is sentence 2 - 3"""
     assert "a2c4e" in lines
 
     # multi-line
-    txt = code_blocks.expand("a@<b@>\\\nc@<d@>e")
-    lines = txt.split("\n")
-    assert len(lines) == 2
-    assert "a1c3e" in lines
-    assert "a2c4e" in lines
+    txt = code_blocks.expand("a@<three(two=\n2)@>b")
+    assert "a[This is the text from block two:2, can you believe it?]b"
 
     txt = code_blocks.expand('@<append@>')
     assert txt == "1\n2\n3\n4"
@@ -416,17 +413,9 @@ def test_split_lines():
     res = omd.split_lines("test\ntest")
     assert res == ["test", "test"]
 
-    res = omd.split_lines("test\\\ntest")
-    assert res == ["testtest"]
+    res = omd.split_lines("A@<B(a=1\nb=2)@>\nC\nD")
+    assert res == ["A@<B(a=1\nb=2)@>", "C", "D"]
 
-    res = omd.split_lines("A\\\nB\\\nC")
-    assert res == ["ABC"]
-
-    res = omd.split_lines("A\\\nB\\\nC\n")
-    assert res == ["ABC", ""]
-
-    res = omd.split_lines("A\\\nB\nC\n")
-    assert res == ["AB", "C", ""]
 
 def test_parse_block():
     cb = omd.CodeBlock()

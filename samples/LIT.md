@@ -19,8 +19,8 @@ And this: @<three@>
 ```
 
 ``` {name=multiline-test}
-@<multiline-ref(one=1 \
-                two=2 \
+@<multiline-ref(one=1
+                two=2
                 three=3)@>
 ```
 
