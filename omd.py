@@ -596,18 +596,6 @@ if __name__ == '__main__':
         if words[0] == "exit":
             break;
 
-        if len(words) == 2:
-            if words[0] == "tangle":
-                code_blocks.run_block_fn(words[1], CodeBlock.tangle)
-            elif words[0] == "run":
-                code_blocks.run_block_fn(words[1], CodeBlock.run)
-            elif words[0] == "info":
-                code_blocks.run_block_fn(words[1], CodeBlock.info)
-            elif words[0] == "origin":
-                code_blocks.run_block_fn(words[1], CodeBlock.origin)
-            elif words[0] == "expand":
-                print(code_blocks.expand(words[1]))
-
         if len(words) == 1:
             if words[0] == "status":
                 code_blocks.print_summary()
@@ -615,5 +603,26 @@ if __name__ == '__main__':
                 code_blocks.run_all_blocks_fn(CodeBlock.tangle)
             elif words[0] == "info":
                 code_blocks.run_all_blocks_fn(CodeBlock.info)
+            elif words[0] == "reload":
+                code_blocks = CodeBlocks()
+                code_blocks.parse()
+                print("code reloaded")
+
+        elif len(words) > 1:
+            rest = " ".join(words[1:])
+
+            if words[0] == "tangle":
+                code_blocks.run_block_fn(rest, CodeBlock.tangle)
+            elif words[0] == "run":
+                code_blocks.run_block_fn(rest, CodeBlock.run)
+            elif words[0] == "info":
+                code_blocks.run_block_fn(rest, CodeBlock.info)
+            elif words[0] == "origin":
+                code_blocks.run_block_fn(rest, CodeBlock.origin)
+            elif words[0] == "expand":
+                print(code_blocks.expand(rest))
+
+        else:
+            print(f"Unknown command: {cmd}")
 
     print("Thanks for playing")
