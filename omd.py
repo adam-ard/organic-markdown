@@ -583,45 +583,57 @@ class CodeBlocks:
         for block in self.code_blocks:
             fn(block)
 
-if __name__ == '__main__':
-    code_blocks = CodeBlocks()
-    code_blocks.parse()
-
-    while True:
-        cmd = input("> ")
-
-        words = cmd.split(" ")
-
-        if words[0] == "exit":
-            break;
-
+    def handle_cmd(self, words):
         if len(words) == 1:
             if words[0] == "status":
-                code_blocks.print_summary()
+                self.print_summary()
             if words[0] == "tangle":
-                code_blocks.run_all_blocks_fn(CodeBlock.tangle)
+                self.run_all_blocks_fn(CodeBlock.tangle)
             elif words[0] == "info":
-                code_blocks.run_all_blocks_fn(CodeBlock.info)
-            elif words[0] == "reload":
-                code_blocks = CodeBlocks()
-                code_blocks.parse()
-                print("code reloaded")
+                self.run_all_blocks_fn(CodeBlock.info)
+            else:
+                print(f"unknown command: {words[0]}")
 
         elif len(words) > 1:
             rest = " ".join(words[1:])
 
             if words[0] == "tangle":
-                code_blocks.run_block_fn(rest, CodeBlock.tangle)
+                self.run_block_fn(rest, CodeBlock.tangle)
             elif words[0] == "run":
-                code_blocks.run_block_fn(rest, CodeBlock.run)
+                self.run_block_fn(rest, CodeBlock.run)
             elif words[0] == "info":
-                code_blocks.run_block_fn(rest, CodeBlock.info)
+                self.run_block_fn(rest, CodeBlock.info)
             elif words[0] == "origin":
-                code_blocks.run_block_fn(rest, CodeBlock.origin)
+                self.run_block_fn(rest, CodeBlock.origin)
             elif words[0] == "expand":
-                print(code_blocks.expand(rest))
+                print(self.expand(rest))
+            else:
+                print(f"unknown command: {' '.join(words)}")
 
         else:
-            print(f"Unknown command: {cmd}")
+            print("missing cmd")
 
-    print("Thanks for playing")
+
+if __name__ == '__main__':
+    code_blocks = CodeBlocks()
+    code_blocks.parse()
+
+    if len(sys.argv) > 1:
+        code_blocks.handle_cmd(sys.argv[1:])
+
+    else:
+        while True:
+            cmd = input("> ")
+
+            words = cmd.split(" ")
+
+            if words[0] == "exit":
+                break
+
+            if words[0] == "reload":
+                code_blocks = CodeBlocks()
+                code_blocks.parse()
+                print("code reloaded")
+                break
+
+            code_blocks.handle_cmd(words)
