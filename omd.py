@@ -587,7 +587,7 @@ class CodeBlocks:
         if len(words) == 1:
             if words[0] == "status":
                 self.print_summary()
-            if words[0] == "tangle":
+            elif words[0] == "tangle":
                 self.run_all_blocks_fn(CodeBlock.tangle)
             elif words[0] == "info":
                 self.run_all_blocks_fn(CodeBlock.info)
