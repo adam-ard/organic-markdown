@@ -387,6 +387,8 @@ class CodeBlock:
 
     def parse(self, the_json):
         self.code = the_json[1]
+        if self.code is not None and len(self.code) > 0:
+            self.code = self.code.replace(o_sym + "br" + c_sym, "\n")
 
         for attrib in the_json[0][1]:
             if attrib in languages:

@@ -155,6 +155,13 @@ code_block_3_1 = [["",
                     ]],
                   "this is great"]
 
+code_block_3_2 = [["",
+                   [],
+                   [["name", "br-test"],
+                    ]],
+                  "this should @<br@> be two lines"]
+
+
 code_block_4 = [["",
                     [],
                     [["name", "four"],
@@ -294,6 +301,9 @@ full_file = {"blocks": [{"t": "",
                          "c": code_block_3_1
                          },
                         {"t": "CodeBlock",
+                         "c": code_block_3_2
+                         },
+                        {"t": "CodeBlock",
                          "c": code_block_5
                          },
                         {"t": "CodeBlock",
@@ -322,6 +332,9 @@ def test_expand():
 
     txt = code_blocks.expand(blk.code)
     assert txt == "[This is the text from block two:[This is the text from block one:[This is some text], wasn't that nice?], can you believe it?]"
+
+    txt = code_blocks.expand('@<br-test@>')
+    assert txt == "this should \n be two lines"
 
     # test with args
     txt = code_blocks.expand('@<three(two="asdf")@>')
