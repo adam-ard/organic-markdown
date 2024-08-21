@@ -59,14 +59,16 @@ organic markdown code block has a language attribute followed by curly
 bracket delimited attributes. Notice that we have given the block a name, and set
 its menu attribute to true.
 
-Now when you run `omd` in the same directory as your `LIT.md` file,
+Now when you run `omd status` in the same directory as your `LIT.md` file,
 you should see something like this:
 
 ```
-Commands:
-    0. pwd
+Available commands:
+  (use "omd run <cmd>" to execute the command)
+    pwd
 
-Files:
+Output files:
+  (use "omd tangle" to generate output files)
 ```
 
 You have one command available (the `pwd` command you just created)
@@ -87,13 +89,7 @@ pwd
 ``````
 
 and run `omd run pwd` again. You should now get `/var/log` as output,
-since the bash command was now executed in that directory. Also of
-note is that you can run with the number of your command, if you don't
-want to type the whole name:
-
-```bash
-omd run 0
-```
+since the bash command was now executed in that directory. 
 
 ## Files
 
@@ -119,33 +115,21 @@ omd tangle script_file
 ```
 
 A new script called `test.sh` should appear in your directory. You
-should also see this file listed when you run `omd`.
+should also see this file listed when you run `omd status`.
 
 ```bash
-Commands:
-    0. pwd
+Available commands:
+  (use "omd run <cmd>" to execute the command)
+    pwd
 
-Files:
-    1. script_file
-```
-
-You can also write (tangle) your file by number instead of name by
-running `omd tangle 1`. It is not required to give a name as well as a
-path to files. If you leave off the name, the listing will show the
-target path for the file, in which case you must use the number to
-tangle the file.
-
-```bash
-Commands:
-    0. pwd
-
-Files:
-    1. test.sh
+Output files:
+  (use "omd tangle" to generate output files)
+    script_file
 ```
 
 If you run `omd tangle` with no arguments, `omd` will tangle all files
 listed in your markdown file. This makes for a handy command to run
-automatically in your editor everytime you save your markdown file. To
+automatically in your editor everytime you save a markdown file. To
 create a command to test your script add:
 
 ``````markdown

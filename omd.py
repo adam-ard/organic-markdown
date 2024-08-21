@@ -484,21 +484,30 @@ class CodeBlocks:
                 # append the code block contents if the name is the same
                 self.add_code_block(cb)
 
-    def print_summary(self):
-        print("Commands:")
-        for num, block in enumerate(self.code_blocks):
-            if block.in_menu:
-                print(f"    {num}. {block.name}")
 
-        print("\nFiles:")
+    def print_summary(self):
+        self.print_cmds()
+        print("")
+        self.print_files()
+
+    def print_files(self):
+        print("Output files:")
+        print(f'  (use "omd tangle" to generate output files)')
         for num, block in enumerate(self.code_blocks):
             if block.tangle_file is not None:
                 if block.name is None or block.name == "":
                     expanded_filename = self.expand(block.tangle_file)
                     rel_path = os.path.relpath(expanded_filename)
-                    print(f"    {num}. {rel_path}")
+                    print(f"        {rel_path}")
                 else:
-                    print(f"    {num}. {block.name}")
+                    print(f"        {block.name}")
+
+    def print_cmds(self):
+        print("Available commands:")
+        print(f'  (use "omd run <cmd>" to execute the command)')
+        for num, block in enumerate(self.code_blocks):
+            if block.in_menu:
+                print(f"        {block.name}")
 
     def get_code_block(self, name):
         for block in self.code_blocks:
@@ -587,7 +596,11 @@ class CodeBlocks:
 
     def handle_cmd(self, words):
         if len(words) == 1:
-            if words[0] == "status":
+            if words[0] == "cmds":
+                self.print_cmds()
+            elif words[0] == "files":
+                self.print_files()
+            elif words[0] == "status":
                 self.print_summary()
             elif words[0] == "tangle":
                 self.run_all_blocks_fn(CodeBlock.tangle)
