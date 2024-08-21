@@ -588,7 +588,7 @@ class CodeBlocks:
             return
 
         res = fn(block)
-        print(res)
+#        print(res)
 
     def run_all_blocks_fn(self, fn):
         for block in self.code_blocks:
