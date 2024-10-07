@@ -35,7 +35,7 @@ def split_lines(txt):
     ref_num = 0
     length = len(txt)
     i = 0
-    start = 0;
+    start = 0
     while i < length:
         if txt[i] == "\n" and ref_num == 0:   # need a newline
             new_lines.append(txt[start:i])
@@ -505,9 +505,19 @@ class CodeBlocks:
     def print_cmds(self):
         print("Available commands:")
         print(f'  (use "omd run <cmd>" to execute the command)')
+        origin_file_dict = {}
         for num, block in enumerate(self.code_blocks):
+            if block.origin_file not in origin_file_dict:
+                origin_file_dict[block.origin_file] = []
             if block.in_menu:
-                print(f"        {block.name}")
+                origin_file_dict[block.origin_file].append(block.name)
+
+        for (key, cmd_list) in origin_file_dict.items():
+            if cmd_list == []:
+                continue
+            print(f"        {key}:")
+            for name in cmd_list:
+                print(f"            {name}")
 
     def get_code_block(self, name):
         for block in self.code_blocks:
