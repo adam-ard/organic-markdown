@@ -598,6 +598,37 @@ class CodeBlocks:
 
         return self.intersperse(out)
 
+    def import_file(self, file_path):
+        print(f"importing {file_path}")
+
+        # Get the absolute path of the file and the current directory
+        abs_file_path = os.path.abspath(file_path)
+        current_directory = os.path.abspath(os.getcwd())
+
+        # Check if the file path is a descendant of the current directory
+        if not abs_file_path.startswith(current_directory):
+            raise ValueError("The file path must be a descendant of the current directory.")
+
+        # Ensure the file exists
+        if not os.path.isfile(abs_file_path):
+            raise FileNotFoundError(f"The file '{file_path}' does not exist.")
+
+        # Extract the filename and create the new filename with ".md" extension
+        original_filename = os.path.basename(file_path)
+        new_filename = f"{original_filename}.md"
+        new_file_path = os.path.join(current_directory, new_filename)
+
+        # Read the content of the original file
+        with open(abs_file_path, 'r') as original_file:
+            content = original_file.read()
+
+        # Modify the content by adding triple backticks and the {name=<path>} tag
+        modified_content = f"```{{tangle={abs_file_path}}}\n{content}```\n"
+
+        # Write the modified content to the new file in the current directory
+        with open(new_file_path, 'w') as new_file:
+            new_file.write(modified_content)
+
     def run_block_fn(self, identifier, fn):
         block = None
         if identifier.isdigit():
@@ -644,6 +675,8 @@ class CodeBlocks:
                 self.run_block_fn(rest, CodeBlock.origin)
             elif words[0] == "expand":
                 print(self.expand(rest))
+            elif words[0] == "import":
+                self.import_file(rest)
             else:
                 print(f"unknown command: {' '.join(words)}")
 
