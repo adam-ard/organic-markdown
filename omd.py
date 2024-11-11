@@ -598,7 +598,7 @@ class CodeBlocks:
 
         return self.intersperse(out)
 
-    def import_file(self, file_path):
+    def import_file(self, lang, file_path):
         print(f"importing {file_path}")
 
         # Get the absolute path of the file and the current directory
@@ -623,7 +623,7 @@ class CodeBlocks:
             content = original_file.read()
 
         # Modify the content by adding triple backticks and the {name=<path>} tag
-        modified_content = f"```{{tangle={abs_file_path}}}\n{content}```\n"
+        modified_content = f"```{lang} {{tangle={abs_file_path}}}\n{content}```\n"
 
         # Write the modified content to the new file in the current directory
         with open(new_file_path, 'w') as new_file:
@@ -662,7 +662,7 @@ class CodeBlocks:
             else:
                 print(f"unknown command: {words[0]}")
 
-        elif len(words) > 1:
+        elif len(words) == 2:
             rest = " ".join(words[1:])
 
             if words[0] == "tangle":
@@ -675,10 +675,14 @@ class CodeBlocks:
                 self.run_block_fn(rest, CodeBlock.origin)
             elif words[0] == "expand":
                 print(self.expand(rest))
-            elif words[0] == "import":
-                self.import_file(rest)
             else:
                 print(f"unknown command: {' '.join(words)}")
+
+        elif len(words) > 2:
+            if words[0] == "import":
+                self.import_file(words[1], words[2])
+            else:
+                print(f"unknown command: {words[0]}")
 
         else:
             print("missing cmd")
