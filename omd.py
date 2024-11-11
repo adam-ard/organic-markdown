@@ -4,6 +4,7 @@ import glob
 import json
 import sys
 import os
+import re
 import subprocess
 from textwrap import indent
 from pathlib import Path
@@ -647,6 +648,29 @@ class CodeBlocks:
         for block in self.code_blocks:
             fn(block)
 
+    def weave_file(self, filename):
+        with open(filename, 'r') as f:
+            content = f.read()
+
+        # Split by triple backticks to find code and non-code sections
+        parts = re.split(r'(```.*?```)', content, flags=re.DOTALL)
+        weaved_content = []
+
+        for part in parts:
+            if part.startswith("```"):
+                # Code section - keep as-is
+                weaved_content.append(part)
+            else:
+                # Non-code section
+                expanded_part = self.expand(part)
+                weaved_content.append(expanded_part)
+
+        # Write the weaved output to a new Markdown file
+        weaved_filename = f"../weave/{filename}.md"
+        with open(weaved_filename, 'w') as f:
+            f.write("".join(weaved_content))
+        print(f"Weaved file created: {weaved_filename}")
+
     def handle_cmd(self, words):
         if len(words) == 1:
             if words[0] == "cmds":
@@ -667,6 +691,8 @@ class CodeBlocks:
 
             if words[0] == "tangle":
                 self.run_block_fn(rest, CodeBlock.tangle)
+            elif words[0] == "weave":
+                self.weave_file(words[1])
             elif words[0] == "run":
                 self.run_block_fn(rest, CodeBlock.run)
             elif words[0] == "info":
