@@ -10,7 +10,7 @@ from textwrap import indent
 from pathlib import Path
 import pypandoc
 
-languages = ["bash", "python", "ruby"]
+languages = ["bash", "python", "ruby", "haskell"]
 o_sym = "@<"
 c_sym = "@>"
 
@@ -351,6 +351,8 @@ class CodeBlock:
             cmd = f"python3 -c '{code}'"
         elif self.lang == "ruby":
             cmd = f"ruby -e '{code}'"
+        elif self.lang == "haskell":
+            cmd = f"ghci -e '{code}'"
         else:
             print(f"language {self.lang} is not supported for execution")
             return

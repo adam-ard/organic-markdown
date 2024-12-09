@@ -178,10 +178,22 @@ Run this project
 ```
 
 
+## Python Code
+
+```{name="python_example" lang="python" menu="true"}
+result = sum(x**2 for x in range(1, 11) if x % 2 == 0); print(f"python: The sum of squares of even numbers from 1 to 10 is: {result}")
+```
+
 ## Ruby Code
 
 ```{name="ruby_example" lang="ruby" menu="true"}
-puts "Hello, World!"
+result = (1..10).select(&:even?).map { |x| x**2 }.sum; puts "ruby: The sum of squares of even numbers from 1 to 10 is: #{result}"
+```
+
+## Haskell Code
+
+```{name="haskell_example" lang="haskell" menu="true"}
+let result = sum [x^2 | x <- [1..10], even x] in putStrLn $ "haskell: The sum of squares of even numbers from 1 to 10 is: " ++ show result
 ```
 
 ## Example Functions
