@@ -10,7 +10,7 @@ constants:
   multi_word: 'one two three four               five'
 ---
 
-# This is an Organic Markdown file
+# This is an Organic Markdown file for the project: @<username@>
 
 ``` {name=multiline-ref}
 This is @<one@> thing that I said.

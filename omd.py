@@ -658,7 +658,7 @@ class CodeBlocks:
         for block in self.code_blocks:
             fn(block)
 
-    def weave_file(self, filename):
+    def weave_file(self, filename, dest):
         with open(filename, 'r') as f:
             content = f.read()
 
@@ -676,7 +676,7 @@ class CodeBlocks:
                 weaved_content.append(expanded_part)
 
         # Write the weaved output to a new Markdown file
-        weaved_filename = f"../weave/{filename}"
+        weaved_filename = f"{dest}/{filename}"
         with open(weaved_filename, 'w') as f:
             f.write("".join(weaved_content))
         print(f"Weaved file created: {weaved_filename}")
@@ -701,8 +701,6 @@ class CodeBlocks:
 
             if words[0] == "tangle":
                 self.run_block_fn(rest, CodeBlock.tangle)
-            elif words[0] == "weave":
-                self.weave_file(words[1])
             elif words[0] == "run":
                 self.run_block_fn(rest, CodeBlock.run)
             elif words[0] == "info":
@@ -717,6 +715,8 @@ class CodeBlocks:
         elif len(words) > 2:
             if words[0] == "import":
                 self.import_file(words[1], words[2])
+            elif words[0] == "weave":
+                self.weave_file(words[1], words[2])
             else:
                 print(f"unknown command: {words[0]}")
 
