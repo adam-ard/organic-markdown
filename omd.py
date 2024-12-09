@@ -668,7 +668,7 @@ class CodeBlocks:
                 weaved_content.append(expanded_part)
 
         # Write the weaved output to a new Markdown file
-        weaved_filename = f"../weave/{filename}.md"
+        weaved_filename = f"../weave/{filename}"
         with open(weaved_filename, 'w') as f:
             f.write("".join(weaved_content))
         print(f"Weaved file created: {weaved_filename}")
