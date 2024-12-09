@@ -178,6 +178,12 @@ Run this project
 ```
 
 
+## Ruby Code
+
+```{name="ruby_example" lang="ruby" menu="true"}
+puts "Hello, World!"
+```
+
 ## Example Functions
 
 Print x, num times
