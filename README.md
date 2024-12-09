@@ -11,7 +11,7 @@ influenced by emacs org-mode and functional programming.
 
 To install organic mardown, make sure you have the following dependencies installed:
 
-- pandoc must be latest (<= 3.1.12)
+- pandoc must be latest (>= 3.1.12)
 - python3
 - python3-pytest
 - python3-pypandoc
