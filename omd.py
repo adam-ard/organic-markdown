@@ -525,6 +525,33 @@ class CodeBlocks:
                 else:
                     print(f"        {block.name}")
 
+    def print_parseable_cmds(self):
+        origin_file_dict = {}
+        for num, block in enumerate(self.code_blocks):
+            if block.origin_file not in origin_file_dict:
+                origin_file_dict[block.origin_file] = []
+            if block.in_menu:
+                origin_file_dict[block.origin_file].append(block.name)
+
+        print("[")
+        first = True  # Track if this is the first JSON object
+        for key, cmd_list in origin_file_dict.items():
+            if not cmd_list:
+                continue
+            if not first:  # Print a comma before the next JSON object
+                print(",")
+            first = False  # Subsequent iterations are no longer the first
+            print(f'  {{"file": "{key}", "cmds": [', end="")
+
+            first_2 = True
+            for name in cmd_list:
+                if not first_2:  # Print a comma before the next JSON object
+                    print(",", end="")
+                first_2 = False
+                print(f'"{name}"', end="")
+            print(']}', end="")
+        print("\n]")
+
     def print_cmds(self):
         print("Available commands:")
         print(f'  (use "omd run <cmd>" to execute the command)')
@@ -684,7 +711,7 @@ class CodeBlocks:
     def handle_cmd(self, words):
         if len(words) == 1:
             if words[0] == "cmds":
-                self.print_cmds()
+                self.print_parseable_cmds()
             elif words[0] == "files":
                 self.print_files()
             elif words[0] == "status":
