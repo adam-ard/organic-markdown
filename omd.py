@@ -678,8 +678,7 @@ class CodeBlocks:
             print("Error")
             return
 
-        res = fn(block)
-#        print(res)
+        return fn(block)
 
     def run_all_blocks_fn(self, fn):
         for block in self.code_blocks:
@@ -727,13 +726,13 @@ class CodeBlocks:
             rest = " ".join(words[1:])
 
             if words[0] == "tangle":
-                self.run_block_fn(rest, CodeBlock.tangle)
+                return self.run_block_fn(rest, CodeBlock.tangle)
             elif words[0] == "run":
-                self.run_block_fn(rest, CodeBlock.run)
+                return self.run_block_fn(rest, CodeBlock.run)
             elif words[0] == "info":
-                self.run_block_fn(rest, CodeBlock.info)
+                return self.run_block_fn(rest, CodeBlock.info)
             elif words[0] == "origin":
-                self.run_block_fn(rest, CodeBlock.origin)
+                return self.run_block_fn(rest, CodeBlock.origin)
             elif words[0] == "expand":
                 print(self.expand(rest))
             else:
@@ -756,7 +755,7 @@ if __name__ == '__main__':
     code_blocks.parse()
 
     if len(sys.argv) > 1:
-        code_blocks.handle_cmd(sys.argv[1:])
+        sys.exit(code_blocks.handle_cmd(sys.argv[1:]))
 
     else:
         while True:
