@@ -32,6 +32,7 @@ code_block = [["",
                 ["lang", "bash"],
                 ["what_is_this", "blah"],
                 ["docker", "@<docker_container_name@>"],
+                ["ssh", "aard@localhost.com"],
                 ["menu", "true"],
                 ["dir", "@<project_name@>"],
                 ["tangle", "@<project_name@>/main.c"]
@@ -43,6 +44,7 @@ code_block_alt_syntax = [["",
                           [["name", "build_project"],
                            ["what_is_this", "blah"],
                            ["docker", "@<docker_container_name@>"],
+                           ["ssh", "aard@localhost.com"],
                            ["menu", "true"],
                            ["dir", "@<project_name@>"],
                            ["tangle", "@<project_name@>/main.c"]
@@ -54,6 +56,7 @@ code_block_alt_syntax2 = [["",
                            [["name", "build_project"],
                             ["what_is_this", "blah"],
                             ["docker", "@<docker_container_name@>"],
+                            ["ssh", "aard@localhost.com"],
                             ["menu", "true"],
                             ["dir", "@<project_name@>"],
                             ["tangle", "@<project_name@>/main.c"]
@@ -65,6 +68,7 @@ code_block_alt_syntax3 = [["",
                            [["name", "build_project"],
                             ["what_is_this", "blah"],
                             ["docker", "@<docker_container_name@>"],
+                            ["ssh", "aard@localhost.com"],
                             ["menu", "true"],
                             ["dir", "@<project_name@>"],
                             ["tangle", "@<project_name@>/main.c"]
@@ -441,6 +445,7 @@ def test_parse_block():
     assert cb.tangle_file == "@<project_name@>/main.c"
     assert cb.in_menu == True
     assert cb.docker_container == "@<docker_container_name@>"
+    assert cb.ssh_host == "aard@localhost.com"
 
 
 def test_parse_block_alt_syntax():
@@ -454,6 +459,7 @@ def test_parse_block_alt_syntax():
     assert cb.tangle_file == "@<project_name@>/main.c"
     assert cb.in_menu == True
     assert cb.docker_container == "@<docker_container_name@>"
+    assert cb.ssh_host == "aard@localhost.com"
 
     cb = omd.CodeBlock()
     cb.parse(code_block_alt_syntax2)
@@ -465,6 +471,7 @@ def test_parse_block_alt_syntax():
     assert cb.tangle_file == "@<project_name@>/main.c"
     assert cb.in_menu == True
     assert cb.docker_container == "@<docker_container_name@>"
+    assert cb.ssh_host == "aard@localhost.com"
 
     cb = omd.CodeBlock()
     cb.parse(code_block_alt_syntax3)
@@ -476,6 +483,7 @@ def test_parse_block_alt_syntax():
     assert cb.tangle_file == "@<project_name@>/main.c"
     assert cb.in_menu == True
     assert cb.docker_container == "@<docker_container_name@>"
+    assert cb.ssh_host == "aard@localhost.com"
 
 def test_parse_menu():
     assert omd.parse_menu_attrib("true") == True

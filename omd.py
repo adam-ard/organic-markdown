@@ -339,6 +339,7 @@ class CodeBlock:
         self.in_menu = False
         self.code_blocks = None
         self.docker_container=None
+        self.ssh_host=None
 
     def origin(self):
         print(self.origin_file)
@@ -365,12 +366,16 @@ class CodeBlock:
 
         if self.docker_container is not None:
             docker_container = self.code_blocks.expand(self.docker_container, args)
+        if self.ssh_host is not None:
+            ssh_host = self.code_blocks.expand(self.ssh_host, args)
         cwd = self.code_blocks.expand(self.cwd, args)
         cmd_in_dir = f"cd {cwd}\n{cmd}"
-        if self.docker_container is None:
-            return cmd_in_dir
+        if self.docker_container is not None:
+            return f'docker exec {self.docker_container} /bin/bash -c "{cmd_in_dir}"'
+        elif self.ssh_host is not None:
+            return f'ssh {ssh_host} /bin/bash -c "{cmd_in_dir}"'
         else:
-            return f'docker exec {docker_container} /bin/bash -c "{cmd_in_dir}"'
+            return cmd_in_dir
 
     def info(self):
         print(self)
@@ -430,6 +435,8 @@ class CodeBlock:
                 self.tangle_file = attrib[1]
             elif attrib[0] == "docker":
                 self.docker_container = attrib[1]
+            elif attrib[0] == "ssh":
+                self.ssh_host = attrib[1]
             else:
                 print(f"Warning: I don't know what attribute this is {attrib[0]}")
 
@@ -441,6 +448,8 @@ class CodeBlock:
             out += f"origin={self.origin_file}, "
         if self.docker_container is not None:
             out += f"docker={self.code_blocks.expand(self.docker_container)}, "
+        if self.ssh_host is not None:
+            out += f"ssh={self.code_blocks.expand(self.ssh_host)}, "
         if self.lang is not None:
             out += f"lang={self.lang}, "
         out += f"dir={self.code_blocks.expand(self.cwd)}, "
