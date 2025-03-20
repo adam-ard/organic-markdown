@@ -36,7 +36,7 @@ ls asdfasdfasdf
 
 ## Successful bash command
 ```{name="success" lang="bash" menu="true"}
-ls LIT.md
+ls LIT.o.md
 ```
 
 ## Append
