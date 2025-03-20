@@ -371,9 +371,9 @@ class CodeBlock:
         cwd = self.code_blocks.expand(self.cwd, args)
         cmd_in_dir = f"cd {cwd}\n{cmd}"
         if self.docker_container is not None:
-            return f'docker exec {self.docker_container} /bin/bash -c "{cmd_in_dir}"'
+            return f'docker exec {self.docker_container} \'/bin/bash -c "{cmd_in_dir}"\''
         elif self.ssh_host is not None:
-            return f'ssh {ssh_host} /bin/bash -c "{cmd_in_dir}"'
+            return f'ssh {ssh_host} \'/bin/bash -c "{cmd_in_dir}"\''
         else:
             return cmd_in_dir
 
