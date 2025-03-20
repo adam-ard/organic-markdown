@@ -464,11 +464,11 @@ class CodeBlocks:
         self.code_blocks = []
 
     def parse(self):
-        # read all file in the curren directory (recursively) with .md extenstion
+        # read all file in the curren directory (recursively) with .o.md extenstion
         for root, dirs, files in os.walk("."):
             for cur_file in files:
                 cur_full_file = f"{root}/{cur_file}"
-                if cur_full_file.endswith(".md"):
+                if cur_full_file.endswith(".o.md"):
                     self.parse_file(cur_full_file)
 
     def parse_file(self, filename):
@@ -660,9 +660,9 @@ class CodeBlocks:
         if not os.path.isfile(abs_file_path):
             raise FileNotFoundError(f"The file '{file_path}' does not exist.")
 
-        # Extract the filename and create the new filename with ".md" extension
+        # Extract the filename and create the new filename with ".o.md" extension
         original_filename = os.path.basename(file_path)
-        new_filename = f"{original_filename}.md"
+        new_filename = f"{original_filename}.o.md"
         new_file_path = os.path.join(current_directory, new_filename)
 
         # Read the content of the original file
