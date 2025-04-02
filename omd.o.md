@@ -1,3 +1,35 @@
+---
+constants:
+  open_sym: \@<
+  close_sym: \@>
+---
+
+# Organic Markdown Source
+
+In the spirit of eating your own dog food, below is the `omd.py`
+source code in literate form. How is this done? You ask. How can you
+write a literate programming tool in the literate style of the tool
+itself? Isn't there a chicken and egg problem here? Let me explain.
+
+I first wrote `omd.py`, all in one big file, not in any literate
+style. After playing with it and tweaking it, it finally became stable
+enough that I decided to try to do a more disciplined job of
+documenting and testing it. What better way to do that then with
+literate programming?! So I have been using that little, brute-force,
+bootstrapping python script to re-impliment OMD in an OMD
+style. Eventually, when the source I emit from these literate files is
+as stable as the first bootstrap script, I'll remove the bootstrap
+script (`omd.py`) from the repo. Then OMD will be implimented in OMD.
+
+As I go through this process, all I really need to do at first is diff
+the output of these OMD files with the `omd.py` bootstrapping
+script. If they are the same, then I am golden. This will get me
+pretty far. Eventually though, I will want to start emitting python
+that isn't identical to the bootstrapping script. By that time, I hope to
+have enough good documentation and testing in place, that I can
+confirm its validity that way. Fingers-crossed.
+
+```python {tangle=next_omd.py}
 #!/usr/bin/env python3
 
 import glob
@@ -11,8 +43,8 @@ from pathlib import Path
 import pypandoc
 
 languages = ["bash", "python", "ruby", "haskell", "racket", "perl", "javascript"]
-o_sym = "@<"
-c_sym = "@>"
+o_sym = "@<open_sym@>"
+c_sym = "@<close_sym@>"
 
 # do this so that the timestamp doesn't change on all files, even when they don't change
 #   make assumes that it needs to rebuild when that happens
@@ -759,26 +791,102 @@ class CodeBlocks:
             print("missing cmd")
 
 
+@<main@>
+```
+
+# Main
+
+Any good program starts with main. This one is no exception. Python
+sets a global variable called `__name__` to the value `__main__` if
+you happen to be calling it as a program. This helps you distiguish
+from using the file as a library that has been import (in which case
+you would not want to run anything "main" code, because you have a
+main already in the program the is importing the file). Below is our
+"main" section:
+
+```python {name=main}
 if __name__ == '__main__':
-    code_blocks = CodeBlocks()
-    code_blocks.parse()
+    @<main_code@>
+```
 
-    if len(sys.argv) > 1:
-        sys.exit(code_blocks.handle_cmd(sys.argv[1:]))
+# Main Code
 
-    else:
-        while True:
-            cmd = input("> ")
+The `main_code` section is where our program gets going. Two modes are
+available: interactive and command. In interactive mode all the
+literate code is parsed and then you get dropped into a repl, where
+you can ask questions. Command mode parses the code, runs a single
+command, and then exits. Usually command mode is sufficient, because
+the parsing is fast, but if you had a lot of code, it might be nice to
+parse it once and run several commands in a row without having to pay the
+price of parsing over and over.
 
-            words = cmd.split(" ")
+The way the code determines which mode to invoke is by the number of
+command-line arguments. If there are zero args, then OMD invokes
+interactive mode. Otherwise, it executes a single command in command mode.
 
-            if words[0] == "exit":
-                break
+```python {name=main_code}
+@<parse@>
 
-            if words[0] == "reload":
-                code_blocks = CodeBlocks()
-                code_blocks.parse()
-                print("code reloaded")
-                continue
+if len(sys.argv) > 1:
+    @<command_mode@>
 
-            code_blocks.handle_cmd(words)
+else:
+    @<interactive_mode@>
+```
+
+# Parse Code
+
+To parse literate code files (files that end in `o.md`), we create a
+`CodeBlocks` object and call the `parse` function.
+
+OMD parses all `o.md` files in the current directory. It looks for OMD files
+recursively in any subfolders as well.
+
+```python {name=parse}
+code_blocks = CodeBlocks()
+code_blocks.parse()
+```
+
+# Command Mode
+
+Command mode is straight forward. We take all arguments to the script
+except the first one (which will be the name of the script itself) and
+pass them to the `handle_cmd` function on the `code_blocks` object. We
+exit the program with the exit code returned from the `handle_cmd`
+function.
+
+```python {name=command_mode}
+sys.exit(code_blocks.handle_cmd(sys.argv[1:]))
+```
+
+# Interactive Mode
+
+TODO: report and potentially exit when `handle_cmd` returns a failure code
+TODO: split on whitespace, not just a single space
+
+Interactive mode is an infinite loop. After printing a command prompt
+it reads input from the user. After splitting the input into a list
+based on characters separated by whitespace, it check the first word
+for a couple simple matches. If the word is `exit`, we break out of
+the loop and exit the program. If the word is `reload`, we parse the
+literate files again and continue. Otherwise, we pass the command to
+`handle_cmd` function to execute a single command. After which we loop
+back and print another command prompt, and wait for the next command.
+
+```python {name=interactive_mode}
+while True:
+    cmd = input("> ")
+
+    words = cmd.split(" ")
+
+    if words[0] == "exit":
+        break
+
+    if words[0] == "reload":
+        code_blocks = CodeBlocks()
+        code_blocks.parse()
+        print("code reloaded")
+        continue
+
+    code_blocks.handle_cmd(words)
+```
