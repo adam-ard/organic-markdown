@@ -29,9 +29,7 @@ that isn't identical to the bootstrapping script. By that time, I hope to
 have enough good documentation and testing in place, that I can
 confirm its validity that way. Fingers-crossed.
 
-```python {tangle=next_omd.py}
-#!/usr/bin/env python3
-
+```python {name=the_code}
 import glob
 import json
 import sys
@@ -789,7 +787,20 @@ class CodeBlocks:
 
         else:
             print("missing cmd")
+```
 
+# The Code
+
+This is the code file. Yes, it is all in one file. But that is OK!
+Because we are using literate programming, the code that gets created
+is more like compiled code. You are going to look at it (or even check
+it into git). It is a different way of thinking for sure, but it's
+really nice once you get the hang of it.
+
+```python {tangle=next_omd.py}
+#!/usr/bin/env python3
+
+@<the_code@>
 
 @<main@>
 ```
@@ -799,10 +810,10 @@ class CodeBlocks:
 Any good program starts with main. This one is no exception. Python
 sets a global variable called `__name__` to the value `__main__` if
 you happen to be calling it as a program. This helps you distiguish
-from using the file as a library that has been import (in which case
-you would not want to run anything "main" code, because you have a
-main already in the program the is importing the file). Below is our
-"main" section:
+from when the file is being used as a library that has been import (in
+which case you would not want to run any "main" code, because you have
+a main already in the program the is importing you as a
+library).
 
 ```python {name=main}
 if __name__ == '__main__':
