@@ -768,8 +768,7 @@ if __name__ == '__main__':
 
     else:
         while True:
-            cmd = input("> ")
-
+            cmd = input("> ") # print prompt
             words = cmd.split(" ")
 
             if words[0] == "exit":

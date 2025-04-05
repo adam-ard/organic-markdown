@@ -828,7 +828,7 @@ interactive mode. Otherwise, it executes a single command in command mode.
 @<parse@>
 
 if len(sys.argv) > 1:
-    @<command_mode@>
+    @<cmd_exit@>
 
 else:
     @<interactive_mode@>
@@ -855,14 +855,11 @@ pass them to the `handle_cmd` function on the `code_blocks` object. We
 exit the program with the exit code returned from the `handle_cmd`
 function.
 
-```python {name=command_mode}
+```python {name=cmd_exit}
 sys.exit(code_blocks.handle_cmd(sys.argv[1:]))
 ```
 
 # Interactive Mode
-
-TODO: report and potentially exit when `handle_cmd` returns a failure code
-TODO: split on whitespace, not just a single space
 
 Interactive mode is an infinite loop. After printing a command prompt
 it reads input from the user. After splitting the input into a list
@@ -875,18 +872,130 @@ back and print another command prompt, and wait for the next command.
 
 ```python {name=interactive_mode}
 while True:
-    cmd = input("> ")
+    cmd = input("> ") # print prompt
+    @<handle_cmd@>
+```
 
-    words = cmd.split(" ")
+```python {name=handle_cmd}
+words = cmd.split(" ")
 
-    if words[0] == "exit":
-        break
+if words[0] == "exit":
+    break
 
-    if words[0] == "reload":
-        code_blocks = CodeBlocks()
-        code_blocks.parse()
-        print("code reloaded")
-        continue
+if words[0] == "reload":
+    code_blocks = CodeBlocks()
+    code_blocks.parse()
+    print("code reloaded")
+    continue
 
-    code_blocks.handle_cmd(words)
+code_blocks.handle_cmd(words)
+```
+
+# Tests
+
+## Run all tests
+
+```bash {name=all_tests menu=true}
+tests/main_code.py
+tests/handle_cmd.py
+pytest-3
+```
+
+## Command Tests Info
+Each test is a single python file. They use the literate references to
+import code NOT the import statement. This makes is easy to mock
+anything you would like. Below are a couple functions that are helpful
+to use in tests. They are also used through literate reference instead
+of import. I could do this with an import if I wanted to though.
+
+```python {name=test_failed}
+print("@<name@> FAILED: @<msg@>")
+exit(1)
+```
+
+```python {name=test_passed}
+print("PASSED: @<name@>!!")
+exit(0)
+```
+
+## Main Code
+Simple test that check that the right mode is executed at the right
+time: command mode when there are more than one argument, and
+interactive mode otherwise. Also assures that the program exits with
+an error code if it fails.
+
+```python {tangle=tests/main_code.py}
+#!/usr/bin/env python3
+
+class sys:
+  argv = ["script_name"]
+
+interactive_mode_ran = False;
+@<main_code(parse="pass" cmd_exit="pass" interactive_mode="interactive_mode_ran=True")@>
+
+if not interactive_mode_ran:
+    @<test_failed(name="Main Code" msg="command mode not invoked")@>
+
+sys.argv.append("extra")
+sys.argv.append("args")
+@<main_code(parse="pass" cmd_exit="interactive_mode_ran=False" interactive_mode="pass")@>
+
+if interactive_mode_ran:
+    @<test_failed(name="Main Code" msg="interactive mode not invoked")@>
+
+@<test_passed(name="Main Code")@>
+```
+
+## Handle Cmd
+
+This test checks that we are handling the simple cases correctly in
+the interactive command loop.
+
+```python {name=handle_cmd_test}
+code_blocks.reset()
+cmd="@<cmd@>"
+for i in [1]:   # put this inside a for loop so the break and continue commands are valid
+    @<handle_cmd@>
+
+if code_blocks.parsed != @<parsed@> or code_blocks.words != @<words@>:
+    @<test_failed(name="Handle Cmd" msg="@<fail_msg@>")@>
+```
+
+```python {tangle=tests/handle_cmd.py}
+#!/usr/bin/env python3
+
+class CodeBlocks:
+    def __init__(self):
+        self.reset()
+    def reset(self):
+        self.parsed = False
+        self. words = []
+    def parse(self):
+        self.parsed = True
+    def handle_cmd(self, words):
+        self.words = words
+
+code_blocks = CodeBlocks()
+
+@<handle_cmd_test(cmd=exit
+                  parsed=False
+                  words=[]
+                  fail_msg="didnt run exit")@>
+
+@<handle_cmd_test(cmd=reload
+                  parsed=True
+                  words=[]
+                  fail_msg="didt run reload")@>
+
+@<handle_cmd_test(cmd=diff_command
+                  parsed=False
+                  words="['diff_command']"
+                  fail_msg="didnt run one word command")@>
+
+@<handle_cmd_test(cmd="diff command"
+                  parsed=False
+                  words="['diff', 'command']"
+                  fail_msg="didnt run multi-word command")@>
+
+@<test_passed(name="Handle Cmd")@>
 ```
