@@ -29,7 +29,30 @@ that isn't identical to the bootstrapping script. By that time, I hope to
 have enough good documentation and testing in place, that I can
 confirm its validity that way. Fingers-crossed.
 
-```python {name=the_code}
+# The Code
+
+This is the code file. Yes, it is all in one file. But that is OK!
+Because we are using literate programming, the code that gets created
+is more like compiled code. You are going to look at it (or even check
+it into git). It is a different way of thinking for sure, but it's
+really nice once you get the hang of it.
+
+```python {tangle=next_omd.py}
+#!/usr/bin/env python3
+
+@<imports@>
+@<globals@>
+@<funcs@>
+@<classes@>
+
+@<main@>
+```
+
+# Imports
+
+All the modules that must be imported are include here:
+
+```python {name=imports}
 import glob
 import json
 import sys
@@ -39,11 +62,23 @@ import subprocess
 from textwrap import indent
 from pathlib import Path
 import pypandoc
+```
 
+# Globals
+
+All the global data definitions:
+
+```python {name=globals}
 languages = ["bash", "python", "ruby", "haskell", "racket", "perl", "javascript"]
 o_sym = "@<open_sym@>"
 c_sym = "@<close_sym@>"
+```
 
+# Functions
+
+All the function definitions:
+
+```python {name=funcs}
 # do this so that the timestamp doesn't change on all files, even when they don't change
 #   make assumes that it needs to rebuild when that happens
 def write_if_different(file_path, new_content):
@@ -357,7 +392,13 @@ def parse_menu_attrib(val):
         return val.lower() != "false" and val != "0" and val != ""
 
     return str(val).lower() != "false" and str(val) != "0" and val is not None
+```
 
+# Classes
+
+Below are the classes `CodeBlock` and `CodeBlocks`:
+
+```python {name=classes}
 class CodeBlock:
     def __init__(self):
         self.origin_file=None
@@ -789,21 +830,6 @@ class CodeBlocks:
             print("missing cmd")
 ```
 
-# The Code
-
-This is the code file. Yes, it is all in one file. But that is OK!
-Because we are using literate programming, the code that gets created
-is more like compiled code. You are going to look at it (or even check
-it into git). It is a different way of thinking for sure, but it's
-really nice once you get the hang of it.
-
-```python {tangle=next_omd.py}
-#!/usr/bin/env python3
-
-@<the_code@>
-
-@<main@>
-```
 
 # Main
 
