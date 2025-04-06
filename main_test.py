@@ -550,15 +550,15 @@ def test_parse_arg_value():
     assert txt == " name2=val2"
 
     value, txt = omd.parse_arg_value("val1\\@< name2=val2")
-    assert value == "val1\\@<"
+    assert value == "val1@<"
     assert txt == " name2=val2"
 
-    value, txt = omd.parse_arg_value('val1\\" name2=val2')
-    assert value == 'val1\\"'
+    value, txt = omd.parse_arg_value('val1\" name2=val2')
+    assert value == 'val1"'
     assert txt == " name2=val2"
 
     value, txt = omd.parse_arg_value('val1\\@> name2=val2')
-    assert value == 'val1\\@>'
+    assert value == 'val1@>'
     assert txt == " name2=val2"
 
 

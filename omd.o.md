@@ -290,7 +290,7 @@ def parse_arg_value(txt):
 
     while len(txt) > 0:
         if len(txt) > 1 and txt[0] == "\\" and txt[1] in [o_sym[0], c_sym[0], '"']:
-            value += txt[:2]
+            value += txt[1:2]
             txt = txt[2:]
 
         if len(txt) >= len(o_sym) and txt[:len(o_sym)] == o_sym:
@@ -909,7 +909,6 @@ code_blocks.handle_cmd(words)
 ```bash {name=all_tests menu=true}
 tests/main_code.py
 tests/handle_cmd.py
-pytest-3
 ```
 
 ## Command Tests Info
@@ -991,22 +990,22 @@ code_blocks = CodeBlocks()
 @<handle_cmd_test(cmd=exit
                   parsed=False
                   words=[]
-                  fail_msg="didnt run exit")@>
+                  fail_msg="didn't run exit")@>
 
 @<handle_cmd_test(cmd=reload
                   parsed=True
                   words=[]
-                  fail_msg="didt run reload")@>
+                  fail_msg="did't run reload")@>
 
 @<handle_cmd_test(cmd=diff_command
                   parsed=False
-                  words="['diff_command']"
-                  fail_msg="didnt run one word command")@>
+                  words="[\"diff_command\"]"
+                  fail_msg="didn't run one word command")@>
 
 @<handle_cmd_test(cmd="diff command"
                   parsed=False
-                  words="['diff', 'command']"
-                  fail_msg="didnt run multi-word command")@>
+                  words="[\"diff\", \"command\"]"
+                  fail_msg="didn't run multi-word command")@>
 
 @<test_passed(name="Handle Cmd")@>
 ```

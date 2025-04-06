@@ -260,7 +260,7 @@ def parse_arg_value(txt):
 
     while len(txt) > 0:
         if len(txt) > 1 and txt[0] == "\\" and txt[1] in [o_sym[0], c_sym[0], '"']:
-            value += txt[:2]
+            value += txt[1:2]
             txt = txt[2:]
 
         if len(txt) >= len(o_sym) and txt[:len(o_sym)] == o_sym:
