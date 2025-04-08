@@ -907,7 +907,7 @@ these commands in detail since they are experimental.
 
 ```python {name=handle_gt_two_word_commands}
 if words[0] == "import":
-    self.import_file(words[1], words[2])
+    import_file(words[1], words[2])
 elif words[0] == "weave":
     self.weave_file(words[1], words[2])
 else:
@@ -979,7 +979,7 @@ def weave_file(self, filename, dest):
     print(f"Weaved file created: {weaved_filename}")
 ```
 
-```python {name=CodeBlocks_funcs}
+```python {name=funcs}
 def import_file(self, lang, file_path):
     print(f"importing {file_path}")
 
