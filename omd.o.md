@@ -980,7 +980,7 @@ def weave_file(self, filename, dest):
 ```
 
 ```python {name=funcs}
-def import_file(self, lang, file_path):
+def import_file(lang, file_path):
     print(f"importing {file_path}")
 
     # Get the absolute path of the file and the current directory

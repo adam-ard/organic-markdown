@@ -325,7 +325,7 @@ def parse_menu_attrib(val):
         return val.lower() != "false" and val != "0" and val != ""
 
     return str(val).lower() != "false" and str(val) != "0" and val is not None
-def import_file(self, lang, file_path):
+def import_file(lang, file_path):
     print(f"importing {file_path}")
 
     # Get the absolute path of the file and the current directory
