@@ -396,7 +396,9 @@ def parse_menu_attrib(val):
 
 # Classes
 
-Below are the classes `CodeBlock` and `CodeBlocks`:
+Below are the methods for both classes `CodeBlock` and
+`CodeBlocks`. This section will shrink and eventually go away as I explain
+each method individually in the documentation.
 
 ```python {name=CodeBlock_funcs}
 def __init__(self):
@@ -531,9 +533,6 @@ def __repr__(self):
 ```
 
 ```python {name=CodeBlocks_funcs}
-def __init__(self):
-    self.code_blocks = []
-
 def parse(self):
     # read all file in the curren directory (recursively) with .o.md extenstion
     for root, dirs, files in os.walk("."):
@@ -937,7 +936,6 @@ methods in the source block below.
 1. info <name> - print information for a specific source block
 1. origin <name> - print the name of the literate source file where the block <name> is defined
 1. expand <name> - expand all refs in source block: <name>, and print to stdout
-1.
 
 ```python {name=handle_two_word_commands}
 rest = " ".join(words[1:])
@@ -982,11 +980,6 @@ class CodeBlock:
     @<CodeBlock_funcs@>
 ```
 
-```python {name=classes}
-class CodeBlocks:
-    @<CodeBlocks_funcs@>
-```
-
 For reference, in a literate source file (has extenstion `.o.md`) code
 blocks looks like this. They follow the format used by pandoc: https://pandoc.org/MANUAL.html
 
@@ -995,6 +988,15 @@ blocks looks like this. They follow the format used by pandoc: https://pandoc.or
 source code
 ```
 ``````
+
+Below you can see that a `CodeBlocks` class holds a list of `CodeBlock` objects:
+
+```python {name=classes}
+class CodeBlocks:
+    def __init__(self):
+        self.code_blocks = []
+    @<CodeBlocks_funcs@>
+```
 
 # Tests
 
