@@ -249,12 +249,6 @@ def print_cmds(self):
         for name in cmd_list:
             print(f"            {name}")
 
-def get_code_block(self, name):
-    for block in self.code_blocks:
-        if block.name == name:
-            return block
-    return None
-
 def get_max_lines(self, sections):
     max = 0
     for s in sections:
