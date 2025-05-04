@@ -255,12 +255,6 @@ def get_code_block(self, name):
             return block
     return None
 
-def get_code_block_by_code(self, code):
-    for block in self.code_blocks:
-        if block.code == code:
-            return block
-    return None
-
 def get_max_lines(self, sections):
     max = 0
     for s in sections:
@@ -315,19 +309,6 @@ def expand_line(self, txt, args={}):
         txt = txt[match["end"]:]
 
     return self.intersperse(out)
-
-def run_block_fn(self, identifier, fn):
-    block = None
-    if identifier.isdigit():
-        block = self.code_blocks[int(identifier)]
-    else:
-        block = self.get_code_block(identifier)
-
-    if block is None:
-        print("Error")
-        return
-
-    return fn(block)
 
 def run_all_blocks_fn(self, fn):
     for block in self.code_blocks:

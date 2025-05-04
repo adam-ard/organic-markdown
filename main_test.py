@@ -416,13 +416,6 @@ This is sentence 2 - 3"""
     txt = code_blocks.expand('@<asdfasdfasdf@>')
     assert txt == ""
 
-    # testing that none of the no name block got appended, even though
-    # they all the same name of None
-    assert code_blocks.get_code_block_by_code("no_name_1") is not None
-    assert code_blocks.get_code_block_by_code("no_name_2") is not None
-    assert code_blocks.get_code_block_by_code("no_name_3") is not None
-    assert code_blocks.get_code_block_by_code("no_name_4") is not None
-
 def test_split_lines():
     res = omd.split_lines("test")
     assert res == ["test"]

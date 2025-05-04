@@ -8,6 +8,8 @@ while True:
     @<handle_cmd@>
 ```
 
+Each iteration of the while loop executes the following code:
+
 ```python {name=handle_cmd}
 words = cmd.split(" ")
 

@@ -608,12 +608,6 @@ class CodeBlocks:
                 return block
         return None
 
-    def get_code_block_by_code(self, code):
-        for block in self.code_blocks:
-            if block.code == code:
-                return block
-        return None
-
     def get_max_lines(self, sections):
         max = 0
         for s in sections:
@@ -668,19 +662,6 @@ class CodeBlocks:
             txt = txt[match["end"]:]
 
         return self.intersperse(out)
-
-    def run_block_fn(self, identifier, fn):
-        block = None
-        if identifier.isdigit():
-            block = self.code_blocks[int(identifier)]
-        else:
-            block = self.get_code_block(identifier)
-
-        if block is None:
-            print("Error")
-            return
-
-        return fn(block)
 
     def run_all_blocks_fn(self, fn):
         for block in self.code_blocks:
@@ -749,6 +730,14 @@ class CodeBlocks:
         with open(weaved_filename, 'w') as f:
             f.write("".join(weaved_content))
         print(f"Weaved file created: {weaved_filename}")
+    def run_block_fn(self, identifier, fn):
+        block = self.get_code_block(identifier)
+
+        if block is None:
+            print("Error: No Matching Code Blocks Found.")
+            return -1
+
+        return fn(block)
 
 if __name__ == '__main__':
     code_blocks = CodeBlocks()
