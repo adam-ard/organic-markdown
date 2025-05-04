@@ -2,6 +2,8 @@
 
 The `handle_cmd` methods is used in both interactive mode and command mode. It is a member of the `CodeBlocks` class explained below. It dispatches different commands to different methods on the class:
 
+### @<CodeBlocks_funcs@> +=
+
 ```python {name=CodeBlocks_funcs}
 def handle_cmd(self, words):
     if len(words) == 1:
@@ -24,6 +26,8 @@ The following one word commands are dispatched to cooresponding methods in the s
 1. status - print a more human readable listing of cmds and files from `omd cmds` and `omd files`
 1. tangle - emit all files marked for tangling in literate source files
 1. info - print information for all src blocks in literate source files
+
+### @<handle_one_word_commands@> +=
 
 ```python {name=handle_one_word_commands}
 if words[0] == "cmds":
@@ -48,6 +52,8 @@ The following two word commands are dispatched to cooresponding methods in the s
 1. origin <name> - print the name of the literate source file where the block <name> is defined
 1. expand <name> - expand all refs in source block: <name>, and print to stdout
 
+### @<handle_two_word_commands@> +=
+
 ```python {name=handle_two_word_commands}
 rest = " ".join(words[1:])
 
@@ -67,6 +73,8 @@ else:
 
 Finally all commands that have greater than two words. I won't explain these commands in detail since they are experimental.
 
+### @<handle_gt_two_word_commands@> +=
+
 ```python {name=handle_gt_two_word_commands}
 if words[0] == "import":
     import_file(words[1], words[2])
@@ -76,4 +84,9 @@ else:
     print(f"unknown command: {words[0]}")
 ```
 
-[Handle Command Tests](handle_cmd_tests.o.md)
+[tests](handle_cmd_tests.o.md)
+
+### refs
+[import_file](experimental_features.o.md)
+[weave_file](experimental_features.o.md)
+[run_block_fn](f_run_block_fn.o.md)

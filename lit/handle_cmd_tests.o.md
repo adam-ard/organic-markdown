@@ -51,4 +51,4 @@ code_blocks = CodeBlocks()
 @<test_passed(name="Handle Cmd")@>
 ```
 
-[Handle Command](handle_cmd.o.md)
+[source code](handle_cmd.o.md)
