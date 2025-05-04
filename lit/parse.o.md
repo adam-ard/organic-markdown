@@ -8,3 +8,5 @@ OMD parses all `o.md` files in the current directory. It looks for OMD files rec
 code_blocks = CodeBlocks()
 code_blocks.parse()
 ```
+
+[Run Command And Exit](command_mode.o.md)

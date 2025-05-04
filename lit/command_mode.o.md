@@ -5,3 +5,5 @@ Command mode is straight forward. We take all arguments to the script except the
 ```python {name=cmd_exit}
 sys.exit(code_blocks.handle_cmd(sys.argv[1:]))
 ```
+
+[Handle Command](handle_cmd.o.md)

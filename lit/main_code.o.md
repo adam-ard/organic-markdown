@@ -13,3 +13,5 @@ if len(sys.argv) > 1:
 else:
     @<interactive_mode@>
 ```
+
+[Main Code Tests](main_code_tests.o.md)

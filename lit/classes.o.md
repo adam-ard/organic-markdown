@@ -249,6 +249,7 @@ def print_cmds(self):
         for name in cmd_list:
             print(f"            {name}")
 
+# TODO: put this in global funcs
 def get_max_lines(self, sections):
     max = 0
     for s in sections:
@@ -309,3 +310,5 @@ def run_all_blocks_fn(self, fn):
         fn(block)
 
 ```
+
+[main](main.o.md)

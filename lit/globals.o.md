@@ -14,3 +14,4 @@ o_sym = "@<open_sym@>"
 c_sym = "@<close_sym@>"
 ```
 
+[funcs](funcs.o.md)

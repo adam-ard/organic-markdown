@@ -75,3 +75,5 @@ elif words[0] == "weave":
 else:
     print(f"unknown command: {words[0]}")
 ```
+
+[Handle Command Tests](handle_cmd_tests.o.md)
