@@ -1,8 +1,6 @@
 # Classes
 
-Below are the methods for both classes `CodeBlock` and
-`CodeBlocks`. This file will shrink and eventually disappear as I explain
-each method individually in the documentation.
+Below are the methods for both classes `CodeBlock` and `CodeBlocks`. This file will shrink and eventually disappear as I explain each method individually in the documentation.
 
 ```python {name=CodeBlock_funcs}
 def __init__(self):

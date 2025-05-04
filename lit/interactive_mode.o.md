@@ -1,13 +1,6 @@
 # Interactive Mode
 
-Interactive mode is an infinite loop. After printing a command prompt
-it reads input from the user. After splitting the input into a list
-based on characters separated by whitespace, it check the first word
-for a couple simple matches. If the word is `exit`, we break out of
-the loop and exit the program. If the word is `reload`, we parse the
-literate files again and continue. Otherwise, we pass the command to
-`handle_cmd` function to execute a single command. After which we loop
-back and print another command prompt, and wait for the next command.
+Interactive mode is an infinite loop. After printing a command prompt it reads input from the user. After splitting the input into a list based on characters separated by whitespace, it check the first word for a couple simple matches. If the word is `exit`, we break out of the loop and exit the program. If the word is `reload`, we parse the literate files again and continue. Otherwise, we pass the command to `handle_cmd` function to execute a single command. After which we loop back and print another command prompt, and wait for the next command.
 
 ```python {name=interactive_mode}
 while True:

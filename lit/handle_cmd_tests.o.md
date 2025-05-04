@@ -1,7 +1,6 @@
 # Handle Cmd Tests
 
-This test checks that we are handling the simple cases correctly in
-the interactive command loop.
+This test checks that we are handling the simple cases correctly in the interactive command loop.
 
 ```python {name=handle_cmd_test}
 code_blocks.reset()

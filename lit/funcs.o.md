@@ -1,7 +1,6 @@
 # Functions
 
-All the function definitions. This file will shrink and eventually disappear as I explain
-each function individually in the documentation.
+All the function definitions. This file will shrink and eventually disappear as I explain each function individually in the documentation.
 
 ```python {name=funcs}
 # do this so that the timestamp doesn't change on all files, even when they don't change

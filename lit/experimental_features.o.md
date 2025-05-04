@@ -1,10 +1,6 @@
 # Experimental Features
 
-Below are some experimental features that are in development. They are
-not ready to be used. I am using them to help me develop a good work
-flow around importing source files into literate source files and
-generating polished documentation files with lots of bells and
-whistles (internal linking, expansion of refs, etc..)
+Below are some experimental features that are in development. They are not ready to be used. I am using them to help me develop a good work flow around importing source files into literate source files and generating polished documentation files with lots of bells and whistles (internal linking, expansion of refs, etc..)
 
 ```python {name=CodeBlocks_funcs}
 def weave_file(self, filename, dest):

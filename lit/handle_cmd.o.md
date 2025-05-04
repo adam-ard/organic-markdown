@@ -1,8 +1,6 @@
 # CodeBlocks::handle_cmd function
 
-The `handle_cmd` methods is used in both interactive mode and command
-mode. It is a member of the `CodeBlocks` class explained below. It
-dispatches different commands to different methods on the class:
+The `handle_cmd` methods is used in both interactive mode and command mode. It is a member of the `CodeBlocks` class explained below. It dispatches different commands to different methods on the class:
 
 ```python {name=CodeBlocks_funcs}
 def handle_cmd(self, words):
@@ -19,8 +17,7 @@ def handle_cmd(self, words):
         print("missing cmd")
 ```
 
-The following one word commands are dispatched to cooresponding
-methods in the source block below.
+The following one word commands are dispatched to cooresponding methods in the source block below.
 
 1. cmds - print all available cmds found in literate source files
 1. files - print filenames of files that `omd tangle` will output
@@ -43,8 +40,7 @@ else:
     print(f"unknown command: {words[0]}")
 ```
 
-The following two word commands are dispatched to cooresponding
-methods in the source block below.
+The following two word commands are dispatched to cooresponding methods in the source block below.
 
 1. tangle <name> - tangle only the file describe by the block: <name>
 1. run <name> - execute the block: <name>, and print the output to stdout
@@ -69,8 +65,7 @@ else:
     print(f"unknown command: {' '.join(words)}")
 ```
 
-Finally all commands that have greater than two words. I won't explain
-these commands in detail since they are experimental.
+Finally all commands that have greater than two words. I won't explain these commands in detail since they are experimental.
 
 ```python {name=handle_gt_two_word_commands}
 if words[0] == "import":
