@@ -6,4 +6,4 @@ I first wrote `omd.py`, all in one big file, not in any literate style. After pl
 
 As I go through this process, all I really need to do at first is diff the output of these OMD files with the `omd.py` bootstrapping script. If they are the same, then I am golden. This will get me pretty far. Eventually though, I will want to start emitting python that isn't identical to the bootstrapping script. By that time, I hope to have enough good documentation and testing in place, that I can confirm its validity that way. Fingers-crossed.
 
-[The Code](code.o.md)
+[The Code Layout](code.o.md)

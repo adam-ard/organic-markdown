@@ -51,4 +51,4 @@ code_blocks = CodeBlocks()
 @<test_passed(name="Handle Cmd")@>
 ```
 
-[Interactive Mode](interactive_mode.o.md)
+[Handle Command](handle_cmd.o.md)

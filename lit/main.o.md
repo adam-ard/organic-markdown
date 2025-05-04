@@ -7,4 +7,3 @@ if __name__ == '__main__':
     @<main_code@>
 ```
 
-[Main Code](main_code.o.md)

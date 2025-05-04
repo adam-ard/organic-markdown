@@ -9,4 +9,3 @@ code_blocks = CodeBlocks()
 code_blocks.parse()
 ```
 
-[Run Command And Exit](command_mode.o.md)

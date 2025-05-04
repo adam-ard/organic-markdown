@@ -14,4 +14,3 @@ from pathlib import Path
 import pypandoc
 ```
 
-[globals](globals.o.md)

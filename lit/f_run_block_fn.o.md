@@ -14,7 +14,3 @@ def run_block_fn(self, identifier, fn):
 
     return fn(block)
 ```
-
-
-
-[Get Code Block](f_get_code_block.o.md)

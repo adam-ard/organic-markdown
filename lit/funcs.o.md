@@ -318,4 +318,3 @@ def parse_menu_attrib(val):
     return str(val).lower() != "false" and str(val) != "0" and val is not None
 ```
 
-[classes](classes.o.md)

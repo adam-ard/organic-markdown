@@ -25,4 +25,3 @@ if words[0] == "reload":
 code_blocks.handle_cmd(words)
 ```
 
-[CodeBlocks::run_block_fns](f_run_block_fn.o.md)
