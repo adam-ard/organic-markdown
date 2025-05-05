@@ -27,6 +27,11 @@ expected_output="~/code"
 actual_output=$(omd expand "@<code_dir@>")
 compare_strings "$expected_output" "$actual_output"
 
+# check a different calling convention
+expected_output="~/code"
+actual_output=$(omd expand "@<code_dir()@>")
+compare_strings "$expected_output" "$actual_output"
+
 # check the yaml values do string substitution correctly
 expected_output="/home/aard/code/organic-markdown/torture_tests"
 actual_output=$(omd expand "@<project_name_recurse@>")
@@ -37,6 +42,12 @@ expected_output="This is 1 thing that I said.
 This is another: 2.
 And this: 3"
 actual_output=$(omd expand "@<multiline-test@>")
+compare_strings "$expected_output" "$actual_output"
+
+expected_output="This is 11 thing that I said.
+This is another: 22.
+And this: 33"
+actual_output=$(omd expand "@<multiline-ref(one=11 two=22 three=33)@>")
 compare_strings "$expected_output" "$actual_output"
 
 # test that the fields append when a name is reused
@@ -59,7 +70,6 @@ expected_output="Here goes nothing testing 1
 Here goes nothing testing 2"
 actual_output=$(omd expand "@<test_exec_python*@>")
 compare_strings "$expected_output" "$actual_output"
-
 
 # file test
 expected_output=$(cat <<'EOF'
@@ -183,6 +193,15 @@ compare_strings "$expected_output" "$actual_output"
 # test javascript example
 expected_output="javascript: The sum of squares of even numbers from 1 to 10 is: 220"
 actual_output=$(omd expand "@<javascript_example*@>")
+compare_strings "$expected_output" "$actual_output"
+
+# test argument overrides
+expected_output="This is my message: Be happy!"
+actual_output=$(omd expand "@<my_msg@>")
+compare_strings "$expected_output" "$actual_output"
+
+expected_output="This is my message: Dude!"
+actual_output=$(omd expand "@<my_msg(the_msg=Dude!)@>")
 compare_strings "$expected_output" "$actual_output"
 
 echo ""

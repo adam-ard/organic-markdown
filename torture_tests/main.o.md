@@ -306,3 +306,13 @@ Unnamed 1
 ```bash {tangle=out/unnamed2.txt}
 Unnamed 2
 ```
+
+## argument overrides
+
+```{name=the_msg}
+Be happy!
+```
+
+```{name=my_msg}
+This is my message: @<the_msg@>
+```
