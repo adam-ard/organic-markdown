@@ -60,6 +60,89 @@ Here goes nothing testing 2"
 actual_output=$(omd expand "@<test_exec_python*@>")
 compare_strings "$expected_output" "$actual_output"
 
+
+# file test
+expected_output=$(cat <<'EOF'
+/*
+  Copyright 2014 Adam Ard
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+*/
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+void main()
+{
+    printf("Hello Organic Markdown World\n");
+    printf("testing_me-1\n");
+    
+    printf("testing_me-2\n");
+    
+    printf("testing_me-3\n");
+    
+    printf("testing_me-5\n");
+    /*
+     *  printf("testing_me-1\n");
+     *  
+     *  printf("testing_me-2\n");
+     *  
+     *  printf("testing_me-3\n");
+     *  
+     *  printf("testing_me-5\n");
+     */
+    // wonderful-> 1 <-end1
+    // wonderful-> 1 <-end2
+    // wonderful-> 2 <-end1
+    // wonderful-> 2 <-end2
+    // wonderful-> 3 <-end1
+    // wonderful-> 3 <-end2
+    // wonderful-> 4 <-end1
+    // wonderful-> 4 <-end2
+    // wonderful-> 5 <-end1
+    // wonderful-> 5 <-end2
+    // wonderful-> 6 <-end1
+    // wonderful-> 6 <-end2
+    // wonderful-> 7 <-end1
+    // wonderful-> 7 <-end2
+    // wonderful-> 8 <-end1
+    // wonderful-> 8 <-end2
+    // wonderful-> 9 <-end1
+    // wonderful-> 9 <-end2
+    // wonderful-> 10 <-end1
+    // wonderful-> 10 <-end2
+    // wonderful-> 11 <-end1
+    // wonderful-> 11 <-end2
+    // wonderful-> 12 <-end1
+    // wonderful-> 12 <-end2
+    // wonderful-> 13 <-end1
+    // wonderful-> 13 <-end2
+    // wonderful-> 14 <-end1
+    // wonderful-> 14 <-end2
+    // wonderful-> 15 <-end1
+    // wonderful-> 15 <-end2
+}
+EOF
+)
+actual_output=$(cat out/main.c)
+compare_strings "$expected_output" "$actual_output"
+
+# make sure that we still traverse into subfolders
+expected_output="~/code"
+actual_output=$(omd expand "@<code_dir_2@>")
+compare_strings "$expected_output" "$actual_output"
+
 echo ""
 echo "Finished"
 
