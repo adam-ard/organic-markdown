@@ -258,7 +258,7 @@ for i in $(seq 1 @<num@>); do
 done
 ```
 
-```python {name="test_exec_python" lang="python" menu="true" dir="."}
+```python {name="test_exec_python" menu="true" dir="."}
 testing="testing"
 print(f"Here goes nothing {testing} 1")
 print(f"Here goes nothing {testing} 2")
@@ -290,7 +290,7 @@ void main()
     /*
      *  @<test_nesting@>
      */
-    // @<test_exec*(msg="wonderful->", num="15")@>
+    // @<test_exec*(msg="wonderful->" num="15")@>
 }
 ```
 

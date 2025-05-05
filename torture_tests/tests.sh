@@ -54,6 +54,12 @@ expected_output="Unnamed 2"
 actual_output=$(cat out/unnamed2.txt)
 compare_strings "$expected_output" "$actual_output"
 
+# make sure that we can run python code
+expected_output="Here goes nothing testing 1
+Here goes nothing testing 2"
+actual_output=$(omd expand "@<test_exec_python*@>")
+compare_strings "$expected_output" "$actual_output"
+
 echo ""
 echo "Finished"
 
