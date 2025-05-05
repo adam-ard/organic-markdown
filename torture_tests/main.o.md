@@ -25,17 +25,17 @@ And this: @<three@>
 ```
 
 ## Mkdir
-```{name="mkdir" lang="bash" menu="true"}
+```bash {name="mkdir" menu="true"}
 mkdir -p @<project_name@>
 ```
 
 ## Failed bash command
-```{name="failed" lang="bash" menu="true"}
+```bash {name="failed" menu="true"}
 ls asdfasdfasdf
 ```
 
 ## Successful bash command
-```{name="success" lang="bash" menu="true"}
+```bash {name="success" menu="true"}
 ls LIT.o.md
 ```
 
@@ -54,7 +54,7 @@ echo @<msg1@>
 
 ## Copyright Notice
 
-```{name="copyright-c" lang="C"}
+```C {name="copyright-c"}
 /*
   Copyright @<copyright_year@> Adam Ard
 
@@ -109,19 +109,19 @@ WORKDIR /home/@<username@>
 
 ## Docker Shell
 
-```{name="shell" lang="bash" menu="true"}
+```bash {name="shell" menu="true"}
 docker exec -it @<docker_container_name@> /bin/bash
 ```
 
 ## Docker Build
 
-```{name="build_container" lang="bash" menu="true" dir=@<project_name@>}
+```bash {name="build_container" menu="true" dir=@<project_name@>}
 docker build -t @<docker_image_name@> .
 ```
 
 ## Start Docker Container
 
-```{name="start_container" lang="bash" menu="true" dir="."}
+```bash {name="start_container" menu="true" dir="."}
 docker run --rm --name @<docker_container_name@> -d \
        -v ${PWD}:${PWD} \
        @<docker_image_name@> \
@@ -130,7 +130,7 @@ docker run --rm --name @<docker_container_name@> -d \
 
 ## Stop Docker Container
 
-```{name="stop_container" lang="bash" menu="true"}
+```bash {name="stop_container" menu="true"}
 docker stop @<docker_container_name@>
 ```
 
@@ -165,7 +165,7 @@ ls -al @<project_name@>
 
 To build this project
 
-```{name="build_project" lang="bash" menu="true" docker=@<docker_container_name@> dir=@<project_name@>}
+```bash {name="build_project" menu="true" docker=@<docker_container_name@> dir=@<project_name@>}
 gcc main.c
 ```
 
@@ -173,44 +173,44 @@ gcc main.c
 
 Run this project
 
-```{name="run_project" lang="bash" menu="true" docker=@<docker_container_name@> dir=@<project_name@>}
+```bash {name="run_project" menu="true" docker=@<docker_container_name@> dir=@<project_name@>}
 ./a.out
 ```
 
 
 ## Python Code
 
-```{name="python_example" lang="python" menu="true"}
+```python {name="python_example" menu="true"}
 result = sum(x**2 for x in range(1, 11) if x % 2 == 0); print(f"python: The sum of squares of even numbers from 1 to 10 is: {result}")
 ```
 
 ## Ruby Code
 
-```{name="ruby_example" lang="ruby" menu="true"}
+```ruby {name="ruby_example" menu="true"}
 result = (1..10).select(&:even?).map { |x| x**2 }.sum; puts "ruby: The sum of squares of even numbers from 1 to 10 is: #{result}"
 ```
 
 ## Haskell Code
 
-```{name="haskell_example" lang="haskell" menu="true"}
+```haskell {name="haskell_example" menu="true"}
 let result = sum [x^2 | x <- [1..10], even x] in putStrLn $ "haskell: The sum of squares of even numbers from 1 to 10 is: " ++ show result
 ```
 
 ## racket Code
 
-```racket {name="racket_example" lang="racket" menu="true"}
+```racket {name="racket_example" menu="true"}
 (displayln (string-append "racket: The sum of squares of even numbers from 1 to 10 is: " (number->string (apply + (map (lambda (x) (* x x)) (filter even? (range 1 11)))))))
 ```
 
 ## perl Code
 
-```racket {name="perl_example" lang="perl" menu="true"}
+```perl {name="perl_example" menu="true"}
 $result = 0; $result += $_ ** 2 for grep { $_ % 2 == 0 } 1..10; say "perl: The sum of squares of even numbers from 1 to 10 is: $result";
 ```
 
 ## javascript Code
 
-```racket {name="javascript_example" lang="javascript" menu="true"}
+```javascript {name="javascript_example" menu="true"}
 const result = [...Array(11).keys()].slice(1).filter(x => x % 2 === 0).map(x => x ** 2).reduce((a, b) => a + b, 0); console.log(`javascript: The sum of squares of even numbers from 1 to 10 is: ${result}`);
 ```
 
@@ -218,18 +218,18 @@ const result = [...Array(11).keys()].slice(1).filter(x => x % 2 === 0).map(x => 
 ## Example Functions
 
 Print x, num times
-```{name="print_x_num_times" lang="python"}
+```python {name="print_x_num_times"}
 for i in range(@<num@>):
     print(@<x@>)
 ```
 
-```{name="test_indent" lang="C"}
+```C {name="test_indent"}
 printf("testing\n");
 printf("testing\n");
 printf("testing\n");
 ```
 
-```{name="test_nesting" lang="C"}
+```C {name="test_nesting"}
 printf("@<testing_nesting_inner@>-1\n");
 
 printf("@<testing_nesting_inner@>-2\n");
@@ -239,7 +239,7 @@ printf("@<testing_nesting_inner@>-3\n");
 printf("@<testing_nesting_inner@>-5\n");
 ```
 
-```{name="testing_nesting_inner" lang="C"}
+```C {name="testing_nesting_inner"}
 testing_me
 ```
 
@@ -252,7 +252,7 @@ begin->
 <-end2
 ```
 
-```{name="test_exec" lang="bash" menu="true" dir="."}
+```bash {name="test_exec" menu="true" dir="."}
 for i in $(seq 1 @<num@>); do
   echo "@<msg@> $i @<msg2@>"
 done

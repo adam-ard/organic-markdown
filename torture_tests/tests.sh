@@ -139,8 +139,50 @@ actual_output=$(cat out/main.c)
 compare_strings "$expected_output" "$actual_output"
 
 # make sure that we still traverse into subfolders
-expected_output="~/code"
+expected_output="~/code-1"
+actual_output=$(omd expand "@<code_dir_1@>")
+compare_strings "$expected_output" "$actual_output"
+
+expected_output="~/code-2"
 actual_output=$(omd expand "@<code_dir_2@>")
+compare_strings "$expected_output" "$actual_output"
+
+expected_output="~/code-3"
+actual_output=$(omd expand "@<code_dir_3@>")
+compare_strings "$expected_output" "$actual_output"
+
+expected_output="~/code-4"
+actual_output=$(omd expand "@<code_dir_4@>")
+compare_strings "$expected_output" "$actual_output"
+
+# test python example
+expected_output="python: The sum of squares of even numbers from 1 to 10 is: 220"
+actual_output=$(omd expand "@<python_example*@>")
+compare_strings "$expected_output" "$actual_output"
+
+# test ruby example
+expected_output="ruby: The sum of squares of even numbers from 1 to 10 is: 220"
+actual_output=$(omd expand "@<ruby_example*@>")
+compare_strings "$expected_output" "$actual_output"
+
+# test haskell example
+expected_output="haskell: The sum of squares of even numbers from 1 to 10 is: 220"
+actual_output=$(omd expand "@<haskell_example*@>")
+compare_strings "$expected_output" "$actual_output"
+
+# test racket example
+expected_output="racket: The sum of squares of even numbers from 1 to 10 is: 220"
+actual_output=$(omd expand "@<racket_example*@>")
+compare_strings "$expected_output" "$actual_output"
+
+# test perl example
+expected_output="perl: The sum of squares of even numbers from 1 to 10 is: 220"
+actual_output=$(omd expand "@<perl_example*@>")
+compare_strings "$expected_output" "$actual_output"
+
+# test javascript example
+expected_output="javascript: The sum of squares of even numbers from 1 to 10 is: 220"
+actual_output=$(omd expand "@<javascript_example*@>")
 compare_strings "$expected_output" "$actual_output"
 
 echo ""
