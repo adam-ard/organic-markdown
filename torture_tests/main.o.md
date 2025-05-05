@@ -5,7 +5,7 @@ constants:
   docker_image_name: omarkdown-example
   docker_container_name: omarkdown-example1
   username: aard
-  project_name: /home/@<username@>/code/organic-markdown/samples
+  project_name: /home/@<username@>/code/organic-markdown/torture_tests
   copyright_year: 2024
   multi_word: 'one two three four               five'
 ---
@@ -90,7 +90,7 @@ echo @<msg1@>
 
 ## Dockerfile
 
-```Dockerfile {tangle=@<project_name@>/Dockerfile}
+```Dockerfile {tangle=out/Dockerfile}
 @<copyright-dockerfile@>
 
 FROM ubuntu:22.04
@@ -278,8 +278,8 @@ print(f"Here goes nothing {testing} 2")
 
 ## Test Main
 
-```C {tangle=@<project_name@>/main.c}
-@<copyright-c(copyright_year="2014", more="asdf",even_more="qwerty")@>
+```C {tangle=out/main.c}
+@<copyright-c(copyright_year="2014" more="asdf" even_more="qwerty")@>
 
 #include @<includes@>
 
@@ -292,4 +292,17 @@ void main()
      */
     // @<test_exec*(msg="wonderful->", num="15")@>
 }
+```
+
+
+## Unnamed Src Blocks
+
+Unnamed blocks should not append
+
+```bash {tangle=out/unnamed1.txt}
+Unnamed 1
+```
+
+```bash {tangle=out/unnamed2.txt}
+Unnamed 2
 ```
