@@ -400,7 +400,7 @@ class CodeBlock:
         if self.docker_container is not None:
             return f'docker exec {self.docker_container} \'/bin/bash -c "{cmd_in_dir}"\''
         elif self.ssh_host is not None:
-            return f'ssh {ssh_host} \'/bin/bash -c "{cmd_in_dir}"\''
+            return f'ssh -t {ssh_host} \'/bin/bash -c "{cmd_in_dir}"\''
         else:
             return cmd_in_dir
 
