@@ -371,6 +371,16 @@ class CodeBlock:
     def origin(self):
         print(self.origin_file)
 
+    def escape_code(self, command):
+        # escaped all single quotes
+        escaped_cmd = command.replace("'", "'\\''")
+
+        # wrap in a single quoted bash call
+        remote_cmd = f"bash -c '{escaped_cmd}'"
+
+        # escape everything one more time
+        return remote_cmd.replace("'", "'\\''")
+
     def get_run_cmd(self, args={}):
         code = self.code_blocks.expand(self.code, args)
         if self.lang == "bash":
@@ -398,9 +408,9 @@ class CodeBlock:
         cwd = self.code_blocks.expand(self.cwd, args)
         cmd_in_dir = f"cd {cwd}\n{cmd}"
         if self.docker_container is not None:
-            return f'docker exec {self.docker_container} \'/bin/bash -c "{cmd_in_dir}"\''
+            return f"docker exec -it {self.docker_container} '{self.escape_code(cmd_in_dir)}'"
         elif self.ssh_host is not None:
-            return f'ssh -t {ssh_host} \'/bin/bash -c "{cmd_in_dir}"\''
+            return f"ssh -t {ssh_host} '{self.escape_code(cmd_in_dir)}'"
         else:
             return cmd_in_dir
 
@@ -602,6 +612,7 @@ class CodeBlocks:
             for name in cmd_list:
                 print(f"            {name}")
 
+    # TODO: put this in global funcs
     def get_max_lines(self, sections):
         max = 0
         for s in sections:

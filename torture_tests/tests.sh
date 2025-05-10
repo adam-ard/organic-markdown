@@ -204,6 +204,12 @@ expected_output="This is my message: Dude!"
 actual_output=$(omd expand "@<my_msg(the_msg=Dude!)@>")
 compare_strings "$expected_output" "$actual_output"
 
+expected_output="hello \"world\""
+actual_output=$(omd expand "@<ssh-test*@>")
+actual_output="$(echo "$actual_output" | sed 's/[[:space:]]*$//')"
+
+compare_strings "$expected_output" "$actual_output"
+
 echo ""
 echo "Finished"
 

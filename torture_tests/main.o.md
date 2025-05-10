@@ -316,3 +316,7 @@ Be happy!
 ```{name=my_msg}
 This is my message: @<the_msg@>
 ```
+
+```bash {name=ssh-test ssh=aard@localhost}
+echo 'hello "world"'
+```
