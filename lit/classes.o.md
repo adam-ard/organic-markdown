@@ -2,6 +2,8 @@
 
 Below are the methods for both classes `CodeBlock` and `CodeBlocks`. This file will shrink and eventually disappear as I explain each method individually in the documentation.
 
+### @<CodeBlock_funcs@>
+
 ```python {name=CodeBlock_funcs}
 def __init__(self):
     self.origin_file=None
@@ -143,6 +145,8 @@ def __repr__(self):
     out += f"{{\n{indent(self.code_blocks.expand(self.code), '    ')}\n}}"
     return out
 ```
+
+### @<CodeBlocks_funcs@>
 
 ```python {name=CodeBlocks_funcs}
 def parse(self):

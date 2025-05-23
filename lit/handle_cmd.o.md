@@ -2,7 +2,7 @@
 
 The `handle_cmd` methods is used in both interactive mode and command mode. It is a member of the `CodeBlocks` class explained below. It dispatches different commands to different methods on the class:
 
-### @<CodeBlocks_funcs@> +=
+### @<CodeBlocks_funcs@>
 
 ```python {name=CodeBlocks_funcs}
 def handle_cmd(self, words):
@@ -27,7 +27,7 @@ The following one word commands are dispatched to corresponding methods in the s
 4. tangle - emit all files marked for tangling in literate source files
 5. info - print information for all src blocks in literate source files
 
-### @<handle_one_word_commands@> +=
+### @<handle_one_word_commands@>
 
 ```python {name=handle_one_word_commands}
 if words[0] == "cmds":
@@ -52,7 +52,7 @@ The following two word commands are dispatched to corresponding methods in the s
 4. origin \<name> - print the name of the literate source file where the block \<name> is defined
 5. expand \<name> - expand all refs in source block: \<name>, and print to stdout
 
-### @<handle_two_word_commands@> +=
+### @<handle_two_word_commands@>
 
 ```python {name=handle_two_word_commands}
 rest = " ".join(words[1:])
@@ -73,7 +73,7 @@ else:
 
 Finally all commands that have greater than two words. I won't explain these commands in detail since they are experimental.
 
-### @<handle_gt_two_word_commands@> +=
+### @<handle_gt_two_word_commands@>
 
 ```python {name=handle_gt_two_word_commands}
 if words[0] == "import":

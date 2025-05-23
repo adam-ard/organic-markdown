@@ -2,6 +2,8 @@
 
 Below are some experimental features that are in development. They are not ready to be used. I am using them to help me develop a good work flow around importing source files into literate source files and generating polished documentation files with lots of bells and whistles (internal linking, expansion of refs, etc..)
 
+### @<CodeBlocks_funcs@>
+
 ```python {name=CodeBlocks_funcs}
 def weave_file(self, filename, dest):
     with open(filename, 'r') as f:
@@ -26,6 +28,8 @@ def weave_file(self, filename, dest):
         f.write("".join(weaved_content))
     print(f"Weaved file created: {weaved_filename}")
 ```
+
+### @<funcs@>
 
 ```python {name=funcs}
 def import_file(lang, file_path):

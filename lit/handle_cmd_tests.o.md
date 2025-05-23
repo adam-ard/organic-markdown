@@ -2,6 +2,8 @@
 
 This test checks that we are handling the simple cases correctly in the interactive command loop.
 
+### @<handle_cmd_test@>
+
 ```python {name=handle_cmd_test}
 code_blocks.reset()
 cmd="@<cmd@>"
@@ -11,6 +13,8 @@ for i in [1]:   # put this inside a for loop so the break and continue commands 
 if code_blocks.parsed != @<parsed@> or code_blocks.words != @<words@>:
     @<test_failed(name="Handle Cmd" msg="@<fail_msg@>")@>
 ```
+
+### tangle: tests/handle_cmd.py
 
 ```python {tangle=tests/handle_cmd.py}
 #!/usr/bin/env python3

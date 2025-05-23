@@ -2,6 +2,8 @@
 
 Simple test that check that the right mode is executed at the right time: command mode when there are more than one argument, and interactive mode otherwise. Also assures that the program exits with an error code if it fails.
 
+### tangle: tests/main_code.py
+
 ```python {tangle=tests/main_code.py}
 #!/usr/bin/env python3
 

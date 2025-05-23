@@ -4,6 +4,8 @@ To parse literate code files (files that end in `o.md`), we create a `CodeBlocks
 
 OMD parses all `o.md` files in the current directory. It looks for OMD files recursively in any subfolders as well.
 
+### @<parse@>
+
 ```python {name=parse}
 code_blocks = CodeBlocks()
 code_blocks.parse()

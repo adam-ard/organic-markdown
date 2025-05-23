@@ -4,6 +4,8 @@ In the [CodeBlocks](class_code_blocks.o.md) class, is a useful function called `
 
 This function get used a lot in the [CodeBlocks::handle_cmd](handle_cmd.o.md) function of the program.
 
+### @<CodeBlocks_funcs@>
+
 ```python {name=CodeBlocks_funcs}
 def run_block_fn(self, identifier, fn):
     block = self.get_code_block(identifier)

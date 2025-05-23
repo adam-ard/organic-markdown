@@ -2,6 +2,8 @@
 
 There are two classes in `omd.py`. `CodeBlock` and `CodeBlocks`. As you might guess, a `CodeBlocks` object represents a list of objects of type `CodeBlock`. `CodeBlock` objects represent parsed information from code blocks in the parsed literate files. Below you can see the basic structure of each class. We will describe specific functions are we progress in the documentation.
 
+### @<classes@>
+
 ```python {name=classes}
 class CodeBlock:
     @<CodeBlock_funcs@>
@@ -16,6 +18,8 @@ source code
 ``````
 
 Below you can see that a `CodeBlocks` class holds a list of `CodeBlock` objects:
+
+### @<classes@>
 
 ```python {name=classes}
 class CodeBlocks:

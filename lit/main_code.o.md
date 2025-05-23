@@ -4,6 +4,8 @@ The `main_code` section is where our program gets going. Two modes are available
 
 The way the code determines which mode to invoke is by the number of command-line arguments. If there are zero args, then OMD invokes interactive mode. Otherwise, it executes a single command in command mode.
 
+### @<main_code@>
+
 ```python {name=main_code}
 @<parse@>
 

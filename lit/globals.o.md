@@ -8,6 +8,8 @@ constants:
 
 All the global data definitions:
 
+### @<globals@>
+
 ```python {name=globals}
 languages = ["bash", "python", "ruby", "haskell", "racket", "perl", "javascript"]
 o_sym = "@<open_sym@>"
