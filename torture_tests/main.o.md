@@ -317,6 +317,8 @@ Be happy!
 This is my message: @<the_msg@>
 ```
 
+The following shouldn't show up in the `omd status` output because it is missing `menu=true`
+
 ```bash {name=ssh-test ssh=aard@localhost}
 echo 'hello "world"'
 ```

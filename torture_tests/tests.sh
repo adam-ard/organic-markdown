@@ -210,6 +210,44 @@ actual_output="$(echo "$actual_output" | sed 's/[[:space:]]*$//')"
 
 compare_strings "$expected_output" "$actual_output"
 
+expected_output=$(cat <<'EOF'
+Available commands:
+  (use "omd run <cmd>" to execute the command)
+        ./main.o.md:
+            mkdir
+            failed
+            success
+            four
+            shell
+            build_container
+            start_container
+            stop_container
+            in container
+            in_cont
+            out container
+            build_project
+            run_project
+            python_example
+            ruby_example
+            haskell_example
+            racket_example
+            perl_example
+            javascript_example
+            test_exec
+            test_exec_python
+
+Output files:
+  (use "omd tangle" to generate output files)
+        out/Dockerfile
+        out/main.c
+        out/unnamed1.txt
+        out/unnamed2.txt
+EOF
+)
+actual_output=$(omd status)
+
+compare_strings "$expected_output" "$actual_output"
+
 echo ""
 echo "Finished"
 
