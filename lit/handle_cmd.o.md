@@ -19,13 +19,13 @@ def handle_cmd(self, words):
         print("missing cmd")
 ```
 
-The following one word commands are dispatched to cooresponding methods in the source block below.
+The following one word commands are dispatched to corresponding methods in the source block below.
 
 1. cmds - print all available cmds found in literate source files
-1. files - print filenames of files that `omd tangle` will output
-1. status - print a more human readable listing of cmds and files from `omd cmds` and `omd files`
-1. tangle - emit all files marked for tangling in literate source files
-1. info - print information for all src blocks in literate source files
+2. files - print filenames of files that `omd tangle` will output
+3. status - print a more human readable listing of cmds and files from `omd cmds` and `omd files`
+4. tangle - emit all files marked for tangling in literate source files
+5. info - print information for all src blocks in literate source files
 
 ### @<handle_one_word_commands@> +=
 
@@ -44,13 +44,13 @@ else:
     print(f"unknown command: {words[0]}")
 ```
 
-The following two word commands are dispatched to cooresponding methods in the source block below.
+The following two word commands are dispatched to corresponding methods in the source block below.
 
-1. tangle <name> - tangle only the file describe by the block: <name>
-1. run <name> - execute the block: <name>, and print the output to stdout
-1. info <name> - print information for a specific source block
-1. origin <name> - print the name of the literate source file where the block <name> is defined
-1. expand <name> - expand all refs in source block: <name>, and print to stdout
+1. tangle \<name> - tangle only the file describe by the block: \<name\>
+2. run \<name> - execute the block: \<name>, and print the output to stdout
+3. info \<name> - print information for a specific source block
+4. origin \<name> - print the name of the literate source file where the block \<name> is defined
+5. expand \<name> - expand all refs in source block: \<name>, and print to stdout
 
 ### @<handle_two_word_commands@> +=
 
