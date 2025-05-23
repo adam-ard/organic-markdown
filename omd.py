@@ -25,9 +25,6 @@ def write_if_different(file_path, new_content):
         file.write("\n")  # put a newline at the end of the file
         file.close()
 def parse_menu_attrib(val):
-    if val is None:
-        return False
-
     return str(val).lower() not in ["false", "0", "", "nil", "null", "none"]
 def split_lines_line_cont_char(txt):
     new_lines = [""]

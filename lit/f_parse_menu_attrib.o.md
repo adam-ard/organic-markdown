@@ -25,9 +25,6 @@ function body:
 
 ```python {name=parse_menu_attrib}
 def parse_menu_attrib(val):
-    if val is None:
-        return False
-
     return str(val).lower() not in ["false", "0", "", "nil", "null", "none"]
 ```
 
