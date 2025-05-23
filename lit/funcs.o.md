@@ -5,21 +5,6 @@ All the function definitions. This file will shrink and eventually disappear as 
 ### @<funcs@>
 
 ```python {name=funcs}
-# do this so that the timestamp doesn't change on all files, even when they don't change
-#   make assumes that it needs to rebuild when that happens
-def write_if_different(file_path, new_content):
-    if os.path.exists(file_path):
-        with open(file_path, 'r') as file:
-            current_content = file.read()
-
-        if current_content.rstrip('\n') == new_content:
-            return
-
-    with open(file_path, 'w') as file:
-        file.write(new_content)
-        file.write("\n")  # put a newline at the end of the file
-        file.close()
-
 def split_lines_line_cont_char(txt):
     new_lines = [""]
     lines = txt.split('\n')
