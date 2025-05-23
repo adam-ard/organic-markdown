@@ -477,8 +477,9 @@ character, because if we have multi-line input from a literate ref, we
 have special string substitution behavior (explained above) that isn't
 what we want here.
 
-# more resources / tutorials on my stubstack
+# more resources / tutorials
 
 - https://rethinkingsoftware.substack.com/p/the-joy-of-literate-programming
 - https://rethinkingsoftware.substack.com/p/organic-markdown-intro
-
+- https://rethinkingsoftware.substack.com/p/dry-on-steroids-with-literate-programming
+- https://www.youtube.com/@adam-ard/videos
