@@ -24,6 +24,11 @@ def write_if_different(file_path, new_content):
         file.write(new_content)
         file.write("\n")  # put a newline at the end of the file
         file.close()
+def parse_menu_attrib(val):
+    if val is None:
+        return False
+
+    return str(val).lower() not in ["false", "0", "", "nil", "null", "none"]
 def split_lines_line_cont_char(txt):
     new_lines = [""]
     lines = txt.split('\n')
@@ -313,15 +318,6 @@ def parse_args(txt):
             return args
         args[name] = value
     return args
-
-def parse_menu_attrib(val):
-    if isinstance(val, bool):
-        return val
-
-    if isinstance(val, str):
-        return val.lower() != "false" and val != "0" and val != ""
-
-    return str(val).lower() != "false" and str(val) != "0" and val is not None
 def import_file(lang, file_path):
     print(f"importing {file_path}")
 

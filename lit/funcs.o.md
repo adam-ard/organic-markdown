@@ -294,14 +294,5 @@ def parse_args(txt):
             return args
         args[name] = value
     return args
-
-def parse_menu_attrib(val):
-    if isinstance(val, bool):
-        return val
-
-    if isinstance(val, str):
-        return val.lower() != "false" and val != "0" and val != ""
-
-    return str(val).lower() != "false" and str(val) != "0" and val is not None
 ```
 
