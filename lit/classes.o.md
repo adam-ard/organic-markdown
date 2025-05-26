@@ -5,9 +5,6 @@ Below are the methods for both classes `CodeBlock` and `CodeBlocks`. This file w
 ### @<CodeBlock_funcs@>
 
 ```python {name=CodeBlock_funcs}
-def origin(self):
-    print(self.origin_file)
-
 def escape_code(self, command):
     # escaped all single quotes
     escaped_cmd = command.replace("'", "'\\''")

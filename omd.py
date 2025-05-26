@@ -348,6 +348,8 @@ def import_file(lang, file_path):
     with open(new_file_path, 'w') as new_file:
         new_file.write(modified_content)
 class CodeBlock:
+    def origin(self):
+        print(self.origin_file)
     def __repr__(self):
         out = "CodeBlock("
         if self.name is not None:
@@ -368,9 +370,6 @@ class CodeBlock:
         return out
     def info(self):
         print(self)
-    def origin(self):
-        print(self.origin_file)
-
     def escape_code(self, command):
         # escaped all single quotes
         escaped_cmd = command.replace("'", "'\\''")
