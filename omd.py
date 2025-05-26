@@ -12,6 +12,8 @@ import pypandoc
 languages = ["bash", "python", "ruby", "haskell", "racket", "perl", "javascript"]
 o_sym = "@<"
 c_sym = "@>"
+def get_max_lines(sections):
+    return max(len(s.splitlines()) for s in sections)
 def write_if_different(file_path, new_content):
     if os.path.exists(file_path):
         with open(file_path, 'r') as file:
@@ -601,18 +603,9 @@ class CodeBlocks:
             for name in cmd_list:
                 print(f"            {name}")
 
-    # TODO: put this in global funcs
-    def get_max_lines(self, sections):
-        max = 0
-        for s in sections:
-            num_lines = s.split("\n")
-            if len(num_lines) > max:
-                max = len(num_lines)
-        return max
-
     def intersperse(self, sections):
         out = []
-        max_lines = self.get_max_lines(sections)
+        max_lines = get_max_lines(sections)
         for i in range(max_lines):
             line = ""
             for s in sections:

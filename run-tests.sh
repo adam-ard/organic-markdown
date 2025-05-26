@@ -1,11 +1,5 @@
 #!/bin/bash
 
-pytest-3
-
-cd torture_tests
-./tests.sh
-cd ..
-
 cd lit
 omd tangle
 
@@ -14,6 +8,17 @@ omd tangle
 
 omd run all_tests
 
-echo "diff old omd.py with new one"
-diff ../omd.py omd.py
+cp omd.py ../omd.py
 
+cd ..
+
+pytest-3
+
+cd torture_tests
+./tests.sh
+cd ..
+
+echo "diff old omd.py with new one"
+git diff omd.py
+
+git restore omd.py

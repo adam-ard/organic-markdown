@@ -251,18 +251,9 @@ def print_cmds(self):
         for name in cmd_list:
             print(f"            {name}")
 
-# TODO: put this in global funcs
-def get_max_lines(self, sections):
-    max = 0
-    for s in sections:
-        num_lines = s.split("\n")
-        if len(num_lines) > max:
-            max = len(num_lines)
-    return max
-
 def intersperse(self, sections):
     out = []
-    max_lines = self.get_max_lines(sections)
+    max_lines = get_max_lines(sections)
     for i in range(max_lines):
         line = ""
         for s in sections:
