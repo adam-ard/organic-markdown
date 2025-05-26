@@ -307,9 +307,5 @@ def expand_line(self, txt, args={}):
 
     return self.intersperse(out)
 
-def run_all_blocks_fn(self, fn):
-    for block in self.code_blocks:
-        fn(block)
-
 ```
 

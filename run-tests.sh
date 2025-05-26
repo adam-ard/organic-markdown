@@ -2,6 +2,10 @@
 
 pytest-3
 
+cd torture_tests
+./tests.sh
+cd ..
+
 cd lit
 omd tangle
 
@@ -10,10 +14,6 @@ omd tangle
 
 omd run all_tests
 
-cd ../torture_tests
-./tests.sh
-
 echo "diff old omd.py with new one"
-cd ..
-diff omd.py lit/omd.py
+diff ../omd.py omd.py
 

@@ -657,10 +657,6 @@ class CodeBlocks:
 
         return self.intersperse(out)
 
-    def run_all_blocks_fn(self, fn):
-        for block in self.code_blocks:
-            fn(block)
-
     def get_code_block(self, name):
         for block in self.code_blocks:
             if block.name == name:
@@ -707,6 +703,9 @@ class CodeBlocks:
 
         else:
             print("missing cmd")
+    def run_all_blocks_fn(self, fn):
+        for block in self.code_blocks:
+            fn(block)
     def weave_file(self, filename, dest):
         with open(filename, 'r') as f:
             content = f.read()
