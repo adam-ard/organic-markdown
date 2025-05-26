@@ -348,6 +348,26 @@ def import_file(lang, file_path):
     with open(new_file_path, 'w') as new_file:
         new_file.write(modified_content)
 class CodeBlock:
+    def __repr__(self):
+        out = "CodeBlock("
+        if self.name is not None:
+            out += f"name={self.name}, "
+        if self.origin_file is not None:
+            out += f"origin={self.origin_file}, "
+        if self.docker_container is not None:
+            out += f"docker={self.code_blocks.expand(self.docker_container)}, "
+        if self.ssh_host is not None:
+            out += f"ssh={self.code_blocks.expand(self.ssh_host)}, "
+        if self.lang is not None:
+            out += f"lang={self.lang}, "
+        out += f"dir={self.code_blocks.expand(self.cwd)}, "
+        if self.in_menu:
+            out += f"menu={self.in_menu}, "
+        out += ")\n"
+        out += f"{{\n{indent(self.code_blocks.expand(self.code), '    ')}\n}}"
+        return out
+    def info(self):
+        print(self)
     def origin(self):
         print(self.origin_file)
 
@@ -393,10 +413,6 @@ class CodeBlock:
             return f"ssh -t {ssh_host} '{self.escape_code(cmd_in_dir)}'"
         else:
             return cmd_in_dir
-
-    def info(self):
-        print(self)
-        return None
 
     def run(self):
         cmd = self.get_run_cmd()
@@ -456,25 +472,6 @@ class CodeBlock:
                 self.ssh_host = attrib[1]
             else:
                 print(f"Warning: I don't know what attribute this is {attrib[0]}")
-
-    def __repr__(self):
-        out = "CodeBlock("
-        if self.name is not None:
-            out += f"name={self.name}, "
-        if self.origin_file is not None:
-            out += f"origin={self.origin_file}, "
-        if self.docker_container is not None:
-            out += f"docker={self.code_blocks.expand(self.docker_container)}, "
-        if self.ssh_host is not None:
-            out += f"ssh={self.code_blocks.expand(self.ssh_host)}, "
-        if self.lang is not None:
-            out += f"lang={self.lang}, "
-        out += f"dir={self.code_blocks.expand(self.cwd)}, "
-        if self.in_menu:
-            out += f"menu={self.in_menu}, "
-        out += ")\n"
-        out += f"{{\n{indent(self.code_blocks.expand(self.code), '    ')}\n}}"
-        return out
     def __init__(self):
         self.origin_file=None      # the file that this code block was parsed from
         self.name=None             # name attribute

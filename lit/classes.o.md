@@ -51,10 +51,6 @@ def get_run_cmd(self, args={}):
     else:
         return cmd_in_dir
 
-def info(self):
-    print(self)
-    return None
-
 def run(self):
     cmd = self.get_run_cmd()
     if cmd is None:
@@ -113,25 +109,6 @@ def parse(self, the_json):
             self.ssh_host = attrib[1]
         else:
             print(f"Warning: I don't know what attribute this is {attrib[0]}")
-
-def __repr__(self):
-    out = "CodeBlock("
-    if self.name is not None:
-        out += f"name={self.name}, "
-    if self.origin_file is not None:
-        out += f"origin={self.origin_file}, "
-    if self.docker_container is not None:
-        out += f"docker={self.code_blocks.expand(self.docker_container)}, "
-    if self.ssh_host is not None:
-        out += f"ssh={self.code_blocks.expand(self.ssh_host)}, "
-    if self.lang is not None:
-        out += f"lang={self.lang}, "
-    out += f"dir={self.code_blocks.expand(self.cwd)}, "
-    if self.in_menu:
-        out += f"menu={self.in_menu}, "
-    out += ")\n"
-    out += f"{{\n{indent(self.code_blocks.expand(self.code), '    ')}\n}}"
-    return out
 ```
 
 ### @<CodeBlocks_funcs@>
