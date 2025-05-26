@@ -3,7 +3,7 @@
 This function will escape problemmatic characters in a bash command. I used the following strategy:
 
 1. Use single quotes `'` around the entire command
-2. Escape any single quotes inside that command using this idiom: '\\'' — which ends the current single quote, adds an escaped quote, and starts a new one.
+2. Escape any single quotes inside that command using this idiom: `'\''` — which ends the current single quote, adds an escaped quote, and starts a new one.
 
 For example, to run the following on a remote host through ssh:
 
