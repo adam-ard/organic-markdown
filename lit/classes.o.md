@@ -5,18 +5,6 @@ Below are the methods for both classes `CodeBlock` and `CodeBlocks`. This file w
 ### @<CodeBlock_funcs@>
 
 ```python {name=CodeBlock_funcs}
-def __init__(self):
-    self.origin_file=None
-    self.name=None
-    self.code=None
-    self.lang=None
-    self.cwd="."
-    self.tangle_file=None
-    self.in_menu = False
-    self.code_blocks = None
-    self.docker_container=None
-    self.ssh_host=None
-
 def origin(self):
     print(self.origin_file)
 

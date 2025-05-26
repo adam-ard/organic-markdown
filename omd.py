@@ -346,18 +346,6 @@ def import_file(lang, file_path):
     with open(new_file_path, 'w') as new_file:
         new_file.write(modified_content)
 class CodeBlock:
-    def __init__(self):
-        self.origin_file=None
-        self.name=None
-        self.code=None
-        self.lang=None
-        self.cwd="."
-        self.tangle_file=None
-        self.in_menu = False
-        self.code_blocks = None
-        self.docker_container=None
-        self.ssh_host=None
-
     def origin(self):
         print(self.origin_file)
 
@@ -485,6 +473,17 @@ class CodeBlock:
         out += ")\n"
         out += f"{{\n{indent(self.code_blocks.expand(self.code), '    ')}\n}}"
         return out
+    def __init__(self):
+        self.origin_file=None      # the file that this code block was parsed from
+        self.name=None             # name attribute
+        self.code=None             # the code block content
+        self.lang=None             # the language of the code block soure code
+        self.cwd="."               # the directory in which the code block should be executed
+        self.tangle_file=None      # the path where the block should tangle to
+        self.in_menu = False       # whether this block should appear in the omd status menu
+        self.code_blocks = None    # reference to the Code Blocks object that contains this code block
+        self.docker_container=None # name of the docker container to run this block in
+        self.ssh_host=None         # host where to run this block (through ssh)
 class CodeBlocks:
     def __init__(self):
         self.code_blocks = []
