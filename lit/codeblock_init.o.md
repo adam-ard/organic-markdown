@@ -2,7 +2,7 @@
 
 In the __init__ function for the CodeBlock function, instance variables are giving initial values:
 
-```python {name=CodeBlock_funcs}
+```python {name=codeblock__init}
 def __init__(self):
     self.origin_file=None      # the file that this code block was parsed from
     self.name=None             # name attribute

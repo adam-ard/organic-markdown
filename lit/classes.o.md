@@ -5,6 +5,9 @@ Below are the methods for both classes `CodeBlock` and `CodeBlocks`.
 ### @<CodeBlock_funcs@>
 
 ```python {name=CodeBlock_funcs}
+@<codeblock__origin@>
+@<codeblock__repr@>
+@<codeblock__info@>
 @<codeblock__get_run_cmd@>
 @<codeblock__run@>
 @<codeblock__run_return_results@>
@@ -35,6 +38,7 @@ def parse(self, the_json):
             self.ssh_host = attrib[1]
         else:
             print(f"Warning: I don't know what attribute this is {attrib[0]}")
+@<codeblock__init@>
 ```
 
 ### @<CodeBlocks_funcs@>

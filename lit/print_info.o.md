@@ -2,7 +2,7 @@
 
 In order to print information from a CodeBlock, I implimented the python `__repr__` function which gets called when you pass an object to the `print` function.
 
-```python {name=CodeBlock_funcs}
+```python {name=codeblock__repr}
 def __repr__(self):
     out = "CodeBlock("
     if self.name is not None:
@@ -25,7 +25,7 @@ def __repr__(self):
 
 As a convience, I created a function called `info` on the CodeBlock class that simply calls print for the object:
 
-```python {name=CodeBlock_funcs}
+```python {name=codeblock__info}
 def info(self):
     print(self)
 ```
