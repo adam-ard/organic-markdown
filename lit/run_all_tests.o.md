@@ -11,4 +11,5 @@ tests/main_code.py
 tests/handle_cmd.py
 tests/f_parse_menu_attrib.py
 @<intersperse_tests@>
+@<get_run_cmd_tests@>
 ```

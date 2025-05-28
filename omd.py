@@ -427,7 +427,6 @@ class CodeBlock:
             return f"ssh -t {ssh_host} '{escape_code(cmd_in_dir)}'"
         else:
             return cmd_in_dir
-
     def run(self):
         cmd = self.get_run_cmd()
         if cmd is None:
