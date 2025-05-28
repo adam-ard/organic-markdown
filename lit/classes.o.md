@@ -8,14 +8,7 @@ Below are the methods for both classes `CodeBlock` and `CodeBlocks`.
 @<codeblock__get_run_cmd@>
 @<codeblock__run@>
 @<codeblock__run_return_results@>
-def tangle(self):
-    if self.tangle_file is not None:
-        tangle_file = self.code_blocks.expand(self.tangle_file)
-        code = self.code_blocks.expand(self.code)
-
-        write_if_different(tangle_file, code)
-    return None
-
+@<codeblock__tangle@>
 def parse(self, the_json):
     self.code = the_json[1]
     if self.code is not None and len(self.code) > 0:

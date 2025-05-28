@@ -455,7 +455,6 @@ class CodeBlock:
 
             write_if_different(tangle_file, code)
         return None
-
     def parse(self, the_json):
         self.code = the_json[1]
         if self.code is not None and len(self.code) > 0:
