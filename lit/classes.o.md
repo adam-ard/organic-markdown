@@ -7,22 +7,7 @@ Below are the methods for both classes `CodeBlock` and `CodeBlocks`.
 ```python {name=CodeBlock_funcs}
 @<codeblock__get_run_cmd@>
 @<codeblock__run@>
-def run_return_results(self, args={}):
-    cmd = self.get_run_cmd(args)
-    if cmd is None:
-        print("Error running command")
-        return
-
-    output = subprocess.run(cmd, capture_output=True, shell=True)
-    out_decode = output.stdout.decode("utf-8")
-
-    # remove at most one newline, it one exists at the end of the output
-    if len(out_decode) > 0 and out_decode[-1] == "\n":
-        out_decode = out_decode[:-1]
-
-    return out_decode
-
-
+@<codeblock__run_return_results@>
 def tangle(self):
     if self.tangle_file is not None:
         tangle_file = self.code_blocks.expand(self.tangle_file)
@@ -210,4 +195,3 @@ def expand_line(self, txt, args={}):
     return intersperse(out)
 
 ```
-

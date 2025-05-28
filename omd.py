@@ -448,8 +448,6 @@ class CodeBlock:
             out_decode = out_decode[:-1]
 
         return out_decode
-
-
     def tangle(self):
         if self.tangle_file is not None:
             tangle_file = self.code_blocks.expand(self.tangle_file)
