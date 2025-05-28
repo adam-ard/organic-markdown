@@ -215,20 +215,6 @@ def print_cmds(self):
         for name in cmd_list:
             print(f"            {name}")
 
-def intersperse(self, sections):
-    out = []
-    max_lines = get_max_lines(sections)
-    for i in range(max_lines):
-        line = ""
-        for s in sections:
-            lines = s.split('\n')
-            if i < len(lines):
-                line += lines[i]
-            else:
-                line += lines[-1]   # just repeat the last entry until we need something more
-        out.append(line)
-    return "\n".join(out)
-
 def expand(self, txt, args={}):
     return "\n".join(
         [self.expand_line(x, args) for x in split_lines(txt)]
@@ -260,7 +246,7 @@ def expand_line(self, txt, args={}):
             out.append(self.expand(blk.code, args | new_args))
         txt = txt[match["end"]:]
 
-    return self.intersperse(out)
+    return intersperse(out)
 
 ```
 

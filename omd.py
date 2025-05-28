@@ -13,6 +13,9 @@ languages = ["bash", "python", "ruby", "haskell", "racket", "perl", "javascript"
 o_sym = "@<"
 c_sym = "@>"
 def get_max_lines(sections):
+    if sections == []:
+        return 0
+
     return max(len(s.splitlines()) for s in sections)
 def write_if_different(file_path, new_content):
     if os.path.exists(file_path):
@@ -28,6 +31,19 @@ def write_if_different(file_path, new_content):
         file.close()
 def parse_menu_attrib(val):
     return str(val).lower() not in ["false", "0", "", "nil", "null", "none"]
+def intersperse(sections):
+    out = []
+    max_lines = get_max_lines(sections)
+    for i in range(max_lines):
+        line = ""
+        for s in sections:
+            lines = s.split('\n')
+            if i < len(lines):
+                line += lines[i]
+            else:
+                line += lines[-1]   # repeat the last entry
+        out.append(line)
+    return "\n".join(out)
 def split_lines_line_cont_char(txt):
     new_lines = [""]
     lines = txt.split('\n')
@@ -598,20 +614,6 @@ class CodeBlocks:
             for name in cmd_list:
                 print(f"            {name}")
 
-    def intersperse(self, sections):
-        out = []
-        max_lines = get_max_lines(sections)
-        for i in range(max_lines):
-            line = ""
-            for s in sections:
-                lines = s.split('\n')
-                if i < len(lines):
-                    line += lines[i]
-                else:
-                    line += lines[-1]   # just repeat the last entry until we need something more
-            out.append(line)
-        return "\n".join(out)
-
     def expand(self, txt, args={}):
         return "\n".join(
             [self.expand_line(x, args) for x in split_lines(txt)]
@@ -643,7 +645,7 @@ class CodeBlocks:
                 out.append(self.expand(blk.code, args | new_args))
             txt = txt[match["end"]:]
 
-        return self.intersperse(out)
+        return intersperse(out)
 
     def get_code_block(self, name):
         for block in self.code_blocks:
