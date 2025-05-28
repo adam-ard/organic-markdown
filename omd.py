@@ -434,7 +434,6 @@ class CodeBlock:
             return
 
         return subprocess.call(cmd, shell=True)
-
     def run_return_results(self, args={}):
         cmd = self.get_run_cmd(args)
         if cmd is None:

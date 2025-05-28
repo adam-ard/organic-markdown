@@ -6,14 +6,7 @@ Below are the methods for both classes `CodeBlock` and `CodeBlocks`.
 
 ```python {name=CodeBlock_funcs}
 @<codeblock__get_run_cmd@>
-def run(self):
-    cmd = self.get_run_cmd()
-    if cmd is None:
-        print("Error running command")
-        return
-
-    return subprocess.call(cmd, shell=True)
-
+@<codeblock__run@>
 def run_return_results(self, args={}):
     cmd = self.get_run_cmd(args)
     if cmd is None:
