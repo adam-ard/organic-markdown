@@ -10,7 +10,8 @@ This is the code file. Yes, it is all in one file. But that is OK! Because we ar
 @<imports@>
 @<globals@>
 @<funcs@>
-@<classes@>
+@<class__codeblock@>
+@<class__codeblocks@>
 
 @<main@>
 ```
