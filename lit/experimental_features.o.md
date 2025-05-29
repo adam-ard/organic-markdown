@@ -2,9 +2,7 @@
 
 Below are some experimental features that are in development. They are not ready to be used. I am using them to help me develop a good work flow around importing source files into literate source files and generating polished documentation files with lots of bells and whistles (internal linking, expansion of refs, etc..)
 
-### @<CodeBlocks_funcs@>
-
-```python {name=CodeBlocks_funcs}
+```python {name=codeblocks__weave_file}
 def weave_file(self, filename, dest):
     with open(filename, 'r') as f:
         content = f.read()

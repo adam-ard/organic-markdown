@@ -2,9 +2,7 @@
 
 The `handle_cmd` methods is used in both interactive mode and command mode. It is a member of the `CodeBlocks` class explained below. It dispatches different commands to different methods on the class:
 
-### @<CodeBlocks_funcs@>
-
-```python {name=CodeBlocks_funcs}
+```python {name=codeblocks__handle_cmd}
 def handle_cmd(self, words):
     if len(words) == 1:
         @<handle_one_word_commands@>

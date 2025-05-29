@@ -6,7 +6,15 @@ There are two classes in `omd.py`. `CodeBlock` and `CodeBlocks`. As you might gu
 
 ```python {name=classes}
 class CodeBlock:
-    @<CodeBlock_funcs@>
+    @<codeblock__origin@>
+    @<codeblock__repr@>
+    @<codeblock__info@>
+    @<codeblock__get_run_cmd@>
+    @<codeblock__run@>
+    @<codeblock__run_return_results@>
+    @<codeblock__tangle@>
+    @<codeblock__parse@>
+    @<codeblock__init@>
 ```
 
 For reference, in a literate source file (has extenstion `.o.md`) code blocks looks like this. They follow the format used by pandoc: https://pandoc.org/MANUAL.html
@@ -26,4 +34,10 @@ class CodeBlocks:
     def __init__(self):
         self.code_blocks = []
     @<CodeBlocks_funcs@>
+    
+    @<codeblocks__get_code_block@>
+    @<codeblocks__handle_cmd@>
+    @<codeblocks__run_all_blocks@>
+    @<codeblocks__weave_file@>
+    @<codeblocks__run_block_fn@>
 ```
