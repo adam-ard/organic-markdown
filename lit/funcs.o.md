@@ -161,18 +161,8 @@ def parse_match(txt):
             "exec": exec,
             "args": args,
             "default": default.strip('"')}
-
-def eat_ws(txt):
-    return txt.lstrip()
-
-def eat_eq(txt):
-    if len(txt) == 0:
-        return None
-
-    if txt[0] == "=":
-        return txt[1:]
-    return None
-
+@<eat_ws@>
+@<eat_eq@>
 def parse_arg_name(txt):
     if txt == "" or txt[0].isspace():
         return None, txt

@@ -15,3 +15,10 @@ exit(1)
 print("PASSED: @<name@>!!")
 exit(0)
 ```
+
+```python {name=omd_assert}
+def omd_assert(expected, got):
+    if expected != got:
+        print(f"FAIL. Expected '{expected}', Got '{got}'")
+        exit(1)
+```

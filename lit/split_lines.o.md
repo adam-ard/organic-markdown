@@ -44,12 +44,9 @@ Here I swap out the `@<` and `@>` characters for the `:<` and `:>` characters. T
 o_sym = ":<"
 c_sym = ":>"
 
-@<split_lines@>
+@<omd_assert@>
 
-def omd_assert(expected, got):
-    if expected != got:
-        print(f"FAIL. Expected {expected}, Got {got}")
-        exit(1)
+@<split_lines@>
 
 txt = "test"
 expected = ["test"]
@@ -78,7 +75,7 @@ b=2):>""", "C", "D"]
 
 omd_assert(expected, split_lines(txt))
 
-# test a asymmetric opening and closing symbols
+# test asymmetric opening and closing symbols
 o_sym = "::::::<"
 c_sym = ":::>"
 

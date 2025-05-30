@@ -1,6 +1,5 @@
 import omd
 
-
 meta_block = { "constants": {
     "t": "MetaMap",
     "c": {
@@ -400,6 +399,7 @@ This is sentence 2 - 3"""
     txt = code_blocks.expand('@<asdfasdfasdf@>')
     assert txt == ""
 
+# dup
 def test_split_lines():
     res = omd.split_lines("test")
     assert res == ["test"]
@@ -410,7 +410,7 @@ def test_split_lines():
     res = omd.split_lines("A@<B(a=1\nb=2)@>\nC\nD")
     assert res == ["A@<B(a=1\nb=2)@>", "C", "D"]
 
-
+# dup
 def test_parse_block():
     cb = omd.CodeBlock()
     cb.parse(code_block)
@@ -425,6 +425,7 @@ def test_parse_block():
     assert cb.ssh_host == "aard@localhost.com"
 
 
+# dup
 def test_parse_block_alt_syntax():
     cb = omd.CodeBlock()
     cb.parse(code_block_alt_syntax)
@@ -479,11 +480,13 @@ def test_parse_menu():
     assert omd.parse_menu_attrib(0) == False
     assert omd.parse_menu_attrib(False) == False
 
+# dup
 def test_eat_ws():
     assert omd.eat_ws("   ") == ""
     assert omd.eat_ws("   \t   ") == ""
     assert omd.eat_ws("   \n\t   ") == ""
 
+# dup
 def test_eat_eq():
     assert omd.eat_eq("=asdfasdf") == "asdfasdf"
     assert omd.eat_eq("=\"") == "\""
