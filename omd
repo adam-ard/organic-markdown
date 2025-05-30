@@ -55,17 +55,16 @@ def split_lines(txt):
         if txt[i] == "\n" and ref_num == 0:   # need a newline
             new_lines.append(txt[start:i])
             start=i+1
-        if txt[i : i + 2] == o_sym:
+        if txt[i : i + len(o_sym)] == o_sym:
             ref_num += 1
             i += len(o_sym) - 1
-        if txt[i : i + 2] == c_sym:
+        if txt[i : i + len(c_sym)] == c_sym:
             ref_num -= 1
             i += len(c_sym) - 1
         i += 1
 
     new_lines.append(txt[start:i])
     return new_lines
-
 # returns match (or None if there isn't one) and whether or not it is
 #  string replacement or results of a string execution replacement. It
 #  will return matches in a left to right order

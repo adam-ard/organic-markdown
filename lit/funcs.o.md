@@ -7,28 +7,7 @@ All the function definitions. This file will shrink and eventually disappear as 
 @<write_if_different@>
 @<parse_menu_attrib@>
 @<intersperse@>
-def split_lines(txt):
-    new_lines = []
-
-    ref_num = 0
-    length = len(txt)
-    i = 0
-    start = 0
-    while i < length:
-        if txt[i] == "\n" and ref_num == 0:   # need a newline
-            new_lines.append(txt[start:i])
-            start=i+1
-        if txt[i : i + 2] == o_sym:
-            ref_num += 1
-            i += len(o_sym) - 1
-        if txt[i : i + 2] == c_sym:
-            ref_num -= 1
-            i += len(c_sym) - 1
-        i += 1
-
-    new_lines.append(txt[start:i])
-    return new_lines
-
+@<split_lines@>
 # returns match (or None if there isn't one) and whether or not it is
 #  string replacement or results of a string execution replacement. It
 #  will return matches in a left to right order
