@@ -9,3 +9,10 @@ Here is a list of things that I need to make sure to test.
 - Add namespaces per file for refs (ex. funcs::get_name)
 - make the test common stuff have a function that takes cmd and expected
 - run things through a python linter, to make it always consistent
+
+
+
+Thoughts:
+  -- unit tests should go with the individual files.
+  -- output source is throw-away, like compiled code.
+  -- integration tests are handled well by torture test. Will this always be the case?

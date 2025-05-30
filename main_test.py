@@ -27,9 +27,8 @@ meta_block = { "constants": {
 
 
 code_block = [["",
-               [],
+               ["bash"],
                [["name", "build_project"],
-                ["lang", "bash"],
                 ["what_is_this", "blah"],
                 ["docker", "@<docker_container_name@>"],
                 ["ssh", "aard@localhost.com"],
@@ -159,26 +158,17 @@ code_block_3_1 = [["",
                     ]],
                   "this is great"]
 
-code_block_3_2 = [["",
-                   [],
-                   [["name", "br-test"],
-                    ]],
-                  "this should @<br@> be two lines"]
-
-
 code_block_4 = [["",
-                    [],
+                    ["bash"],
                     [["name", "four"],
-                     ["lang", "bash"],
                      ["menu", "true"],
                      ["dir", "."],
                      ]],
                    'echo @<msg@>']
 
 code_block_5 = [["",
-                    [],
+                    ["python"],
                     [["name", "five"],
-                     ["lang", "python"],
                      ["menu", "true"],
                      ["dir", "."],
                      ]],
@@ -305,9 +295,6 @@ full_file = {"blocks": [{"t": "",
                          "c": code_block_3_1
                          },
                         {"t": "CodeBlock",
-                         "c": code_block_3_2
-                         },
-                        {"t": "CodeBlock",
                          "c": code_block_5
                          },
                         {"t": "CodeBlock",
@@ -336,9 +323,6 @@ def test_expand():
 
     txt = code_blocks.expand(blk.code)
     assert txt == "[This is the text from block two:[This is the text from block one:[This is some text], wasn't that nice?], can you believe it?]"
-
-    txt = code_blocks.expand('@<br-test@>')
-    assert txt == "this should \n be two lines"
 
     # test with args
     txt = code_blocks.expand('@<three(two="asdf")@>')
