@@ -5,22 +5,6 @@ All the function definitions. This file will shrink and eventually disappear as 
 ### @<funcs@>
 
 ```python {name=funcs}
-def split_lines_line_cont_char(txt):
-    new_lines = [""]
-    lines = txt.split('\n')
-
-    j = 0
-    for i, line in enumerate(lines):
-        if len(line) > 0 and line[-1:] == "\\":
-            new_lines[j] += line[:-1]
-        else:
-            new_lines[j] += line
-            if i < len(lines) - 1:  # don't add if it is the last one
-                new_lines.append("")
-                j+=1
-
-    return new_lines
-
 def split_lines(txt):
     new_lines = []
 
