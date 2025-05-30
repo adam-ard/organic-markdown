@@ -4,21 +4,24 @@ cd lit
 omd tangle
 
 # fix whitespace problems
-../whitespace-cleanup.sh omd.py
+../whitespace-cleanup.sh omd
 
 omd run all_tests
 
-cp omd.py ../omd.py
+cp omd ../omd
 
 cd ..
 
+cp omd omd.py
 pytest-3
+rm omd.py
+
 
 cd torture_tests
 ./tests.sh
 cd ..
 
-echo "diff old omd.py with new one"
-git diff omd.py
+echo "diff old omd with new one"
+git diff omd
 
-git restore omd.py
+git restore omd
