@@ -135,7 +135,6 @@ def parse_exec(txt):
         return txt[:-1], True, True
 
     return txt, False, True
-
 def parse_args_str(txt):
     args = ""
     if len(txt) == 0:

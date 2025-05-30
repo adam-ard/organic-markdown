@@ -52,34 +52,7 @@ def get_match_inner(txt, cur):
 
 @<parse_name@>
 @<parse_exec@>
-
-def parse_args_str(txt):
-    args = ""
-    if len(txt) == 0:
-        return args, txt
-
-    if txt[0] == '{':
-        return args, txt
-
-    if txt[0] != '(':
-        print(f'Bad char: {txt[0]} while parsing args from: "{txt}"')
-        return None, txt
-
-    txt = txt[1:]    # eat the opening paren
-    open_count = 1
-    while len(txt) > 0:
-        if txt[0] == '(':
-            open_count += 1
-        elif txt[0] == ')':
-            open_count -= 1
-
-        if open_count < 1:
-            return args, txt[1:]
-
-        args += txt[0]
-        txt = txt[1:]
-
-    return None, False
+@<parse_args_str@>
 
 def parse_default(txt):
     if len(txt) == 0:
