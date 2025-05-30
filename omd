@@ -122,7 +122,6 @@ def parse_name(txt):
         name += txt[0]
         txt = txt[1:]
     return name, txt
-
 def parse_exec(txt):
     if len(txt) == 0:
         print(f'name has zero length')

@@ -14,4 +14,5 @@ tests/f_parse_menu_attrib.py
 @<split_lines_tests@>
 @<eat_tests@>
 @<parse_name_tests@>
+@<parse_exec_tests@>
 ```

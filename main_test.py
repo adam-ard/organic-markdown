@@ -785,7 +785,7 @@ def test_parse_name():
     assert name == 'one\\{}'
     assert txt == "()"
 
-
+# dup
 def test_parse_exec():
     name, exec, success = omd.parse_exec("")
     assert success == False

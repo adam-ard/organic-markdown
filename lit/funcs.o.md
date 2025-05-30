@@ -51,20 +51,7 @@ def get_match_inner(txt, cur):
     return None, start + len(o_sym)
 
 @<parse_name@>
-
-def parse_exec(txt):
-    if len(txt) == 0:
-        print(f'name has zero length')
-        return "", False, False
-
-    if txt[-1:] == "*":
-        if len(txt) == 1:
-            print(f'name has zero length')
-            return "", False, False
-
-        return txt[:-1], True, True
-
-    return txt, False, True
+@<parse_exec@>
 
 def parse_args_str(txt):
     args = ""
