@@ -2,8 +2,6 @@
 
 We could just add to this list in the individual test files and delete this file eventually.
 
-### @<all_tests@>
-
 ```bash {name=all_tests menu=true}
 set -e
 
@@ -15,4 +13,5 @@ tests/f_parse_menu_attrib.py
 @<codeblock__parse_tests@>
 @<split_lines_tests@>
 @<eat_tests@>
+@<parse_name_tests@>
 ```

@@ -302,13 +302,12 @@ def parse_arg_name_value(txt):
 
     return name, value, txt
 
-# TODO return None for errors
 def parse_args(txt):
     args = {}
     while len(txt) > 0:
         name, value, txt = parse_arg_name_value(txt)
         if name == None:
-            return {}   # TODO switch this to error
+            return {}
         if name == "":
             return args
         args[name] = value

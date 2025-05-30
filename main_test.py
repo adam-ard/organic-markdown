@@ -711,7 +711,7 @@ def test_get_match():
     assert match["exec"] == False
     assert match["args"] == ''
 
-
+# dup
 def test_parse_name():
     name, txt = omd.parse_name("one")
     assert name == "one"

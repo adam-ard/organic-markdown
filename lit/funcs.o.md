@@ -50,21 +50,7 @@ def get_match_inner(txt, cur):
 
     return None, start + len(o_sym)
 
-def parse_name(txt):
-    o_txt = txt
-    name = ""
-    while len(txt) > 0:
-        if len(txt) > 1 and txt[0] == "\\" and txt[1] in ['(', '{']:
-            name += txt[:2]
-            txt = txt[2:]
-            continue
-
-        if txt[0] in ['(', '{']:
-            break
-
-        name += txt[0]
-        txt = txt[1:]
-    return name, txt
+@<parse_name@>
 
 def parse_exec(txt):
     if len(txt) == 0:
@@ -238,13 +224,12 @@ def parse_arg_name_value(txt):
 
     return name, value, txt
 
-# TODO return None for errors
 def parse_args(txt):
     args = {}
     while len(txt) > 0:
         name, value, txt = parse_arg_name_value(txt)
         if name == None:
-            return {}   # TODO switch this to error
+            return {}
         if name == "":
             return args
         args[name] = value
