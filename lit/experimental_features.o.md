@@ -27,9 +27,7 @@ def weave_file(self, filename, dest):
     print(f"Weaved file created: {weaved_filename}")
 ```
 
-### @<funcs@>
-
-```python {name=funcs}
+```python {name=import_file}
 def import_file(lang, file_path):
     print(f"importing {file_path}")
 

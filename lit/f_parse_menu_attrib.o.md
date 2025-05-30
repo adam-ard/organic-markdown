@@ -10,15 +10,6 @@ echo "Hello"
 
 When the menu attribute is found (see the parse function), then this function gets call with the attribute value as an argument. When the value is true, or has a string value that is not something that seems false-like, then the following function will return true (otherwise false).
 
-
-Add the function to `@<funcs@>`
-
-### @<funcs@>
-
-```python {name=funcs}
-@<parse_menu_attrib@>
-```
-
 function body:
 
 ### @<parse_menu_attrib@>

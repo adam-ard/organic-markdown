@@ -31,9 +31,7 @@ ssh -t {ssh_host} '<double_escaped_code>'
 
 Now, without further ado, here is my double escape function:
 
-### @<funcs@>
-
-```python {name=funcs}
+```python {name=escape_code}
 def escape_code(command):
     # escaped all single quotes
     escaped_cmd = command.replace("'", "'\\''")

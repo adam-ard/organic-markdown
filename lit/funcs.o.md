@@ -2,9 +2,11 @@
 
 All the function definitions. This file will shrink and eventually disappear as I explain each function individually in the documentation.
 
-### @<funcs@>
-
 ```python {name=funcs}
+@<get_max_lines@>
+@<write_if_different@>
+@<parse_menu_attrib@>
+@<intersperse@>
 def split_lines(txt):
     new_lines = []
 
@@ -278,5 +280,7 @@ def parse_args(txt):
             return args
         args[name] = value
     return args
+@<escape_code@>
+@<import_file@>
 ```
 

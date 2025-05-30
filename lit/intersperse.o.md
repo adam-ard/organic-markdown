@@ -7,10 +7,6 @@ Output -> ["146", "256", "356"]
 
 Actually, the resulting list, right before being returned, get joined by `\n` characters, so a single string will get returned. Like this: "146\n256\n356". Here is the code for the `intersperse` function:
 
-```python {name=funcs}
-@<intersperse@>
-```
-
 ```python {name=intersperse}
 def intersperse(sections):
     out = []

@@ -2,9 +2,7 @@
 
 I wrote this function so that when `omd tangle` is called we don't rewrite files that haven't changed. If we re-write all the files, then the timestamp updates on all files, and then programs that use that timestamp (like `make`) think a bunch of files changed that didn't and a bunch of unneccessary work if initiated.
 
-### @<funcs@>
-
-```python {name=funcs}
+```python {name=write_if_different}
 def write_if_different(file_path, new_content):
     if os.path.exists(file_path):
         with open(file_path, 'r') as file:
