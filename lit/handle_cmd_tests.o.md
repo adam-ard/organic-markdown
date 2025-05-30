@@ -55,4 +55,10 @@ code_blocks = CodeBlocks()
 @<test_passed(name="Handle Cmd")@>
 ```
 
+# Run Tests
+
+```bash {name=handle_cmd_tests menu=true}
+tests/handle_cmd.py
+```
+
 [source code](handle_cmd.o.md)

@@ -26,4 +26,11 @@ if interactive_mode_ran:
 @<test_passed(name="Main Code")@>
 ```
 
+# Run Tests
+
+```bash {name=main_code_tests menu=true}
+tests/main_code.py
+```
+
+
 [Main Code](main_code.o.md)

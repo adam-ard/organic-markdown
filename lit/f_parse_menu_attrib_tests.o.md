@@ -2,8 +2,6 @@
 
 Test that the [parse_menu_attrib](f_parse_menu_attrib.o.md) function returns true/false correctly based on the input.
 
-### tangle: tests/f_parse_menu_attrib.py
-
 ```python {tangle=tests/f_parse_menu_attrib.py}
 #!/usr/bin/env python3
 
@@ -19,5 +17,12 @@ for val in [False, "False", "false", "0", 0, "", None, "nil", "Nil", "null", "Nu
 
 @<test_passed(name="parse_menu_attrib")@>
 ```
+
+# Run Tests
+
+```bash {name=f_parse_menu_attrib_tests menu=true}
+tests/f_parse_menu_attrib.py
+```
+
 
 [source code](f_parse_menu_attrib.o.md)
