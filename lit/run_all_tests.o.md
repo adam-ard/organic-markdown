@@ -16,4 +16,5 @@ tests/f_parse_menu_attrib.py
 @<parse_name_tests@>
 @<parse_exec_tests@>
 @<parse_args_str_tests@>
+@<parse_arg_name_tests@>
 ```

@@ -109,19 +109,7 @@ def parse_match(txt):
             "default": default.strip('"')}
 @<eat_ws@>
 @<eat_eq@>
-def parse_arg_name(txt):
-    if txt == "" or txt[0].isspace():
-        return None, txt
-
-    name = ""
-    while len(txt) > 0:
-        if txt[0].isspace() or txt[0] == "=":
-            return name, txt
-
-        name += txt[0]
-        txt = txt[1:]
-
-    return name, txt
+@<parse_arg_name@>
 
 def parse_arg_value(txt):
     if txt == "" or txt[0].isspace():
