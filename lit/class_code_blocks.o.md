@@ -7,6 +7,7 @@ class CodeBlocks:
     def __init__(self):
         self.code_blocks = []
     @<codeblocks__parse@>
+    @<codeblocks__print@>
     @<CodeBlocks_funcs@>
     @<codeblocks__get_code_block@>
     @<codeblocks__handle_cmd@>
