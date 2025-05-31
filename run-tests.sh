@@ -10,14 +10,7 @@ omd run all_tests
 
 cp omd ../omd
 
-cd ..
-
-cp omd omd.py
-pytest-3
-rm omd.py
-
-
-cd torture_tests
+cd ../torture_tests
 ./tests.sh
 cd ..
 
