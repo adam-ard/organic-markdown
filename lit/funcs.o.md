@@ -53,33 +53,7 @@ def get_match_inner(txt, cur):
 @<parse_name@>
 @<parse_exec@>
 @<parse_args_str@>
-
-def parse_default(txt):
-    if len(txt) == 0:
-        return "", txt
-
-    if txt[0] != "{":
-        print(f'Bad char: {txt[0]} while parsing default from: "{txt}"')
-        return None, txt
-
-    open_count = 1
-    default = ""
-    o_txt = txt
-    txt = txt[1:]
-    while len(txt) > 0:
-        if txt[0] == '{':
-            open_count += 1
-        elif txt[0] == '}':
-            open_count -= 1
-
-        if open_count < 1:
-            return default, txt[1:]
-
-        default += txt[0]
-        txt = txt[1:]
-
-    print(f'End of string before getting a "}}" char: "{o_txt}"')
-    return None, txt
+@<parse_default@>
 
 def parse_match(txt):
     o_txt = txt
