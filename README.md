@@ -15,6 +15,7 @@ To install organic mardown, make sure you have the following dependencies:
 - python3
 - python3-pytest
 - python3-pypandoc
+- black (pip install black)
 
 Run the following to get the latest code:
 

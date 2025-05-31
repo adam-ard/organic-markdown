@@ -3,8 +3,8 @@
 cd lit
 omd tangle
 
-# fix whitespace problems
-../whitespace-cleanup.sh omd
+# run linter
+black omd
 
 omd run all_tests
 
