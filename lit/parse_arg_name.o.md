@@ -1,14 +1,8 @@
 # Source
 
-This function takes the argument string, and returns the first argument's name. For example, a block like this:
+This function takes a reference string's arguments and return the name of the first argument. For example, the ref string `@<ref-name(one=1 two=2){asdf}@>`, when the arguments are extracted `one=1 two=2` and passed to `parse_arg_name` will yield two return values: the name for the first argument `one`, and the rest of the string `=1 two=2`.
 
-``````
-```bash {name=say_hello menu=true}
-echo "Hello There"
-```
-``````
-
-would yield an argument string: `name=say_hello menu=true`. This string would be passed to `parse_arg_name` which would return `name`. It will also return the remaining text after the name it retreived. In this case: `=say_hello menu=true`. If something goes wrong, `None` is returned in the name return value. Here is the function:
+If something goes wrong, `None` is returned in the name return value. Here is the function:
 
 ```python {name=parse_arg_name}
 def parse_arg_name(txt):
@@ -42,8 +36,8 @@ def test(txt, expected_name, expected_rest):
 @<parse_arg_name@>
 
 test("", None, None)
+test("one=1 two=2", "one", "=1 two=2")
 test("name=value", "name", "=value")
-test("name=say_hello menu=true", "name", "=say_hello menu=true")
 test("name   ", "name", "   ")
 test("  stuff", None, None)
 test("name1=value1", "name1", "=value1")

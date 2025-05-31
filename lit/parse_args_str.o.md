@@ -1,14 +1,8 @@
 # Source
 
-This function is used to parse out the string that container all the arguments from the reference definition. For example, the args string of this code block:
+This function is used to parse out the string that contains all the arguments from a reference string. For example, the ref string `@<ref-name(one=1 two=2){asdf}@>` would first get parsed for the name and pass the rest of the string `(one=1 two=2){asdf}` to `parse_args_str`. `parse_args_str` would return `one=1 two=2` and the rest of the string as the second return value: `{asdf}`.
 
-``````
-```bash {name=say_hello menu=true}
-echo "Hello There"
-```
-``````
-
-would be `name=say_hello menu=true`. Here is the code used to parse out the args. It returns the string representing the arguments and the remaining text in the ref (to be further parsed). If there is an error in the parsing, `None` is returned for the args return value.
+Here is the code used to parse out the args. If there is an error in the parsing, `None` is returned for the args return value.
 
 ```python {name=parse_args_str}
 def parse_args_str(txt):
@@ -56,6 +50,7 @@ def test(txt, expected_args, expected_rest):
 @<parse_args_str@>
 
 test("", "", "")
+test("(one=1 two=2){asdf}", "one=1 two=2", "{asdf}")
 test("{}", "", "{}")
 test("aa", None, None)
 test("()", "", "")

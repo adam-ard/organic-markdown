@@ -1,14 +1,6 @@
 # Source
 
-This function takes the argument string that remains after an argument name is removed and parses the value. For example, a block like this:
-
-``````
-```bash {name=say_hello menu=true}
-echo "Hello There"
-```
-``````
-
-would yield an argument string: `name=say_hello menu=true`. The first argument name would be extracted `=say_hello menu=true` and passed to `parse_arg_value`. It would return `say_hello`. It would also return the remaining text after the value is retreived ` menu=true`. If something goes wrong, `None` is returned in the value return value. Here is the function:
+This function takes the argument string that remains after an argument name is removed from a ref string, and parses the value. For example, the ref string `@<ref-name(one=1 two=2){asdf}@>`, will yeild the argument list `one=1 two=2`. Next the argument name will be removed and you'll be left with `1 two=2`. If you pass that to `parse_arg_value` it will return `1` for the first return value and the rest of the string for the second return value: ` two=2`. If something goes wrong, `None` is returned in the value return value. Here is the function:
 
 ```python {name=parse_arg_value}
 def parse_arg_value(txt):
@@ -74,6 +66,8 @@ def test(txt, expected_value, expected_rest):
 
 test("", None, None)
 test("  ", None, None)
+
+test("1 two=2", "1", " two=2")
 test("val1", "val1", "")
 test("val1 name2=val2", "val1", " name2=val2")
 test('"val1 val2" name2=val2', "val1 val2", " name2=val2")
