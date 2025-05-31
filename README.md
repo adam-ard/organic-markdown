@@ -15,12 +15,12 @@ To install organic mardown, make sure you have the following dependencies:
 - python3
 - python3-pytest
 - python3-pypandoc
-- black (pip install black)
+- black (`pip install black`)
 
 Run the following to get the latest code:
 
 ```bash
-https://github.com/adam-ard/organic-markdown.git
+git clone  https://github.com/adam-ard/organic-markdown.git
 ```
 
 and then add the `organic-markdown` directory to your PATH variable.

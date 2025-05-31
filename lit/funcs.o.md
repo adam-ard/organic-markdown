@@ -53,32 +53,7 @@ def get_match_inner(txt, cur):
 @<parse_exec@>
 @<parse_args_str@>
 @<parse_default@>
-def parse_match(txt):
-    o_txt = txt
-    name, txt = parse_name(txt)
-    if name is None:
-        print(f'Error parsing name from: "{o_txt}"')
-        return None
-
-    name, exec, success = parse_exec(name)
-    if success == False:
-        print(f'Error parsing exec from: "{name}"')
-        return None
-
-    args, txt = parse_args_str(txt)
-    if args == None:
-        print(f'Error parsing args from: "{o_txt}"')
-        return None
-
-    default, txt = parse_default(txt)
-    if default == None:
-        print(f'Error parsing default from: "{o_txt}"')
-        return None
-
-    return {"name": name,
-            "exec": exec,
-            "args": args,
-            "default": default.strip('"')}
+@<parse_match@>
 @<eat_ws@>
 @<eat_eq@>
 @<parse_arg_name@>
