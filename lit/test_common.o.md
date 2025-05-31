@@ -12,7 +12,7 @@ exit(1)
 ### @<test_passed@>
 
 ```python {name=test_passed}
-print("**PASSED**: @<name@>!!")
+print("        PASSED: @<name@>!!")
 exit(0)
 ```
 
