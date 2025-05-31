@@ -20,8 +20,7 @@ would be parsed as a json and converted to python data structures that that look
 ```
 
 
-Here is the code where we parse the resulting python structure. I have no idea why I added a `@<br@>` ref that gets
-converted to `\n`. I guess I'll leave it there to see if I ever need it. If not, I'll delete it.
+Here is the code where we parse the resulting python structure:
 
 
 ```python {name=codeblock__parse}
