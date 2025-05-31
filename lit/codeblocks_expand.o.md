@@ -1,8 +1,8 @@
-# Classes
+# Source
 
-Below are the methods for the `CodeBlocks` class
+This is the grand central station of Organic Markdown. The expand functions are highly recursive and very sensitive to small changes, but they are very elegant and concise. Be carefull if you have to mess with this stuff.
 
-```python {name=CodeBlocks_funcs}
+```python {name=codeblocks__expand}
 def expand(self, txt, args={}):
     return "\n".join(
         [self.expand_line(x, args) for x in split_lines(txt)]
@@ -35,5 +35,4 @@ def expand_line(self, txt, args={}):
         txt = txt[match["end"]:]
 
     return intersperse(out)
-
 ```
