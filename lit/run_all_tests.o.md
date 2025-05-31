@@ -22,4 +22,5 @@ set -e
 @<parse_arg_name_value_tests@>
 @<parse_args_tests@>
 @<parse_match_tests@>
+@<get_match_tests@>
 ```

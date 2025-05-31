@@ -574,7 +574,7 @@ def test_parse_arg_name():
     assert name == "name1"
     assert txt == " \t = value1"
 
-# dup    
+# dup
 def test_parse_arg_name_value():
     name, value, txt = omd.parse_arg_name_value("name=val1")
     assert name == "name"
@@ -628,6 +628,7 @@ def test_parse_args():
                                       "name": "myFunc",
                                       "args": "char *filename, float two"}
 
+# dup
 def test_get_match():
     test_data = [
         ['', False, '', False, '', ''],
