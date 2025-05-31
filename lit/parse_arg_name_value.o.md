@@ -1,6 +1,6 @@
 # Source
 
-This function takes the arguments from a reference string and returns the first name/value pair, and the rest of the string. For example, the ref string `@<ref-name(one=1 two=2){asdf}@>` yeilds a string of argument `one=1 two=2` which gets passed to `parse_arg_name_value`. `parse_arg_name_value` returns three arguments: first arg name `one`, first arg value `1`, and the rest of the string ` two=2`. I something goes wrong, `None` will be returned as the first return value.
+This function takes the arguments from a reference string and returns the first name/value pair, and the rest of the string. For example, the ref string `@<ref-name(one=1 two=2){asdf}@>` yeilds a string of argument `one=1 two=2` which gets passed to `parse_arg_name_value`. `parse_arg_name_value` returns three arguments: first arg name `one`, first arg value `1`, and the rest of the string ` two=2`. If something goes wrong, `None` will be returned as the first return value.
 
 This function makes use of [parse_arg_name](parse_arg_name.o.md), [parse_arg_value](parse_arg_value.o.md), [eat_ws](parse_eat.o.md), and [eat_eq](parse_eat.o.md).
 

@@ -49,12 +49,10 @@ def get_match_inner(txt, cur):
         return None, len(txt)
 
     return None, start + len(o_sym)
-
 @<parse_name@>
 @<parse_exec@>
 @<parse_args_str@>
 @<parse_default@>
-
 def parse_match(txt):
     o_txt = txt
     name, txt = parse_name(txt)
@@ -86,17 +84,7 @@ def parse_match(txt):
 @<parse_arg_name@>
 @<parse_arg_value@>
 @<parse_arg_name_value@>
-
-def parse_args(txt):
-    args = {}
-    while len(txt) > 0:
-        name, value, txt = parse_arg_name_value(txt)
-        if name == None:
-            return {}
-        if name == "":
-            return args
-        args[name] = value
-    return args
+@<parse_args@>
 @<escape_code@>
 @<import_file@>
 ```

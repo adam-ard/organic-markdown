@@ -106,7 +106,6 @@ def get_match_inner(txt, cur):
         return None, len(txt)
 
     return None, start + len(o_sym)
-
 def parse_name(txt):
     o_txt = txt
     name = ""
@@ -188,7 +187,6 @@ def parse_default(txt):
 
     print(f'End of string before getting a "}}" char: "{o_txt}"')
     return None, txt
-
 def parse_match(txt):
     o_txt = txt
     name, txt = parse_name(txt)
@@ -296,7 +294,6 @@ def parse_arg_name_value(txt):
         return None, None, ""
 
     return name, value, txt
-
 def parse_args(txt):
     args = {}
     while len(txt) > 0:
