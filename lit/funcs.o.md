@@ -110,46 +110,7 @@ def parse_match(txt):
 @<eat_ws@>
 @<eat_eq@>
 @<parse_arg_name@>
-
-def parse_arg_value(txt):
-    if txt == "" or txt[0].isspace():
-        return None, txt
-
-    value = ""
-    quoted = False
-    in_ref = 0
-
-    if txt[0] == '"':
-        quoted = True
-        txt = txt[1:]
-
-    while len(txt) > 0:
-        if len(txt) > 1 and txt[0] == "\\" and txt[1] in [o_sym[0], c_sym[0], '"']:
-            value += txt[1:2]
-            txt = txt[2:]
-
-        if len(txt) >= len(o_sym) and txt[:len(o_sym)] == o_sym:
-            in_ref += 1
-            value += o_sym
-            txt = txt[len(o_sym):]
-            continue
-
-        if len(txt) >= len(c_sym) and txt[:len(c_sym)] == c_sym:
-            in_ref -= 1
-            value += c_sym
-            txt = txt[len(c_sym):]
-            continue
-
-        if not quoted and in_ref < 1 and txt[0].isspace():
-            return value, txt
-
-        if quoted and in_ref < 1 and txt[0] == '"':
-            return value, txt[1:]
-
-        value += txt[0]
-        txt = txt[1:]
-
-    return value, txt
+@<parse_arg_value@>
 
 def parse_arg_name_value(txt):
     txt = eat_ws(txt)

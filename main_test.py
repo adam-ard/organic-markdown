@@ -494,6 +494,7 @@ def test_eat_eq():
     assert omd.eat_eq(" = ") == None   # the whitespace should get eaten in the calling function
     assert omd.eat_eq("asdf") == None
 
+#dup
 def test_parse_arg_value():
     value, txt = omd.parse_arg_value("")
     assert value == None

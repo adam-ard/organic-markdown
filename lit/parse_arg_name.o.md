@@ -1,6 +1,6 @@
 # Source
 
-This function takes an argument string, and returns the first argument's name. For example, a block like this:
+This function takes the argument string, and returns the first argument's name. For example, a block like this:
 
 ``````
 ```bash {name=say_hello menu=true}
@@ -8,7 +8,7 @@ echo "Hello There"
 ```
 ``````
 
-would yield this argument string: `name=say_hello menu=true`. Passing that string to `parse_arg_name`, it will return `name`. It will also return the remaining text after the name it retreived. In this case: `=say_hello menu=true`. If something goes wrong, `None` is returned in the name return value. Here is the function:
+would yield an argument string: `name=say_hello menu=true`. This string would be passed to `parse_arg_name` which would return `name`. It will also return the remaining text after the name it retreived. In this case: `=say_hello menu=true`. If something goes wrong, `None` is returned in the name return value. Here is the function:
 
 ```python {name=parse_arg_name}
 def parse_arg_name(txt):
