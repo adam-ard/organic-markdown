@@ -26,3 +26,11 @@ To see the difference between the new script and the old one:
 diff omd lit/omd
 ```
 
+Release the new `omd` script, run the following. Make sure you don't have anything else staged, or it will come along for the ride.
+
+```bash {name=diff menu=true}
+cp lit/omd omd
+git add omd
+git commit -m "Release new omd script"
+git push origin main
+```
