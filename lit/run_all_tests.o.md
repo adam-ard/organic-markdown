@@ -19,4 +19,5 @@ set -e
 @<parse_arg_name_tests@>
 @<parse_arg_value_tests@>
 @<parse_default_tests@>
+@<parse_arg_name_value_tests@>
 ```

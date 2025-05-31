@@ -162,7 +162,6 @@ def parse_args_str(txt):
         txt = txt[1:]
 
     return None, False
-
 def parse_default(txt):
     if len(txt) == 0:
         return "", txt
@@ -238,7 +237,6 @@ def parse_arg_name(txt):
         txt = txt[1:]
 
     return name, txt
-
 def parse_arg_value(txt):
     if txt == "" or txt[0].isspace():
         return None, txt
@@ -278,7 +276,6 @@ def parse_arg_value(txt):
         txt = txt[1:]
 
     return value, txt
-
 def parse_arg_name_value(txt):
     txt = eat_ws(txt)
     if txt == "":

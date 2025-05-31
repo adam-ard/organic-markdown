@@ -85,27 +85,7 @@ def parse_match(txt):
 @<eat_eq@>
 @<parse_arg_name@>
 @<parse_arg_value@>
-
-def parse_arg_name_value(txt):
-    txt = eat_ws(txt)
-    if txt == "":
-        return "", "", ""
-
-    name, txt = parse_arg_name(txt)
-    if name == None:
-        return None, None, ""
-
-    txt = eat_ws(txt)
-    txt = eat_eq(txt)
-    if txt == None:
-        return None, None, ""
-
-    txt = eat_ws(txt)
-    value, txt = parse_arg_value(txt)
-    if value == None:
-        return None, None, ""
-
-    return name, value, txt
+@<parse_arg_name_value@>
 
 def parse_args(txt):
     args = {}
