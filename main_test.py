@@ -24,56 +24,6 @@ meta_block = { "constants": {
     }
 }}
 
-
-code_block = [["",
-               ["bash"],
-               [["name", "build_project"],
-                ["what_is_this", "blah"],
-                ["docker", "@<docker_container_name@>"],
-                ["ssh", "aard@localhost.com"],
-                ["menu", "true"],
-                ["dir", "@<project_name@>"],
-                ["tangle", "@<project_name@>/main.c"]
-                ]],
-              "gcc --version"]
-
-code_block_alt_syntax = [["",
-                          ["python"],
-                          [["name", "build_project"],
-                           ["what_is_this", "blah"],
-                           ["docker", "@<docker_container_name@>"],
-                           ["ssh", "aard@localhost.com"],
-                           ["menu", "true"],
-                           ["dir", "@<project_name@>"],
-                           ["tangle", "@<project_name@>/main.c"]
-                           ]],
-                         "gcc --version"]
-
-code_block_alt_syntax2 = [["",
-                           ["bash"],
-                           [["name", "build_project"],
-                            ["what_is_this", "blah"],
-                            ["docker", "@<docker_container_name@>"],
-                            ["ssh", "aard@localhost.com"],
-                            ["menu", "true"],
-                            ["dir", "@<project_name@>"],
-                            ["tangle", "@<project_name@>/main.c"]
-                            ]],
-                          "gcc --version"]
-
-code_block_alt_syntax3 = [["",
-                           [],
-                           [["name", "build_project"],
-                            ["what_is_this", "blah"],
-                            ["docker", "@<docker_container_name@>"],
-                            ["ssh", "aard@localhost.com"],
-                            ["menu", "true"],
-                            ["dir", "@<project_name@>"],
-                            ["tangle", "@<project_name@>/main.c"]
-                            ]],
-                          "gcc --version"]
-
-
 code_block_append1 = [["",
                        [],
                        [["name", "append"],
@@ -312,89 +262,9 @@ def test_origin_file():
 
     code_blocks.run_all_blocks_fn(check)
 
-
-def test_expand():
+def test_get_code_block():
     code_blocks = omd.CodeBlocks()
     code_blocks.parse_json(full_file, "test_file.omd")
 
     blk = code_blocks.get_code_block("three")
     assert blk != None
-
-    txt = code_blocks.expand(blk.code)
-    assert txt == "[This is the text from block two:[This is the text from block one:[This is some text], wasn't that nice?], can you believe it?]"
-
-    # test with args
-    txt = code_blocks.expand('@<three(two="asdf")@>')
-    assert txt == "[This is the text from block two:asdf, can you believe it?]"
-
-    txt = code_blocks.expand('@<two(one="qwerty")@>')
-    assert txt == "[This is the text from block one:qwerty, wasn't that nice?]"
-
-    txt = code_blocks.expand('@<four*@>')
-    assert txt == "this is great"
-
-    txt = code_blocks.expand('@<five*(msg="asdf")@>')
-    assert txt == "I am python!! asdf"
-
-    txt = code_blocks.expand('@<two_sentences(one="@<three_lines@>")@>')
-    assert txt == """\
-This is sentence 1 - 1
-This is sentence 1 - 2
-This is sentence 1 - 3
-This is sentence 2 - 1
-This is sentence 2 - 2
-This is sentence 2 - 3"""
-
-    txt = code_blocks.expand('@<four*(msg="here is a msg")@>')
-    assert txt == "here is a msg"
-
-    txt = code_blocks.expand('@<two_1(one="qwerty")@>')
-    assert txt == "[This is the text from block one:qwerty, wasn't that nice?]"
-
-    txt = code_blocks.expand('@<indent_4@>')
-    assert txt == f"""indent_block {{
-    one
-        {""}
-    {""}
-    two
-      three
-    four
-}}"""
-
-    txt = code_blocks.expand('@<indent_6@>')
-    assert txt == f"""indent_block {{
-    // one
-    // {"    "}
-    // {""}
-    // two
-    //   three
-    // four
-}}"""
-
-    txt = code_blocks.expand('--->@<indent_2@>@<one@><-----')
-    assert txt == """--->one[This is some text]<-----
---->two[This is some text]<-----
---->three[This is some text]<-----
---->four[This is some text]<-----"""
-
-    txt = code_blocks.expand('a@<b@>c@<d@>e')  # this will cause an infinite loop if we do this wrong
-    lines = txt.split("\n")
-    assert len(lines) == 2
-    assert "a1c3e" in lines
-    assert "a2c4e" in lines
-
-    # multi-line
-    txt = code_blocks.expand("a@<three(two=\n2)@>b")
-    assert "a[This is the text from block two:2, can you believe it?]b"
-
-    txt = code_blocks.expand('@<append@>')
-    assert txt == "1\n2\n3\n4"
-
-    txt = code_blocks.expand('@<code_dir@>')
-    assert txt == "~/code"
-
-    txt = code_blocks.expand('@<project_name_recurse@>')
-    assert txt == ""
-
-    txt = code_blocks.expand('@<asdfasdfasdf@>')
-    assert txt == ""

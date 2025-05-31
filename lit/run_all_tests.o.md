@@ -23,4 +23,5 @@ set -e
 @<parse_args_tests@>
 @<parse_match_tests@>
 @<get_match_tests@>
+@<expand_tests@>
 ```
