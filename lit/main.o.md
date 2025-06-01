@@ -1,11 +1,19 @@
 # Main
 
-Any good program starts with main. This is no exception. Python sets a global variable called `__name__` to the value `__main__` if you happen to be calling it as a program. This helps distinguish from when the file is being used as a library that has been imported, in which case you would not want to run any "main" code, because you have a main already in the program the is importing you as a library.
+Every good program starts with a `main`—and this one is no exception.
 
-### @<main@>
+In Python, the special variable `__name__` is set to `"__main__"` when the file is run directly. This allows us to distinguish between two use cases:
+
+* Running the file as a **standalone script** (when we do want to run the main logic), and
+* Importing the file as a **module** (when we don’t want any top-level code to execute automatically).
+
+This pattern helps keep `omd` both scriptable and import-friendly.
+
+---
+
+### 🔗 `@<main@>`
 
 ```python {name=main}
 if __name__ == '__main__':
     @<main_code@>
 ```
-

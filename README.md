@@ -1,59 +1,57 @@
 # Organic Markdown
 
-The most natural (and delicious!!) way to program. Organic Markdown
-takes advantage of the markdown extensions used by
-[pandoc](https://pandoc.org/MANUAL.html) -- specifically yaml blocks
-at the top of a file, and attributes for fenced code blocks -- to
-create next-gen literate, notebook style documents, strongly
-influenced by emacs org-mode and functional programming.
+The most natural (and delicious!!) way to program. **Organic Markdown** takes advantage of the Markdown extensions used by [Pandoc](https://pandoc.org/MANUAL.html)—specifically YAML blocks at the top of a file and attributes for fenced code blocks—to create next-gen literate, notebook-style documents. It's strongly influenced by Emacs Org-mode and functional programming.
 
 ## Installation
 
-To install organic mardown, make sure you have the following dependencies:
+To install Organic Markdown, make sure you have the following dependencies:
 
-- pandoc (>= 3.1.12)
-- python3
-- python3-pytest
-- python3-pypandoc
-- black (`pip install black`)
+* Pandoc (>= 3.1.12)
+* Python 3
+* `pypandoc`
+* `black` (for code formatting)
 
-Run the following to get the latest code:
+Install dependencies:
 
 ```bash
-git clone  https://github.com/adam-ard/organic-markdown.git
+pip install black pytest pypandoc
 ```
 
-and then add the `organic-markdown` directory to your PATH variable.
+Clone the repository:
+
+```bash
+git clone https://github.com/adam-ard/organic-markdown.git
+```
+
+Then add the `organic-markdown` directory to your `PATH`.
 
 ## Getting Started
 
-To create an organic literate file, create an empty file with the
-mardown extention - `*.o.md`. By default, `omd` reads all files that
-have a `.o.md` extension in the current directory (and any
-subdirectories recursively). Let's create an empty directory `test`
-with a single file called `LIT.o.md` and put the following contents in
-it:
+To create an Organic Markdown file, make a new file with the extension `*.o.md`. By default, `omd` reads all `.o.md` files in the current directory (and all subdirectories recursively).
 
-LIT.o.md
+Let's create a simple example. Make a new directory called `test`, and inside it, create a file called `LIT.o.md`:
+
+`LIT.o.md`
+
 ``````markdown
 # Simple command
 
-This is a organic markdown test file. To create a notebook style command,
-create a code bock with some simple bash code in it:
+This is an Organic Markdown test file. To create a notebook-style command, add a code block with some simple Bash code:
 
 ```bash {name=pwd menu=true}
 pwd
 ```
 ``````
 
+You've just defined an executable code block. An Organic Markdown block starts with a language declaration, followed by curly-brace attributes. Here, you've named the block `pwd` and set `menu=true` to make it show up as a runnable command.
 
-In your `LIT.o.md` file, you have created an executable code block. An
-organic markdown code block has a language attribute followed by curly
-bracket delimited attributes. Notice that we have given the block a name, and set
-its menu attribute to true.
+Now run this in the same directory:
 
-Now when you run `omd status` in the same directory as your `LIT.o.md` file,
-you should see something like this:
+```bash
+omd status
+```
+
+You should see something like:
 
 ```
 Available commands:
@@ -64,16 +62,13 @@ Output files:
   (use "omd tangle" to generate output files)
 ```
 
-You have one command available (the `pwd` command you just created)
-and no files to be tangled (we'll explain this in a second). To run
-your new command, run the following command:
+To execute the command:
 
 ```bash
 omd run pwd
 ```
 
-You should see the output of the `pwd` bash command. To run this
-command in another directory, simply add the dir attribute:
+You can also specify the working directory for a code block:
 
 ``````markdown
 ```bash {name=pwd menu=true dir=/var/log}
@@ -81,15 +76,13 @@ pwd
 ```
 ``````
 
-and run `omd run pwd` again. You should now get `/var/log` as output,
-since the bash command was now executed in that directory. 
+Then run `omd run pwd` again. This time the output should be `/var/log`.
 
-## Files
+## Files and Tangling
 
-In addition to notebooks style functionality, organic markdown also
-provides more traditional literate programming with weaving and
-tangling. For example, you can write (tangle) a file by adding a
-`tangle` attribute to a code block:
+Organic Markdown also supports more traditional literate programming via **tangling**.
+
+To write a file from a code block, use the `tangle` attribute:
 
 ``````markdown
 # An example script file
@@ -101,29 +94,25 @@ echo "This is a bash script"
 ```
 ``````
 
-To write the file, run:
+Generate the file:
 
 ```bash
 omd tangle script_file
 ```
 
-A new script called `test.sh` should appear in your directory. You
-should also see this file listed when you run `omd status`.
+You should now see `test.sh` in your directory. It will also show up in the output of:
 
 ```bash
-Available commands:
-  (use "omd run <cmd>" to execute the command)
-    pwd
-
-Output files:
-  (use "omd tangle" to generate output files)
-    script_file
+omd status
 ```
 
-If you run `omd tangle` with no arguments, `omd` will tangle all files
-listed in your markdown file. This makes for a handy command to run
-automatically in your editor everytime you save a markdown file. To
-create a command to test your script add:
+You can tangle all outputs at once:
+
+```bash
+omd tangle
+```
+
+To test the script, add the following to your file:
 
 ``````markdown
 # To run your script
@@ -133,32 +122,22 @@ bash test.sh
 ```
 ``````
 
-Then you can run:
+Then run:
 
 ```bash
 omd run script
 ```
 
+## Literate References
 
-## Literate references
+Literate programming lets you co-locate code and documentation. This keeps your docs more accurate and encourages better habits.
 
-One of the benifits of literate programming is that you can keep your
-documentation located right next your code. You are more likely to to
-write documentation this way. Additionally, the documentation is more
-likely to stay updated and in sync with your actual code. But this
-isn't the only reason that literate programming is helpful. Once you
-start adding literate references (names surround by `@<` and `@>`)
-that `omd` can read and automatically assemble for you while
-`tangling`, it becomes much easier to present your code in smaller
-chunks alongside the documentation.
+But Organic Markdown goes further: by using **literate references** (`@<name@>`) and **tangling**, you can write small code chunks and stitch them together into clean, readable source files.
 
-Here is a more complete example to demonstrate how `omd` refs work.
+### Basic Example
 
 ``````markdown
 # Say Hello
-
-Say Hello is a simple c program that says hello. First we start with a
-simple main:
 
 ```C {tangle=main.c}
 #include <stdio.h>
@@ -169,7 +148,7 @@ void main()
 }
 ```
 
-# Build/Run Program
+# Build/Run
 
 ```bash {name=build menu=true}
 gcc main.c
@@ -178,24 +157,24 @@ gcc main.c
 ```bash {name=app menu=true}
 ./a.out
 ```
-
 ``````
 
-
-Now you can run:
+Now run:
 
 ```bash
 omd tangle && omd run build && omd run app
 ```
 
-And you should see the word: `Hello` in your terminal. Now we'll add
-some refs to make a simple outline or scaffolding for our main file:
+You should see:
+
+```
+Hello
+```
+
+### Using Literate Refs for Structure
 
 ``````markdown
-# Say Hello
-
-Say Hello is a simple c program that says hello. We start with an **outline**
-simple main:
+# Say Hello (Ref Version)
 
 ```C {tangle=main.c}
 #include @<includes@>
@@ -206,106 +185,54 @@ void main()
 }
 ```
 
-# Code for saying hello
-
-In order to print we need to add the `stdio` include:
-
-```C {name="includes"}
+```C {name=includes}
 <stdio.h>
 ```
 
-Following is code to say hello:
-
-```C {name="main"}
+```C {name=main}
 printf("Hello\n");
-```
-
-# Build/Run Program
-
-```bash {name=build menu=true}
-gcc main.c
-```
-
-```bash {name=app menu=true}
-./a.out
 ```
 ``````
 
-In this version we have add two references: `@<includes@>` and
-`@<main@>`. When `omd` tangles `main.c` it will go and find any code
-with those names and insert it into those spots. But it doesn't just
-do a simple text substitution. It is smarter than that. It will look
-at what comes before and after each reference on the same line, and
-will add it before and after each line of the code being
-referenced. That is how `#include` will get prefixed to all code
-tagged as `includes`. That is also how code coming from `@<main@>`
-will get indented correctly. To confirm this is the case run:
+Tangle the file and inspect `main.c`. It will contain a fully assembled version with proper indentation and substitutions.
 
-```bash
-omd tangle
-```
-
-and inspect the contents of `main.c`. Everything should be in the
-right place. Now lets add some more code, and confirm that it goes in
-the right places as well. Add the follow section right before the
-`Build/Run Program` section:
+Add more blocks:
 
 ``````markdown
-# Code for saying hello, a second way
-
-In order to get the time, we need to include:
-
-```C {name="includes"}
+```C {name=includes}
 <time.h>
 ```
 
-Following is code to say hello with the date:
-
-```C {name="main"}
+```C {name=main}
 time_t t = time(NULL);
 struct tm *tm = localtime(&t);
-
 printf("Hello it's %s\n", ctime(&t));
 ```
 ``````
 
-now run:
+Now re-run:
 
 ```bash
 omd tangle && omd run build && omd run app
 ```
 
-you should see something like this:
+You should see something like:
 
 ```
 Hello
 Hello it's Mon Mar 18 19:13:51 2024
 ```
 
-If you inspect `main.c`, you'll see that the new include and new main
-code was inserted in the right place as well. This is because when you
-reference something with the same name a second time, the text is
-appended to the previous text. Pretty awesome! [Donald
-Knuth](http://www.literateprogramming.com/knuthweb.pdf) really knew
-what he was doing when he designed literate programming. He is known
-to say that literate programming is better than sliced bread -- and I
-have to agree.
+Multiple blocks with the same name will have their contents **appended**.
 
-# Reference Arguments
+## Reference Arguments
 
-Expanding on Donald Knuth's idea, and to make it a little easier to
-reuse code blocks, in organic markdown you can pass arguments to
-literate refs. For example, say you would like to reuse the scaffolding
-you built above for any source files with main in it, you can pull this
-code block (and some explanation) into it's own file, and call it
-`main_template.o.md`:
+You can also **parameterize** your refs using arguments:
+
+### `main_template.o.md`
 
 ``````markdown
-# A template for main
-
-A reusable template for any file that has a main in it:
-
-```C {name="main_template"}
+```C {name=main_template}
 #include @<includes@>
 
 void main()
@@ -315,45 +242,25 @@ void main()
 ```
 ``````
 
-Then you can use the template in another file in the same directory,
-like this:
+Use it in another file:
 
 ``````markdown
-# Say Hello
-
-'Say Hello' is a simple c program that says hello. Here is our simple main:
-
 ```C {tangle=main.c}
-@<main_template(includes=@<hello_includes@>
-                main=@<hello_main@>)@>
+@<main_template(includes=@<hello_includes@> main=@<hello_main@>)@>
 ```
 
-# Code for saying hello
-
-In order to print we need to add the `stdio` include:
-
-```C {name="hello_includes"}
+```C {name=hello_includes}
 <stdio.h>
 ```
 
-Following is code to say hello:
-
-```C {name="hello_main"}
+```C {name=hello_main}
 printf("Hello\n");
 ```
 ``````
 
-You can easily imagine doing this for a header files, and non-main
-source files as well. This makes creating new files -- that all stay
-very uniform with each other and that can be modified in one place and
-reflected everywhere -- very quick and easy.
+## YAML Header Constants
 
-# Yaml Header Constants
-
-Another thing you can do is use a yaml header block to define
-constants for short snippets that don't have any attributes except a
-name. This makes your files more concise. For example, you may want to
-reference a project name or version in your source code:
+Use the YAML header to define constants:
 
 ``````markdown
 ---
@@ -362,117 +269,45 @@ constants:
   version: 1.23
 ---
 
-# Say Hello
-
-Say Hello is a simple c program that says hello. Here is our simple main:
-
-```C {tangle=main.c}
-@<main_template(includes=@<hello_includes@>
-                main=@<hello_main@>)@>
-```
-
-# Code for saying hello
-
-In order to print we need to add the `stdio` include:
-
-```C {name="hello_includes"}
-<stdio.h>
-```
-
-Following is code to say hello:
-
-```C {name="hello_main"}
+```C {name=hello_main}
 printf("@<project_name@>: @<version@>: Hello\n");
 ```
 ``````
 
-## Note:
+Escape `@<` if used directly in the YAML header:
 
-If you use the `@<name@>` notation in the yaml block at the top of the file, you must prefix the first `@<` with a escape `\` char, like this:
-
-```
+```yaml
 constants:
-  testing: \@<testing@>
+  example: \@<ref@>
 ```
 
-yaml doesn't like the `@` being the first char in the value field.
+## Default Ref Values
 
+Provide fall-back values in refs using `{}` syntax:
 
-# defaults
-
-Each literate ref can also have a default value in case that
-particular ref is not define anywhere. Say we never set the version or
-project_name. We can specify a default placeholder:
-
-``````markdown
-# Say Hello
-
-Say Hello is a simple c program that says hello. Here is our simple main:
-
-```C {tangle=main.c}
-@<main_template(includes=@<hello_includes@>
-                main=@<hello_main@>)@>
-```
-
-
-# Code for saying hello
-
-In order to print we need to add the `stdio` include:
-
-```C {name="hello_includes"}
-<stdio.h>
-```
-
-Following is code to say hello:
-
-```C {name="hello_main"}
+```C {name=hello_main}
 printf("@<project_name{undefined}@>: @<version{0.0.0}@>: Hello\n");
 ```
-``````
 
-Then when you run, you should get this output:
+## Executing Code Blocks and Using Output
 
-```bash
-undefined: 0.0.0: Hello
-```
-
-# executing code block and using the output
-
-The final tweak that organic markdown makes to the literate reference
-syntax is to allow you to use the results of executing a code
-snippet. This gives you the power of any language (currently only
-python and bash are supported but more are comming soon) to automate
-your literate programming. Let say you would like to print the
-architecture of the machine that you are building your app on. You can
-do this:
+Refs can also point to the **output** of executable code blocks. Just add a `*`:
 
 ``````markdown
 ```bash {name=arch menu=true}
-echo -n `uname -m`   # use echo -n to strip off the newline for the substition
+echo -n `uname -m`
 ```
 
-Following is code to say hello:
-
-```C {name="hello_main"}
+```C {name=hello_main}
 printf("Hello from my: @<arch*@>\n");
 ```
 ``````
 
-Adding a '*' to any ref name means: substitute the results of running
-this code block. When I run this on my machine, I get this output:
+This inserts the runtime result of `arch` into the tangled file.
 
-```bash
-Hello from my: x86_64
-```
+## More Resources
 
-Note: We use `echo -n` with `uname` so that we can strip off the newline
-character, because if we have multi-line input from a literate ref, we
-have special string substitution behavior (explained above) that isn't
-what we want here.
-
-# more resources / tutorials
-
-- https://rethinkingsoftware.substack.com/p/the-joy-of-literate-programming
-- https://rethinkingsoftware.substack.com/p/organic-markdown-intro
-- https://rethinkingsoftware.substack.com/p/dry-on-steroids-with-literate-programming
-- https://www.youtube.com/@adam-ard/videos
+* [The Joy of Literate Programming](https://rethinkingsoftware.substack.com/p/the-joy-of-literate-programming)
+* [Organic Markdown Intro](https://rethinkingsoftware.substack.com/p/organic-markdown-intro)
+* [DRY on Steroids](https://rethinkingsoftware.substack.com/p/dry-on-steroids-with-literate-programming)
+* [YouTube Tutorials](https://www.youtube.com/@adam-ard/videos)

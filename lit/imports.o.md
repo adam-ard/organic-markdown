@@ -1,8 +1,10 @@
 # Imports
 
-All the modules that must be imported are include here:
+All the required modules are imported here in one place.
 
-### @<imports@>
+Organizing them this way keeps things tidy and makes it easy to see at a glance what external tools and libraries `omd` depends on.
+
+### 🔗 `@<imports@>`
 
 ```python {name=imports}
 import glob
@@ -15,4 +17,3 @@ from textwrap import indent
 from pathlib import Path
 import pypandoc
 ```
-

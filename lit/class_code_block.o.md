@@ -1,8 +1,14 @@
 # Code Block
 
-There are two classes in `omd`. `CodeBlock` and `CodeBlocks`. As you might guess, a `CodeBlocks` object represents a list of objects of type `CodeBlock`. `CodeBlock` objects represent parsed information from code blocks in the parsed literate files. Below you can see the basic structure of each class. We will describe specific functions are we progress in the documentation.
+There are two main classes in `omd`: `CodeBlock` and `CodeBlocks`.
 
-### @<classes@>
+As you might guess, a `CodeBlocks` object represents a list of `CodeBlock` objects. Each `CodeBlock` instance holds the parsed information from a single code block in a literate source file.
+
+Below is the structure of the `CodeBlock` class. We'll go into more detail on each method as we progress through the documentation.
+
+---
+
+### 🔗 `@<classes@>`
 
 ```python {name=class__codeblock}
 class CodeBlock:
@@ -17,10 +23,14 @@ class CodeBlock:
     @<codeblock__init@>
 ```
 
-For reference, in a literate source file (has extenstion `.o.md`) code blocks looks like this. They follow the format used by pandoc: https://pandoc.org/MANUAL.html
+---
 
-``````
+For reference, in a literate source file (with the `.o.md` extension), code blocks follow the [Pandoc fenced code block](https://pandoc.org/MANUAL.html#fenced-code-blocks) format, like so:
+
+````
 ```<lang> {name=<name> ...}
 source code
 ```
-``````
+````
+
+This format allows metadata like `name`, `tangle` to be embedded directly in the code block header.
