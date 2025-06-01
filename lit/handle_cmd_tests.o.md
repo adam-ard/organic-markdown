@@ -10,8 +10,10 @@ cmd="@<cmd@>"
 for i in [1]:   # put this inside a for loop so the break and continue commands are valid
     @<handle_cmd@>
 
-if code_blocks.parsed != @<parsed@> or code_blocks.words != @<words@>:
-    @<test_failed(name="Handle Cmd" msg="@<fail_msg@>")@>
+@<omd_assert@>
+
+omd_assert(@<parsed@>, code_blocks.parsed)
+omd_assert(@<words@>, code_blocks.words)
 ```
 
 ### tangle: tests/handle_cmd.py

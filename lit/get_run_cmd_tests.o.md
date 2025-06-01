@@ -6,6 +6,8 @@ Here are a few tests to confirm that the get_run_cmd functionality is working co
 ```python {tangle=tests/get_run_cmd.py}
 #!/usr/bin/env python3
 
+@<omd_assert@>
+
 def escape_code(code):
     return code
 
@@ -28,33 +30,28 @@ cmd = cb.get_run_cmd()
 expected = """cd /the/path
 <cmd>"""
 
-if cmd != expected:
-    @<test_failed(name="get_run_cmd" msg="incorrect run command")@>
+omd_assert(expected, cmd)
 
 cb = CodeBlockFake("bash", "<cmd>", "my_docker", None, "/the/path")
 cmd = cb.get_run_cmd()
 expected = """docker exec -it my_docker 'cd /the/path
 <cmd>'"""
 
-if cmd != expected:
-    @<test_failed(name="get_run_cmd" msg="incorrect run command")@>
-
+omd_assert(expected, cmd)
 
 cb = CodeBlockFake("perl", "<cmd>", None, None, "/the/path")
 cmd = cb.get_run_cmd()
 expected = """cd /the/path
 perl -E '<cmd>'"""
 
-if cmd != expected:
-    @<test_failed(name="get_run_cmd" msg="incorrect run command")@>
+omd_assert(expected, cmd)
 
 cb = CodeBlockFake("ruby", "<cmd>", None, "aard@my-host.com", "/the/other/path")
 cmd = cb.get_run_cmd()
 expected = """ssh -t aard@my-host.com 'cd /the/other/path
 ruby -e '<cmd>''"""
 
-if cmd != expected:
-    @<test_failed(name="get_run_cmd" msg="incorrect run command")@>
+omd_assert(expected, cmd)
 
 @<test_passed(name="get_run_cmd")@>
 ```

@@ -28,7 +28,7 @@ diff omd lit/omd
 
 Release the new `omd` script, run the following. Make sure you don't have anything else staged, or it will come along for the ride.
 
-```bash {name=diff menu=true}
+```bash {name=release menu=true}
 cp lit/omd omd
 git add omd
 git commit -m "Release new omd script"
