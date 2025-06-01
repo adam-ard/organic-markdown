@@ -1,6 +1,6 @@
 # Organic Markdown
 
-The most natural (and delicious!!) way to program. Organic Mardown
+The most natural (and delicious!!) way to program. Organic Markdown
 takes advantage of the markdown extensions used by
 [pandoc](https://pandoc.org/MANUAL.html) -- specifically yaml blocks
 at the top of a file, and attributes for fenced code blocks -- to
