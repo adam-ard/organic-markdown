@@ -1,6 +1,23 @@
-# CodeBlock::run
+# `CodeBlock::run`
 
-This method runs the expanded command associated with the CodeBlock's `self.code` field. First, the full bash command is retrieved from [self.get_run_command](get_run_cmd.o.md), then it is passed to `subprocess.call` with `shell=True`. Short and sweet. This method gets invoke when someone runs the `omd run <name>` command-line.
+This method executes the expanded command associated with a `CodeBlock`.
+
+It works by:
+
+1. Calling [`self.get_run_cmd()`](get_run_cmd.o.md) to build the full shell command (taking into account language, working directory, Docker, or SSH),
+2. Passing that command to Python’s `subprocess.call()` with `shell=True`.
+
+This method is triggered when a user runs:
+
+```bash
+omd run <name>
+```
+
+on the command line.
+
+---
+
+### 🔗 `@<codeblock__run@>`
 
 ```python {name=codeblock__run}
 def run(self):
@@ -11,3 +28,5 @@ def run(self):
 
     return subprocess.call(cmd, shell=True)
 ```
+
+Simple, direct, and effective.

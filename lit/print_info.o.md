@@ -1,6 +1,12 @@
 # Print Info
 
-In order to print information from a CodeBlock, I implimented the python `__repr__` function which gets called when you pass an object to the `print` function.
+To make it easy to inspect a `CodeBlock`, we implement Python’s special `__repr__` method. This method is automatically called when you pass an object to the `print()` function, or when inspecting it in a debugger or REPL.
+
+It prints out useful metadata and the expanded code block content in a structured and readable format.
+
+---
+
+### 🔗 `@<codeblock__repr@>`
 
 ```python {name=codeblock__repr}
 def __repr__(self):
@@ -23,7 +29,22 @@ def __repr__(self):
     return out
 ```
 
-As a convience, I created a function called `info` on the CodeBlock class that simply calls print for the object:
+This output includes:
+
+* Basic metadata: name, file of origin, language, working directory
+* Execution targets: Docker container or SSH host (if specified)
+* Whether it appears in the menu
+* The fully expanded code block body
+
+---
+
+### Convenience Method: `info()`
+
+To simplify printing, we add a small `info()` method that just calls `print(self)`. This is a bit more expressive when used in scripts or interactive sessions.
+
+---
+
+### 🔗 `@<codeblock__info@>`
 
 ```python {name=codeblock__info}
 def info(self):

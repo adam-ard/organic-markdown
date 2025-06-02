@@ -341,13 +341,13 @@ def parse_args(txt):
 
 
 def escape_code(command):
-    # escaped all single quotes
+    # Escape all single quotes inside the command
     escaped_cmd = command.replace("'", "'\\''")
 
-    # wrap in a single quoted bash call
+    # Wrap in a single-quoted bash call
     remote_cmd = f"bash -c '{escaped_cmd}'"
 
-    # escape everything one more time
+    # Escape the outer call for use in ssh/docker
     return remote_cmd.replace("'", "'\\''")
 
 
@@ -411,6 +411,7 @@ class CodeBlock:
 
     def get_run_cmd(self, args={}):
         code = self.code_blocks.expand(self.code, args)
+
         if self.lang == "bash":
             cmd = code
         elif self.lang == "python":
@@ -433,8 +434,10 @@ class CodeBlock:
             docker_container = self.code_blocks.expand(self.docker_container, args)
         if self.ssh_host is not None:
             ssh_host = self.code_blocks.expand(self.ssh_host, args)
+
         cwd = self.code_blocks.expand(self.cwd, args)
         cmd_in_dir = f"cd {cwd}\n{cmd}"
+
         if self.docker_container is not None:
             return (
                 f"docker exec -it {self.docker_container} '{escape_code(cmd_in_dir)}'"
@@ -461,7 +464,7 @@ class CodeBlock:
         output = subprocess.run(cmd, capture_output=True, shell=True)
         out_decode = output.stdout.decode("utf-8")
 
-        # remove at most one newline, it one exists at the end of the output
+        # remove at most one newline, if it exists at the end of the output
         if len(out_decode) > 0 and out_decode[-1] == "\n":
             out_decode = out_decode[:-1]
 
@@ -497,20 +500,18 @@ class CodeBlock:
                 print(f"Warning: I don't know what attribute this is {attrib[0]}")
 
     def __init__(self):
-        self.origin_file = None  # the file that this code block was parsed from
-        self.name = None  # name attribute
-        self.code = None  # the code block content
-        self.lang = None  # the language of the code block soure code
-        self.cwd = "."  # the directory in which the code block should be executed
-        self.tangle_file = None  # the path where the block should tangle to
+        self.origin_file = None  # the file this code block was parsed from
+        self.name = None  # the name attribute (if present)
+        self.code = None  # the contents of the code block
+        self.lang = None  # the language of the code block
+        self.cwd = "."  # directory in which the block should execute
+        self.tangle_file = None  # file path to write the block to (if tangled)
         self.in_menu = False  # whether this block should appear in the omd status menu
         self.code_blocks = (
-            None  # reference to the Code Blocks object that contains this code block
+            None  # reference to the CodeBlocks object containing this block
         )
-        self.docker_container = (
-            None  # name of the docker container to run this block in
-        )
-        self.ssh_host = None  # host where to run this block (through ssh)
+        self.docker_container = None  # optional Docker container to run the block in
+        self.ssh_host = None  # optional SSH host to run the block on
 
 
 class CodeBlocks:
@@ -518,7 +519,7 @@ class CodeBlocks:
         self.code_blocks = []
 
     def parse(self):
-        # read all file in the curren directory (recursively) with .o.md extenstion
+        # Read all files in the current directory (recursively) with .o.md extension
         for root, dirs, files in os.walk("."):
             for cur_file in files:
                 cur_full_file = f"{root}/{cur_file}"
@@ -555,9 +556,7 @@ class CodeBlocks:
                     cb.code = str
                     cb.code_blocks = self
 
-                    # append the code block contents if the name is the same
-                    # Note: the yaml parser only uses the last value for any given name, so you utilize more than
-                    # one entry with the same name.
+                    # Append to existing block with same name if needed
                     self.add_code_block(cb)
 
         for block in data["blocks"]:
@@ -567,7 +566,7 @@ class CodeBlocks:
                 cb.parse(block["c"])
                 cb.code_blocks = self
 
-                # append the code block contents if the name is the same
+                # Append to existing block with same name if needed
                 self.add_code_block(cb)
 
     def print_summary(self):
@@ -596,18 +595,18 @@ class CodeBlocks:
                 origin_file_dict[block.origin_file].append(block.name)
 
         print("[")
-        first = True  # Track if this is the first JSON object
+        first = True
         for key, cmd_list in origin_file_dict.items():
             if not cmd_list:
                 continue
-            if not first:  # Print a comma before the next JSON object
+            if not first:
                 print(",")
-            first = False  # Subsequent iterations are no longer the first
+            first = False
             print(f'  {{"file": "{key}", "cmds": [', end="")
 
             first_2 = True
             for name in cmd_list:
-                if not first_2:  # Print a comma before the next JSON object
+                if not first_2:
                     print(",", end="")
                 first_2 = False
                 print(f'"{name}"', end="")
@@ -648,22 +647,26 @@ class CodeBlocks:
             new_args = parse_args(match["args"])
             blk = self.get_code_block(name)
 
-            # if there is an argument passed in with that name, replace with that.
+            # Case 1: An argument override is provided
             if args is not None and name in args:
                 out.append(self.expand(args[name], args | new_args))
+
+            # Case 2: No block exists — use the default
             elif blk is None:
-                out.append(
-                    self.expand(match["default"], args | new_args)
-                )  # if block doesn't exist, use default
-            # replace ref with the result of running the command
+                out.append(self.expand(match["default"], args | new_args))
+
+            # Case 3: Execute block and insert result
             elif match["exec"]:
                 out.append(
                     self.expand(
                         blk.run_return_results(args | new_args), args | new_args
                     )
                 )
+
+            # Case 4: Regular substitution
             else:
                 out.append(self.expand(blk.code, args | new_args))
+
             txt = txt[match["end"] :]
 
         return intersperse(out)
