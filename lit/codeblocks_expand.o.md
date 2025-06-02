@@ -1,8 +1,40 @@
-# Source
+# `CodeBlocks::expand`
 
-This is the grand central station of Organic Markdown. The expand functions are highly recursive and very sensitive to small changes, but they are very elegant and concise. Be carefull if you have to mess with this stuff.
+This is the **core engine** of Organic Markdown.
+Everything dynamic—literate references, substitutions, code output injection, templates with arguments—is powered by this elegant yet deeply recursive expansion system.
 
-`expand` takes a string and replaces all its refs with the contents of the code blocks they correspond to-- recursively until there are no more ref strings to expand.
+Despite its brevity, this function enables:
+
+* Named reference substitution: `@<name@>`
+* Execution injection: `@<name*@>`
+* Defaults: `@<name{default}@>`
+* Argument passing: `@<template(arg=value)@>`
+* Nesting, recursion, and multi-line expansion
+
+It’s deceptively small—and very sensitive to change—but it's where all the magic happens.
+
+---
+
+### How it Works
+
+* `expand(txt)` splits input into lines, and processes each line via `expand_line()`.
+* `expand_line()`:
+
+  * Scans the string for the next literate reference (e.g., `@<foo@>`)
+  * If found:
+
+    * Expands arguments, defaults, and whether it should execute (`*@`)
+    * Recursively expands the referenced content or command output
+    * Splices it into the output string
+  * If not found:
+
+    * Appends the rest of the string
+  * Returns the fully resolved, recursively substituted line.
+* The final output is reassembled line-by-line using `intersperse()` to preserve context and indentation.
+
+---
+
+### 🔗 `@<codeblocks__expand@>`
 
 ```python {name=codeblocks__expand}
 def expand(self, txt, args={}):
@@ -24,24 +56,48 @@ def expand_line(self, txt, args={}):
         new_args = parse_args(match["args"])
         blk = self.get_code_block(name)
 
-        # if there is an argument passed in with that name, replace with that.
+        # Case 1: An argument override is provided
         if args is not None and name in args:
             out.append(self.expand(args[name], args | new_args))
+
+        # Case 2: No block exists — use the default
         elif blk is None:
-            out.append(self.expand(match["default"], args | new_args))   # if block doesn't exist, use default
-        # replace ref with the result of running the command
+            out.append(self.expand(match["default"], args | new_args))
+
+        # Case 3: Execute block and insert result
         elif match["exec"]:
             out.append(self.expand(blk.run_return_results(args | new_args), args | new_args))
+
+        # Case 4: Regular substitution
         else:
             out.append(self.expand(blk.code, args | new_args))
+
         txt = txt[match["end"]:]
 
     return intersperse(out)
 ```
 
-# Testing
+---
 
-Here I swap out the `@<` and `@>` characters for the `:<` and `:>` characters. This drastically simplifies the test code. Otherwise I have to worry about escaping to avoid unwanted code substitutions that will happen during the tangle step.
+# 🧪 Testing
+
+This functionality is tested using a parallel syntax that replaces `@<...@>` with `:<...:>` to prevent substitutions from interfering during the tangle phase.
+
+The test suite covers:
+
+* Basic substitution
+* Nested substitution
+* Execution injection
+* Argument passing
+* Indentation preservation
+* Infinite loop protection
+* Recursion
+* Defaults
+* Missing values
+
+---
+
+Here is some test data, representing a full file:
 
 ```python {name=full_file}
 meta_block = { "constants": {
@@ -298,6 +354,8 @@ full_file = {"blocks": [{"t": "",
              }
 ```
 
+### 🧪 Expand Tests
+
 ```python {tangle=tests/expand.py}
 #!/usr/bin/env python3
 
@@ -370,11 +428,12 @@ test(':<project_name_recurse:>', "")
 test(':<asdfasdfasdf:>', "")
 
 test("[This is the text from block two::<two:>, can you believe it?]", "[This is the text from block two:[This is the text from block one:[This is some text], wasn't that nice?], can you believe it?]")
-
 @<test_passed(name="expand")@>
 ```
 
-# Run Tests
+---
+
+### ✅ Run the tests
 
 ```bash {name=expand_tests menu=true}
 tests/expand.py

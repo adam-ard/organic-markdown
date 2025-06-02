@@ -1,17 +1,20 @@
-# CodeBlock::__init__
+# `CodeBlock::__init__`
 
-In the __init__ function for the CodeBlock function, instance variables are giving initial values:
+The `__init__` method initializes a new `CodeBlock` instance by setting default values for all its attributes.
+
+Each instance variable represents metadata or behavior associated with a single code block parsed from a `.o.md` file.
 
 ```python {name=codeblock__init}
 def __init__(self):
-    self.origin_file=None      # the file that this code block was parsed from
-    self.name=None             # name attribute
-    self.code=None             # the code block content
-    self.lang=None             # the language of the code block soure code
-    self.cwd="."               # the directory in which the code block should be executed
-    self.tangle_file=None      # the path where the block should tangle to
-    self.in_menu = False       # whether this block should appear in the omd status menu
-    self.code_blocks = None    # reference to the Code Blocks object that contains this code block
-    self.docker_container=None # name of the docker container to run this block in
-    self.ssh_host=None         # host where to run this block (through ssh)
+    self.origin_file = None       # the file this code block was parsed from
+    self.name = None              # the name attribute (if present)
+    self.code = None              # the contents of the code block
+    self.lang = None              # the language of the code block
+    self.cwd = "."                # directory in which the block should execute
+    self.tangle_file = None       # file path to write the block to (if tangled)
+    self.in_menu = False          # whether this block should appear in the omd status menu
+    self.code_blocks = None       # reference to the CodeBlocks object containing this block
+    self.docker_container = None  # optional Docker container to run the block in
+    self.ssh_host = None          # optional SSH host to run the block on
 ```
+

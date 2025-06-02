@@ -1,27 +1,31 @@
-# CodeBlock::parse
+# `CodeBlock::parse`
 
-We use pandoc to parse a markdown file and output json. That json is then translated into python data structures. We iterate through each CodeBlock in the python data and create an object for each one. For example, a markdown code block that looks like this:
+This function takes the Pandoc-generated JSON representation of a code block and extracts its metadata and content into the corresponding `CodeBlock` object.
 
-``````
+Pandoc converts a code block like this:
+
+````markdown
 ```bash {name=test-code-block menu=true}
 echo "hello there friend"
 ```
-``````
+````
 
-would be parsed as a json and converted to python data structures that that looks like this:
+Into a JSON structure that, once parsed into Python data, looks something like this:
 
 ```python
 [['',
   ['bash'],
   [['name', 'test-code-block'],
    ['menu', 'true']
-   ]],
+  ]],
  'echo "hello there friend"']
 ```
 
+Here's how we extract and store that data:
 
-Here is the code where we parse the resulting python structure:
+---
 
+### 🔗 `@<codeblock__parse@>`
 
 ```python {name=codeblock__parse}
 def parse(self, the_json):
@@ -46,7 +50,13 @@ def parse(self, the_json):
             print(f"Warning: I don't know what attribute this is {attrib[0]}")
 ```
 
-## CodeBlock::parse tests
+This parser is intentionally flexible. It gracefully handles unexpected attributes with a warning instead of crashing.
+
+---
+
+## ✅ Tests for `CodeBlock::parse`
+
+Here’s a test file that verifies parsing logic across various input scenarios:
 
 ```python {tangle=tests/codeblock__parse.py}
 #!/usr/bin/env python3
@@ -64,6 +74,7 @@ class CodeBlockFake:
         self.tangle_file = ""
         self.docker_container = ""
         self.ssh_host = ""
+
     def test_fields(self, code, lang, menu, name, dir, tangle_file, docker_container, ssh_host):
         assert self.code == code
         assert self.lang == lang
@@ -73,13 +84,15 @@ class CodeBlockFake:
         assert self.tangle_file == tangle_file
         assert self.docker_container == docker_container
         assert self.ssh_host == ssh_host
+
     @<codeblock__parse@>
 
+# No attributes
 cb = CodeBlockFake()
 cb.parse([['', [], []], ""])
-
 cb.test_fields("", "", "", "", "", "", "", "")
 
+# Name and menu
 cb = CodeBlockFake()
 cb.parse([['',
   ['bash'],
@@ -87,9 +100,9 @@ cb.parse([['',
    ['menu', 'true']
   ]],
  'echo "hello there friend"'])
-
 cb.test_fields('echo "hello there friend"', "bash", "true", "test-code-block", "", "", "", "")
 
+# Menu as boolean
 cb = CodeBlockFake()
 cb.parse([['',
   ['bash'],
@@ -97,9 +110,9 @@ cb.parse([['',
    ['menu', True]
   ]],
  'echo "hello there friend"'])
-
 cb.test_fields('echo "hello there friend"', "bash", True, "test-code-block", "", "", "", "")
 
+# All fields
 cb = CodeBlockFake()
 cb.parse([["",
   ["python"],
@@ -111,13 +124,16 @@ cb.parse([["",
    ["tangle", "@<project_name@>/main.c"]
   ]],
  "gcc --version"])
-
 cb.test_fields("gcc --version", "python", "true", "build_project", "@<project_name@>", "@<project_name@>/main.c", "@<docker_container_name@>", "aard@localhost.com")
 
 @<test_passed(name="codeblock__parse")@>
 ```
 
-To run test from `omd run <name>`:
+---
+
+### 🧪 Running the test
+
+You can run the test with `omd run`:
 
 ```bash {name=codeblock__parse_tests menu=true}
 tests/codeblock__parse.py

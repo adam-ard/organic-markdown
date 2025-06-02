@@ -1,8 +1,14 @@
-# CodeBlock::parse
+# `CodeBlocks::parse`
 
-We use pandoc to parse a markdown file and output json. That json is then translated into python data structures. For example, a markdown file that looks like this:
+This method walks the current directory tree, locates all `.o.md` files, and uses Pandoc to parse them into JSON. That JSON is then translated into Python data structures so that each code block—and any constants defined in YAML—can be loaded into the system.
 
-``````
+---
+
+### Example Input
+
+Here’s a simple `.o.md` file that includes YAML metadata, a heading, a paragraph, and a code block:
+
+``````markdown
 ---
 constants:
   test1: "one"
@@ -19,7 +25,7 @@ echo "hello there friend2"
 ```
 ``````
 
-would be parsed into json and converted to python data structures that that looks like this:
+This would be converted by Pandoc into JSON, and from there into Python structures like the following:
 
 ```python
 {'blocks': [{'c': [1,
@@ -53,11 +59,29 @@ would be parsed into json and converted to python data structures that that look
  'pandoc-api-version': [1, 23, 1]}
 ```
 
-Here is the code where we traverse the current directory and any subdirectories recursively, to find all markdown file. Each markdown file is parsed with pandoc.
+---
+
+### Parsing Logic
+
+The code below does the following:
+
+* **`parse()`**: Recursively searches for `.o.md` files in the current directory and its subdirectories.
+* **`parse_file()`**: Converts a Markdown file into Pandoc JSON.
+* **`parse_json()`**:
+
+  * Loads constants from the YAML metadata block into `CodeBlock` objects.
+  * Parses each actual code block into a `CodeBlock` object.
+* **`add_code_block()`**:
+
+  * Merges contents if multiple blocks share the same name (concatenating their code).
+
+---
+
+### 🔗 `@<codeblocks__parse@>`
 
 ```python {name=codeblocks__parse}
 def parse(self):
-    # read all file in the curren directory (recursively) with .o.md extenstion
+    # Read all files in the current directory (recursively) with .o.md extension
     for root, dirs, files in os.walk("."):
         for cur_file in files:
             cur_full_file = f"{root}/{cur_file}"
@@ -94,9 +118,7 @@ def parse_json(self, data, origin_file):
                 cb.code = str
                 cb.code_blocks = self
 
-                # append the code block contents if the name is the same
-                # Note: the yaml parser only uses the last value for any given name, so you utilize more than
-                # one entry with the same name.
+                # Append to existing block with same name if needed
                 self.add_code_block(cb)
 
     for block in data['blocks']:
@@ -106,6 +128,6 @@ def parse_json(self, data, origin_file):
             cb.parse(block['c'])
             cb.code_blocks = self
 
-            # append the code block contents if the name is the same
+            # Append to existing block with same name if needed
             self.add_code_block(cb)
 ```
