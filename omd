@@ -595,18 +595,18 @@ class CodeBlocks:
                 origin_file_dict[block.origin_file].append(block.name)
 
         print("[")
-        first = True
+        first = True  # Track if this is the first JSON object
         for key, cmd_list in origin_file_dict.items():
             if not cmd_list:
                 continue
-            if not first:
+            if not first:  # Print a comma before the next JSON object
                 print(",")
-            first = False
+            first = False  # Subsequent iterations are no longer the first
             print(f'  {{"file": "{key}", "cmds": [', end="")
 
             first_2 = True
             for name in cmd_list:
-                if not first_2:
+                if not first_2:  # Print a comma before the next JSON object
                     print(",", end="")
                 first_2 = False
                 print(f'"{name}"', end="")
