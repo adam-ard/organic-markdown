@@ -22,9 +22,9 @@ This represents a shift in mindset: the *source of truth* becomes your literate 
 
 ### @<omd@> deps
 
-(@<imports@>)[imports.o.md]
-(@<globals@>)[globals.o.md]
-(@<funcs@>)[func.o.md]
-(@<class__codeblock@>)[class_code_block.o.md]
-(@<class__codeblocks@>)[class_code_blocks.o.md]
-(@<main@>)[main.o.md]
+[@<imports@>](imports.o.md)
+[@<globals@>](globals.o.md)
+[@<funcs@>](func.o.md)
+[@<class__codeblock@>](class_code_block.o.md)
+[@<class__codeblocks@>](class_code_blocks.o.md)
+[@<main@>](main.o.md)
