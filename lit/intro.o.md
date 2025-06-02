@@ -12,7 +12,7 @@ I originally wrote `omd` as a single, monolithic Python script—not in any lite
 
 And what better way to do that than with **literate programming**?
 
-So I created a simple, brute-force bootstrapping script to reimplement `omd` in the literate style I had envisioned. Eventually, when the source code generated from these literate files was as stable and complete as the original bootstrap script, I started using it to generate the `omd` script itself.
+So I used that simple, brute-force bootstrapping script, my original `omd`,  to reimplement `omd` in the literate style I had envisioned. Eventually, when the source code generated from these literate files was as stable and complete as the original bootstrap script, I started using it to generate the `omd` script itself.
 
 **OMD is now implemented in OMD.**
 
