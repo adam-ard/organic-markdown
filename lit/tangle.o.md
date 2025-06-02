@@ -1,14 +1,36 @@
-# CodeBlock::tangle
+# `CodeBlock::tangle`
 
-This function gets called when a CodeBlock gets tangled (ie. expanded and written to a file). When the `omd tangle` command is run, then all the `CodeBlock` objects in the `CodeBlocks` Object are tangled, that is to say, each `CodeBlock`'s tangle function is called. The tangle function is very straight-forward. The `self.tangle_file` name itself is expanded, then the `self.code` field. Then the file is written (if it has changed). Expanding the `self.tangle_file` field lets you do cool things like this:
+This method is called when a `CodeBlock` is **tangled**—meaning its contents are expanded and written out to a file.
 
-``````
+When the user runs:
+
+```bash
+omd tangle
+```
+
+`omd` walks through all `CodeBlock` objects in the `CodeBlocks` container and calls `tangle()` on each one (if applicable).
+
+---
+
+### Behavior
+
+* First, the `self.tangle_file` value is expanded. This allows references and substitutions in the filename itself.
+* Then, the `self.code` content is expanded.
+* Finally, the output is written to the file—but only if the contents have changed, using `write_if_different()`.
+
+This makes it easy to write dynamic or parameterized file names like:
+
+``````markdown
 ```bash {tangle=@<project_name@>.sh}
 <cmds>
 ```
 ``````
 
-Here is the tangle code:
+When tangled, this will generate a file with the value of `project_name` as its name.
+
+---
+
+### 🔗 `@<codeblock__tangle@>`
 
 ```python {name=codeblock__tangle}
 def tangle(self):
@@ -19,3 +41,5 @@ def tangle(self):
         write_if_different(tangle_file, code)
     return None
 ```
+
+Short, efficient, and extremely powerful when combined with literate references.

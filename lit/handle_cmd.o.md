@@ -1,6 +1,12 @@
-# CodeBlocks::handle_cmd function
+# `CodeBlocks::handle_cmd`
 
-The `handle_cmd` methods is used in both interactive mode and command mode. It is a member of the `CodeBlocks` class explained below. It dispatches different commands to different methods on the class:
+The `handle_cmd()` method is the central dispatcher for command-line interactions with `omd`. It is used in both **interactive mode** and **scripted mode** (e.g., via `omd run <name>`).
+
+It parses and routes input words (typically from `sys.argv`) to the appropriate method based on how many arguments are provided.
+
+---
+
+### 🔗 `@<codeblocks__handle_cmd@>`
 
 ```python {name=codeblocks__handle_cmd}
 def handle_cmd(self, words):
@@ -17,15 +23,13 @@ def handle_cmd(self, words):
         print("missing cmd")
 ```
 
-The following one word commands are dispatched to corresponding methods in the source block below.
+---
 
-1. cmds - print all available cmds found in literate source files
-2. files - print filenames of files that `omd tangle` will output
-3. status - print a more human readable listing of cmds and files from `omd cmds` and `omd files`
-4. tangle - emit all files marked for tangling in literate source files
-5. info - print information for all src blocks in literate source files
+## 🧩 One-Word Commands
 
-### @<handle_one_word_commands@>
+These commands are run with just a single word like `status` or `tangle`.
+
+### 🔗 `@<handle_one_word_commands@>`
 
 ```python {name=handle_one_word_commands}
 if words[0] == "cmds":
@@ -42,15 +46,21 @@ else:
     print(f"unknown command: {words[0]}")
 ```
 
-The following two word commands are dispatched to corresponding methods in the source block below.
+#### Command Summary:
 
-1. tangle \<name> - tangle only the file describe by the block: \<name\>
-2. run \<name> - execute the block: \<name>, and print the output to stdout
-3. info \<name> - print information for a specific source block
-4. origin \<name> - print the name of the literate source file where the block \<name> is defined
-5. expand \<name> - expand all refs in source block: \<name>, and print to stdout
+* `cmds` — Print all runnable commands in parseable JSON
+* `files` — Print all output files targeted by tangling
+* `status` — Print a human-readable summary of both commands and output files
+* `tangle` — Tangle all marked blocks in all `.o.md` files
+* `info` — Print debug info for all code blocks
 
-### @<handle_two_word_commands@>
+---
+
+## 🧩 Two-Word Commands
+
+These commands operate on a single named code block:
+
+### 🔗 `@<handle_two_word_commands@>`
 
 ```python {name=handle_two_word_commands}
 rest = " ".join(words[1:])
@@ -69,9 +79,21 @@ else:
     print(f"unknown command: {' '.join(words)}")
 ```
 
-Finally all commands that have greater than two words. I won't explain these commands in detail since they are experimental.
+#### Command Summary:
 
-### @<handle_gt_two_word_commands@>
+* `tangle <name>` — Tangle just the block named `<name>`
+* `run <name>` — Run the command defined in block `<name>`
+* `info <name>` — Print debug info for block `<name>`
+* `origin <name>` — Print the source file that block `<name>` came from
+* `expand <name>` — Expand the block and print its fully resolved source
+
+---
+
+## 🧪 Experimental Commands
+
+These multi-word commands are not finalized and are considered experimental:
+
+### 🔗 `@<handle_gt_two_word_commands@>`
 
 ```python {name=handle_gt_two_word_commands}
 if words[0] == "import":
@@ -82,9 +104,27 @@ else:
     print(f"unknown command: {words[0]}")
 ```
 
-[tests](handle_cmd_tests.o.md)
+#### Experimental Features:
 
-### refs
-[import_file](experimental_features.o.md)
-[weave_file](experimental_features.o.md)
-[run_block_fn](f_run_block_fn.o.md)
+* `import <src> <dest>` — [More details here →](experimental_features.o.md)
+* `weave <src> <dest>` — [More details here →](experimental_features.o.md)
+
+---
+
+### 🧪 Related Tests
+
+Run the test suite:
+
+```bash
+omd run handle_cmd_tests
+```
+
+[Test definition →](handle_cmd_tests.o.md)
+
+---
+
+### 🧵 Internal Refs
+
+* [`run_block_fn`](f_run_block_fn.o.md) — Utility to dispatch methods on specific blocks
+* [`import_file`](experimental_features.o.md)
+* [`weave_file`](experimental_features.o.md)

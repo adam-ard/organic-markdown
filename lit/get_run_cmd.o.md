@@ -1,12 +1,19 @@
-# CodeBlock::get_run_cmd
+# `CodeBlock::get_run_cmd`
 
-This function will return the bash command to run the expanded text in `self.code` in the language specified for the block. It gets executed directly by the run command `omd run <name>` or as part of a string substitution like this `@<name*@>`. Note that we use `ssh -t` to make sure that the ssh session opens up with a proper terminal. The same is true with docker where we run `docker exec -it`.
+This method returns the shell command needed to execute the expanded contents of `self.code`, according to the block’s declared language and execution context.
 
-### @<codeblock\_\_get\_run\_cmd@>
+It is used internally by `omd run <name>` and also for inline substitution with `@<name*@>`.
+
+If the block is configured to run in a Docker container or over SSH, this method will wrap the command accordingly using `docker exec -it` or `ssh -t` to ensure an interactive terminal session.
+
+---
+
+### 🔗 `@<codeblock__get_run_cmd@>`
 
 ```python {name=codeblock__get_run_cmd}
 def get_run_cmd(self, args={}):
     code = self.code_blocks.expand(self.code, args)
+
     if self.lang == "bash":
         cmd = code
     elif self.lang == "python":
@@ -29,8 +36,10 @@ def get_run_cmd(self, args={}):
         docker_container = self.code_blocks.expand(self.docker_container, args)
     if self.ssh_host is not None:
         ssh_host = self.code_blocks.expand(self.ssh_host, args)
+
     cwd = self.code_blocks.expand(self.cwd, args)
     cmd_in_dir = f"cd {cwd}\n{cmd}"
+
     if self.docker_container is not None:
         return f"docker exec -it {self.docker_container} '{escape_code(cmd_in_dir)}'"
     elif self.ssh_host is not None:
@@ -39,4 +48,8 @@ def get_run_cmd(self, args={}):
         return cmd_in_dir
 ```
 
-[tests](get_run_cmd_tests.o.md)
+---
+
+### 🧪 Related Tests
+
+See: [get\_run\_cmd\_tests.o.md](get_run_cmd_tests.o.md)
