@@ -31,3 +31,29 @@ Each function is documented and defined in its own separate file. Here, we’re 
 @<escape_code@>
 @<import_file@>
 ```
+
+### @<funcs@> used
+
+- [@<code@>](code.o.md)
+
+### @<funcs@> deps
+
+- [@<get_max_lines@>](get_max_lines.o.md)
+- [@<write_if_different@>](f_write_if_different.o.md)
+- [@<parse_menu_attrib@>](f_parse_menu_attrib.o.md)
+- [@<intersperse@>](intersperse.o.md)
+- [@<split_lines@>](split_lines.o.md)
+- [@<get_match@>](get_match.o.md)
+- [@<parse_name@>](parse_name.o.md)
+- [@<parse_exec@>](parse_exec.o.md)
+- [@<parse_args_str@>](parse_args_str.o.md)
+- [@<parse_default@>](parse_default.o.md)
+- [@<parse_match@>](parse_match.o.md)
+- [@<eat_ws@>](eat.o.md)
+- [@<eat_eq@>](eat.o.md)
+- [@<parse_arg_name@>](parse_arg_name.o.md)
+- [@<parse_arg_value@>](parse_arg_value.o.md)
+- [@<parse_arg_name_value@>](parse_arg_name_value.o.md)
+- [@<parse_args@>](parse_args.o.md)
+- [@<escape_code@>](escape_code.o.md)
+- [@<import_file@>](experimental_features.o.md)
