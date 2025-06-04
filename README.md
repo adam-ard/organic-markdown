@@ -8,7 +8,7 @@ To install Organic Markdown, make sure you have the following dependencies:
 
 * Pandoc (>= 3.1.12)
 * Python 3
-* `pypandoc`
+* pypandoc
 
 Then click on `Releases` to the right of this project page. Choose the version you want (I would recommend the latest). You'll see 3 Assets: `omd`, `Source code (zip)`, `Source code (tar.gz)`. Click on `omd` to download the main script. Put it somewhere in your path. I personally put it in my user's `~/bin` directory. Make it executable:
 
