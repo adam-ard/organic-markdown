@@ -9,23 +9,10 @@ To install Organic Markdown, make sure you have the following dependencies:
 * Pandoc (>= 3.1.12)
 * Python 3
 * `pypandoc`
-* `black` (for code formatting)
 
-Install dependencies:
+Then click on `Releases` to the right of this project page. Choose the version you want (I would recommend the latest). You'll see 3 Assets: `omd`, `Source code (zip)`, `Source code (tar.gz)`. Click on `omd` to download the main script. Put it somewhere in your path. I personally put it in my user's `~/bin` directory. You're all set!
 
-```bash
-pip install black pytest pypandoc
-```
-
-Clone the repository:
-
-```bash
-git clone https://github.com/adam-ard/organic-markdown.git
-```
-
-Then add the `organic-markdown` directory to your `PATH`.
-
-## Getting Started
+## Using OMD
 
 To create an Organic Markdown file, make a new file with the extension `*.o.md`. By default, `omd` reads all `.o.md` files in the current directory (and all subdirectories recursively).
 
@@ -311,3 +298,17 @@ This inserts the runtime result of `arch` into the tangled file.
 * [Organic Markdown Intro](https://rethinkingsoftware.substack.com/p/organic-markdown-intro)
 * [DRY on Steroids](https://rethinkingsoftware.substack.com/p/dry-on-steroids-with-literate-programming)
 * [YouTube Tutorials](https://www.youtube.com/@adam-ard/videos)
+
+## Development
+
+For development, there is one additional dependency:
+
+* `black` (for code formatting)
+
+Clone the repository:
+
+```bash
+git clone https://github.com/adam-ard/organic-markdown.git
+```
+
+then modify the files in the `lit` directory and build new versions of `omd`. Lots of fun!!
