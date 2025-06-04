@@ -20,17 +20,8 @@ To torture test the new `omd` script, run the following in the `torture_tests` d
 ./tests.sh
 ```
 
-To see the difference between the new script and the old one:
+To see the difference between the built script and the system on:
 
 ```bash {name=diff menu=true}
-diff omd lit/omd
-```
-
-Release the new `omd` script, run the following. Make sure you don't have anything else staged, or it will come along for the ride.
-
-```bash {name=release menu=true}
-cp lit/omd omd
-git add omd
-git commit -m "Release new omd script"
-git push origin main
+diff lit/omd `which omd`
 ```
