@@ -32,7 +32,9 @@ These commands are run with just a single word like `status` or `tangle`.
 ### 🔗 `@<handle_one_word_commands@>`
 
 ```python {name=handle_one_word_commands}
-if words[0] == "cmds":
+if words[0] == "version":
+    print("@<version@>")
+elif words[0] == "cmds":
     self.print_parseable_cmds()
 elif words[0] == "files":
     self.print_files()
