@@ -12,48 +12,40 @@ Use these so that the opening and closing ref symbols don't get expanded
 ../lit/omd
 ```
 
-```bash {name=CMP}
-expected="@<exp@>"
-actual="@<got@>"
-
+```bash {name=CMP_IF}
 if [[ "$expected" == "$actual" ]]; then
     printf "."
 else
     echo "Failed! Expected '$expected', Got '$actual'"
 fi
+```
+
+```bash {name=CMP}
+expected="@<exp@>"
+actual="@<got@>"
+
+@<CMP_IF@>
 ```
 
 ```bash {name=CMP_CMD}
 expected="@<exp@>"
 actual="$(@<got@>)"
 
-if [[ "$expected" == "$actual" ]]; then
-    printf "."
-else
-    echo "Failed! Expected '$expected', Got '$actual'"
-fi
+@<CMP_IF@>
 ```
 
 ```bash {name=CMP_OMD_CMD}
 expected="@<exp@>"
 actual="$(@<OMD_UT@> @<got@>)"
 
-if [[ "$expected" == "$actual" ]]; then
-    printf "."
-else
-    echo "Failed! Expected '$expected', Got '$actual'"
-fi
+@<CMP_IF@>
 ```
 
 ```bash {name=CMP_EXPAND}
 expected="@<exp@>"
 actual="$(@<OMD_UT@> expand "@<o@>@<got@>@<c@>")"
 
-if [[ "$expected" == "$actual" ]]; then
-    printf "."
-else
-    echo "Failed! Expected '$expected', Got '$actual'"
-fi
+@<CMP_IF@>
 ```
 
 ```bash {name=e2e-tests-script tangle=e2e-tests/tests.sh}
