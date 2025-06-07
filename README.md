@@ -307,7 +307,7 @@ This inserts the runtime result of `arch` into the tangled file.
 
 ## Development
 
-For development, there is one additional dependency:
+All code is in literate form: [Introduction](lit/intro.o.md). To work on it you need one additional dependency:
 
 * `black` (for code formatting)
 
@@ -317,4 +317,4 @@ Clone the repository:
 git clone https://github.com/adam-ard/organic-markdown.git
 ```
 
-then modify the files in the `lit` directory and build new versions of `omd`. Lots of fun!!
+then modify the files in the `lit` directory and build new versions of `omd`. Here are the commands I use to administer the repo: [Project Commands](proj_cmd.o.md).
