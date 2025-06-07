@@ -48,54 +48,44 @@ actual="$(@<OMD_UT@> expand "@<o@>@<got@>@<c@>")"
 @<CMP_IF@>
 ```
 
-```bash {name=e2e-tests-script tangle=e2e-tests/tests.sh}
-#!/bin/bash
+```bash {name=status-expected}
+expected_output=$(cat <<'EOF'
+Available commands:
+  (use "omd run <cmd>" to execute the command)
+        ./main.o.md:
+            mkdir
+            failed
+            success
+            four
+            shell
+            build_container
+            start_container
+            stop_container
+            in container
+            in_cont
+            out container
+            build_project
+            run_project
+            python_example
+            ruby_example
+            haskell_example
+            racket_example
+            perl_example
+            javascript_example
+            test_exec
+            test_exec_python
 
-# remove output files
-rm -rf out
+Output files:
+  (use "omd tangle" to generate output files)
+        out/Dockerfile
+        out/main.c
+        out/unnamed1.txt
+        out/unnamed2.txt
+EOF
+)
+```
 
-# add back the out dir
-mkdir out
-
-# tangle all the files
-@<OMD_UT@> tangle
-
-echo "Running All E2E Tests"
-
-# check that yaml values are coming through
-@<CMP_EXPAND(exp=~/code got=code_dir)@>
-
-# check a different calling convention
-@<CMP_EXPAND(exp=~/code got=code_dir())@>
-
-# check the yaml values do string substitution correctly
-@<CMP_EXPAND(exp=/home/aard/code/organic-markdown/e2e-tests got=project_name_recurse)@>
-
-# test multiline ref
-expected_output="This is 1 thing that I said.
-This is another: 2.
-And this: 3"
-@<CMP_EXPAND(exp="$expected_output" got=multiline-test)@>
-
-expected_output="This is 11 thing that I said.
-This is another: 22.
-And this: 33"
-@<CMP_EXPAND(exp="$expected_output" got="multiline-ref(one=11 two=22 three=33)")@>
-
-# test that the fields append when a name is reused
-expected_output="2024
-hello"
-@<CMP_EXPAND(exp="$expected_output" got=copyright_year)@>
-
-# make sure that unnamed code src-blocks DON'T append
-@<CMP_CMD(exp="Unnamed 1" got="cat out/unnamed1.txt")@>
-@<CMP_CMD(exp="Unnamed 2" got="cat out/unnamed2.txt")@>
-
-expected_output="Here goes nothing testing 1
-Here goes nothing testing 2"
-@<CMP_EXPAND(exp="$expected_output" got="test_exec_python*")@>
-
-# file test
+```bash {name=file-test-expected}
 expected_output=$(cat <<'EOF'
 /*
   Copyright 2014 Adam Ard
@@ -169,6 +159,57 @@ void main()
 }
 EOF
 )
+```
+
+```bash {name=e2e-tests-script tangle=e2e-tests/tests.sh}
+#!/bin/bash
+
+# remove output files
+rm -rf out
+
+# add back the out dir
+mkdir out
+
+# tangle all the files
+@<OMD_UT@> tangle
+
+echo "Running All E2E Tests"
+
+# check that yaml values are coming through
+@<CMP_EXPAND(exp=~/code got=code_dir)@>
+
+# check a different calling convention
+@<CMP_EXPAND(exp=~/code got=code_dir())@>
+
+# check the yaml values do string substitution correctly
+@<CMP_EXPAND(exp=/home/aard/code/organic-markdown/e2e-tests got=project_name_recurse)@>
+
+# test multiline ref
+expected_output="This is 1 thing that I said.
+This is another: 2.
+And this: 3"
+@<CMP_EXPAND(exp="$expected_output" got=multiline-test)@>
+
+expected_output="This is 11 thing that I said.
+This is another: 22.
+And this: 33"
+@<CMP_EXPAND(exp="$expected_output" got="multiline-ref(one=11 two=22 three=33)")@>
+
+# test that the fields append when a name is reused
+expected_output="2024
+hello"
+@<CMP_EXPAND(exp="$expected_output" got=copyright_year)@>
+
+# make sure that unnamed code src-blocks DON'T append
+@<CMP_CMD(exp="Unnamed 1" got="cat out/unnamed1.txt")@>
+@<CMP_CMD(exp="Unnamed 2" got="cat out/unnamed2.txt")@>
+
+expected_output="Here goes nothing testing 1
+Here goes nothing testing 2"
+@<CMP_EXPAND(exp="$expected_output" got="test_exec_python*")@>
+
+# file test
+@<file-test-expected@>
 @<CMP_CMD(exp="$expected_output" got="cat out/main.c")@>
 
 # make sure that we still traverse into subfolders
@@ -194,40 +235,7 @@ actual_output=$(@<OMD_UT@> expand "@<o@>ssh-test*@<c@>")
 actual_output="$(echo "$actual_output" | sed 's/[[:space:]]*$//')"
 @<CMP(exp="$expected_output" got="$actual_output")@>
 
-expected_output=$(cat <<'EOF'
-Available commands:
-  (use "omd run <cmd>" to execute the command)
-        ./main.o.md:
-            mkdir
-            failed
-            success
-            four
-            shell
-            build_container
-            start_container
-            stop_container
-            in container
-            in_cont
-            out container
-            build_project
-            run_project
-            python_example
-            ruby_example
-            haskell_example
-            racket_example
-            perl_example
-            javascript_example
-            test_exec
-            test_exec_python
-
-Output files:
-  (use "omd tangle" to generate output files)
-        out/Dockerfile
-        out/main.c
-        out/unnamed1.txt
-        out/unnamed2.txt
-EOF
-)
+@<status-expected@>
 @<CMP_OMD_CMD(exp="$expected_output" got="status")@>
 
 echo ""
