@@ -87,6 +87,7 @@ omd_assert(expected, split_lines(txt))
 @<test_passed(name="split_lines")@>
 ```
 
+### Run Tests
 
 ```bash {name=split_lines_tests menu=true}
 tests/split_lines.py
