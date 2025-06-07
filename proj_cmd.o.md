@@ -20,7 +20,7 @@ omd run all_tests
 To e2e test the new `omd` script, run the following in the `e2e-tests` directory:
 
 ```bash {name=e2e-tests-omd menu=true}
-rm e2e-tests/tests.sh
+rm -f e2e-tests/tests.sh
 omd tangle e2e-tests-script
 chmod u+x e2e-tests/tests.sh
 cd e2e-tests
