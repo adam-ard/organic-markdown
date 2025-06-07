@@ -3,9 +3,14 @@
 To build a new `omd` script, run the following in the `lit` directory:
 
 ```bash {name=build-omd dir=lit menu=true}
+rm -f omd
+rm -rf tests
+mkdir tests
+
 omd tangle
 black omd
 chmod u+x omd
+chmod u+x tests/*
 ```
 
 # Unit Tests

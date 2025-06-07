@@ -5,7 +5,8 @@ We could just add to this list in the individual test files and delete this file
 ```bash {name=all_tests menu=true}
 set -e
 
-@<main_code_tests@>
+../lit/omd run main_code_tests
+
 @<handle_cmd_tests@>
 @<f_parse_menu_attrib_tests@>
 @<intersperse_tests@>

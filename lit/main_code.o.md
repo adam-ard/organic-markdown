@@ -22,9 +22,7 @@ Simple test that check that the right mode is executed at the right time: comman
 
 ### tangle: tests/main_code.py
 
-```python {tangle=tests/main_code.py}
-#!/usr/bin/env python3
-
+```python {name=main_code_tests menu=true}
 @<omd_assert@>
 
 class sys:
@@ -44,8 +42,3 @@ omd_assert(False, interactive_mode_ran)
 @<test_passed(name="Main Code")@>
 ```
 
-# Run Tests
-
-```bash {name=main_code_tests menu=true}
-tests/main_code.py
-```
