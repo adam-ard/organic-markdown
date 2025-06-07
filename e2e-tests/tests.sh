@@ -22,7 +22,7 @@ mkdir out
 # tangle all the files
 ${OMD_UNDER_TEST} tangle
 
-echo "Running All Torture Tests"
+echo "Running All E2E Tests"
 
 # check that yaml values are coming through
 expected_output="~/code"
@@ -35,7 +35,7 @@ actual_output=$(${OMD_UNDER_TEST} expand "@<code_dir()@>")
 compare_strings "$expected_output" "$actual_output"
 
 # check the yaml values do string substitution correctly
-expected_output="/home/aard/code/organic-markdown/torture_tests"
+expected_output="/home/aard/code/organic-markdown/e2e-tests"
 actual_output=$(${OMD_UNDER_TEST} expand "@<project_name_recurse@>")
 compare_strings "$expected_output" "$actual_output"
 

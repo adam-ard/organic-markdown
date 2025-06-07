@@ -15,11 +15,11 @@ To test the new `omd` script, run the following in the `lit` directory:
 omd run all_tests
 ```
 
-# End-to-end tests
+# e2e tests
 
-To torture test the new `omd` script, run the following in the `torture_tests` directory:
+To e2e test the new `omd` script, run the following in the `e2e-tests` directory:
 
-```bash {name=torture-test-omd dir=torture_tests menu=true}
+```bash {name=e2e-tests-omd dir=e2e-tests menu=true}
 ./tests.sh
 ```
 
@@ -38,6 +38,6 @@ To do an official release.
 - Update the version in the file: `lit\version.o.md`.
 - Run `omd-build`
 - Run `test-omd`
-- Run `torture-test-omd`
+- Run `e2e-tests-omd`
 - Create a new release on the right of the github project page (make sure create a tag with the version as well)
 - Attach the `lit/omd` file to the release.

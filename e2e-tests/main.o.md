@@ -5,7 +5,7 @@ constants:
   docker_image_name: omarkdown-example
   docker_container_name: omarkdown-example1
   username: aard
-  project_name: /home/@<username@>/code/organic-markdown/torture_tests
+  project_name: /home/@<username@>/code/organic-markdown/e2e-tests
   copyright_year: 2024
   multi_word: 'one two three four               five'
 ---
