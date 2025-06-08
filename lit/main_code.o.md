@@ -20,8 +20,6 @@ else:
 
 Simple test that check that the right mode is executed at the right time: command mode when there are more than one argument, and interactive mode otherwise. Also assures that the program exits with an error code if it fails.
 
-### Tests
-
 ```python {name=main_code_tests menu=true}
 @<omd_assert@>
 
