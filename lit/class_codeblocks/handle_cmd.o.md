@@ -146,9 +146,7 @@ omd_assert(@<words@>, code_blocks.words)
 
 ### 🔧 Test Harness
 
-```python {tangle=tests/handle_cmd.py}
-#!/usr/bin/env python3
-
+```python {name=handle_cmd_tests menu=true}
 class CodeBlocks:
     def __init__(self):
         self.reset()
@@ -186,13 +184,4 @@ code_blocks = CodeBlocks()
                   fail_msg="didn't run multi-word command")@>
 
 @<test_passed(name="Handle Cmd")@>
-```
-
----
-
-### 🧪 Run Tests
-
-
-```bash {name=handle_cmd_tests menu=true}
-tests/handle_cmd.py
 ```

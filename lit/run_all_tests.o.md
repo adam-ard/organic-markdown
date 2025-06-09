@@ -5,11 +5,11 @@ We could just add to this list in the individual test files and delete this file
 ```bash {name=all_tests menu=true}
 set -e
 
-../lit/omd run main_code_tests
+omd run main_code_tests
+omd run handle_cmd_tests
+omd run f_parse_menu_attrib_tests
+omd run intersperse_tests
 
-@<handle_cmd_tests@>
-@<f_parse_menu_attrib_tests@>
-@<intersperse_tests@>
 @<get_run_cmd_tests@>
 @<codeblock__parse_tests@>
 @<split_lines_tests@>

@@ -14,7 +14,7 @@ def intersperse(sections):
     for i in range(max_lines):
         line = ""
         for s in sections:
-            lines = s.split('\n')
+            lines = s.split("\n")
             if i < len(lines):
                 line += lines[i]
             else:
@@ -28,9 +28,7 @@ def intersperse(sections):
 Here are a few tests to confirm that the intersperse functionality is working correctly:
 
 
-```python {tangle=tests/intersperse.py}
-#!/usr/bin/env python3
-
+```python {name=intersperse_tests menu=true}
 @<get_max_lines@>
 @<intersperse@>
 @<omd_assert@>
@@ -46,8 +44,3 @@ omd_assert(intersperse(["e\nf", ":", "a\nb\nc\nd", ":"]), "e:a:\nf:b:\nf:c:\nf:d
 @<test_passed(name="intersperse")@>
 ```
 
-To run the intersperse test:
-
-```bash {name=intersperse_tests menu=true}
-tests/intersperse.py
-```
