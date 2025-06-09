@@ -193,19 +193,30 @@ result = (1..10).select(&:even?).map { |x| x**2 }.sum; puts "ruby: The sum of sq
 ## Haskell Code
 
 ```haskell {name="haskell_example" menu="true"}
-let result = sum [x^2 | x <- [1..10], even x] in putStrLn $ "haskell: The sum of squares of even numbers from 1 to 10 is: " ++ show result
+main :: IO ()
+main = do
+    let result = sum [x^2 | x <- [1..10], even x]
+    putStrLn $ "haskell: The sum of squares of even numbers from 1 to 10 is: " ++ show result
 ```
 
 ## racket Code
 
 ```racket {name="racket_example" menu="true"}
-(displayln (string-append "racket: The sum of squares of even numbers from 1 to 10 is: " (number->string (apply + (map (lambda (x) (* x x)) (filter even? (range 1 11)))))))
+#lang racket
+
+(displayln
+ (string-append
+  "racket: The sum of squares of even numbers from 1 to 10 is: "
+  (number->string
+   (apply +
+          (map (lambda (x) (* x x))
+               (filter even? (range 1 11)))))))
 ```
 
 ## perl Code
 
 ```perl {name="perl_example" menu="true"}
-$result = 0; $result += $_ ** 2 for grep { $_ % 2 == 0 } 1..10; say "perl: The sum of squares of even numbers from 1 to 10 is: $result";
+$result = 0; $result += $_ ** 2 for grep { $_ % 2 == 0 } 1..10; print "perl: The sum of squares of even numbers from 1 to 10 is: $result\n";
 ```
 
 ## javascript Code

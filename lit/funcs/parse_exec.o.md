@@ -28,7 +28,7 @@ def parse_exec(txt):
 
 # Testing
 
-```python {tangle=tests/parse_exec.py}
+```python {name=parse_exec_tests_file tangle=tests/parse_exec.py}
 #!/usr/bin/env python3
 
 @<omd_assert@>

@@ -36,7 +36,7 @@ def parse_args_str(txt):
 
 # Testing
 
-```python {tangle=tests/parse_args_str.py}
+```python {name=parse_args_str_tests_file tangle=tests/parse_args_str.py}
 #!/usr/bin/env python3
 
 @<omd_assert@>

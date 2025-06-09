@@ -1,28 +1,45 @@
 # Build
 
-To build a new `omd` script, run the following in the `lit` directory:
+To build a new `omd` script, run the following in the `lit` directory. Don't tangle the stuff in `e2e-tests/`. It should stay isolated by tangling specific files.
 
-```bash {name=build-omd dir=lit menu=true}
-rm -f omd
+```bash {name=build-omd menu=true}
+rm -f lit/omd
 rm -rf tests
 mkdir tests
 
-omd tangle
-black omd
-chmod u+x omd
+omd tangle omd_file
+black lit/omd
+chmod u+x lit/omd
+
+omd tangle get_run_cmd_tests_file
+omd tangle codeblock__parse_tests_file
+omd tangle split_lines_tests_file
+omd tangle eat_tests_file
+omd tangle parse_name_tests_file
+omd tangle parse_exec_tests_file
+omd tangle parse_args_str_tests_file
+omd tangle parse_arg_name_tests_file
+omd tangle parse_arg_value_tests_file
+omd tangle parse_default_tests_file
+omd tangle parse_arg_name_value_tests_file
+omd tangle parse_args_tests_file
+omd tangle parse_match_tests_file
+omd tangle get_match_tests_file
+omd tangle expand_tests_file
+
 chmod u+x tests/*
 ```
 
 # Unit Tests
-To test the new `omd` script, run the following in the `lit` directory:
+To test the new `omd` script, run the following:
 
-```bash {name=test-omd dir=lit menu=true}
+```bash
 omd run all_tests
 ```
 
 # e2e tests
 
-To e2e test the new `omd` script, run the following in the `e2e-tests` directory:
+To e2e test the new `omd` script, run the following in the `e2e-tests` directory. I tangle only the `e2e-tests/tests.sh` file, so that the rest of the files can be tangled by the omd that is under test `lit/omd` -- when `e2e-tests/tests.sh` is run it calls `lit/omd` explicitly.
 
 ```bash {name=e2e-tests-omd menu=true}
 rm -f e2e-tests/tests.sh

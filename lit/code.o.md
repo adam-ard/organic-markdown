@@ -8,7 +8,7 @@ This represents a shift in mindset: the *source of truth* becomes your literate 
 
 ### 🔗 Tangle: `omd`
 
-```python {tangle=omd}
+```python {name=omd_file tangle=lit/omd}
 #!/usr/bin/env python3
 
 @<imports@>

@@ -356,7 +356,7 @@ full_file = {"blocks": [{"t": "",
 
 ### 🧪 Expand Tests
 
-```python {tangle=tests/expand.py}
+```python {name=expand_tests_file tangle=tests/expand.py}
 #!/usr/bin/env python3
 
 @<imports@>

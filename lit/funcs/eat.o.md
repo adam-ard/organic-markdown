@@ -20,7 +20,7 @@ def eat_eq(txt):
 
 ## Tests
 
-```python {tangle=tests/eat_tests.py}
+```python {name=eat_tests_file tangle=tests/eat_tests.py}
 #!/usr/bin/env python3
 
 @<omd_assert@>

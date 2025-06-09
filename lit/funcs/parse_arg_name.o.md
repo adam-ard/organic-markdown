@@ -22,7 +22,7 @@ def parse_arg_name(txt):
 
 # Testing
 
-```python {tangle=tests/parse_arg_name.py}
+```python {name=parse_arg_name_tests_file tangle=tests/parse_arg_name.py}
 #!/usr/bin/env python3
 
 @<omd_assert@>

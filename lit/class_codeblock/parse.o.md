@@ -58,7 +58,7 @@ This parser is intentionally flexible. It gracefully handles unexpected attribut
 
 Here’s a test file that verifies parsing logic across various input scenarios:
 
-```python {tangle=tests/codeblock__parse.py}
+```python {name=codeblock__parse_tests_file tangle=tests/codeblock__parse.py}
 #!/usr/bin/env python3
 
 def parse_menu_attrib(val):

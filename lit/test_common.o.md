@@ -10,8 +10,17 @@ exit(0)
 ```
 
 ```python {name=omd_assert}
+import re
+
 def omd_assert(expected, got):
     if expected != got:
         print(f"**FAIL**: Expected '{expected}', Got '{got}'")
         exit(1)
+
+def omd_assert_regex(expected_regex, got):
+    res = re.search(expected_regex, got)
+    if not res:
+        print(f"**FAIL**: Expected '{expected_regex}', Got '{got}'")
+        exit(1)
+
 ```

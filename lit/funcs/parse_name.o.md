@@ -22,7 +22,7 @@ def parse_name(txt):
 
 # Tests
 
-```python {tangle=tests/parse_name.py}
+```python {name=parse_name_tests_file tangle=tests/parse_name.py}
 #!/usr/bin/env python3
 
 @<omd_assert@>

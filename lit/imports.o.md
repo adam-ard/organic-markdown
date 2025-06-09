@@ -16,4 +16,5 @@ import subprocess
 from textwrap import indent
 from pathlib import Path
 import pypandoc
+import uuid
 ```
