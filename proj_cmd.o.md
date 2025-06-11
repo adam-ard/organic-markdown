@@ -63,7 +63,8 @@ To do an official release.
 
 - Update the version in the file: `lit\version.o.md`.
 - Run `omd-build`
-- Run `test-omd`
+- Run `all_tests`
 - Run `e2e-tests-omd`
+- If all pass, create a commit with the version update and push.
 - Create a new release on the right of the github project page (make sure create a tag with the version as well)
 - Attach the `lit/omd` file to the release.
