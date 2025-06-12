@@ -10,8 +10,8 @@ omd run handle_cmd_tests
 omd run f_parse_menu_attrib_tests
 omd run intersperse_tests
 omd run get_run_cmd_tests
+omd run codeblock__parse_tests
 
-@<codeblock__parse_tests@>
 @<split_lines_tests@>
 @<eat_tests@>
 @<parse_name_tests@>

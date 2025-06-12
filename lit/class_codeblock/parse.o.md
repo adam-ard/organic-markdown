@@ -58,8 +58,10 @@ This parser is intentionally flexible. It gracefully handles unexpected attribut
 
 Here’s a test file that verifies parsing logic across various input scenarios:
 
-```python {name=codeblock__parse_tests_file tangle=tests/codeblock__parse.py}
+```python {name=codeblock__parse_tests menu=true}
 #!/usr/bin/env python3
+
+@<omd_assert@>
 
 def parse_menu_attrib(val):
     return val
@@ -76,14 +78,14 @@ class CodeBlockFake:
         self.ssh_host = ""
 
     def test_fields(self, code, lang, menu, name, dir, tangle_file, docker_container, ssh_host):
-        assert self.code == code
-        assert self.lang == lang
-        assert self.in_menu == menu
-        assert self.name == name
-        assert self.cwd == dir
-        assert self.tangle_file == tangle_file
-        assert self.docker_container == docker_container
-        assert self.ssh_host == ssh_host
+        omd_assert(code, self.code)
+        omd_assert(lang, self.lang)
+        omd_assert(menu, self.in_menu)
+        omd_assert(name, self.name)
+        omd_assert(dir, self.cwd)
+        omd_assert(tangle_file, self.tangle_file)
+        omd_assert(docker_container, self.docker_container)
+        omd_assert(ssh_host, self.ssh_host)
 
     @<codeblock__parse@>
 
@@ -127,14 +129,4 @@ cb.parse([["",
 cb.test_fields("gcc --version", "python", "true", "build_project", "@<project_name@>", "@<project_name@>/main.c", "@<docker_container_name@>", "aard@localhost.com")
 
 @<test_passed(name="codeblock__parse")@>
-```
-
----
-
-### 🧪 Running the test
-
-You can run the test with `omd run`:
-
-```bash {name=codeblock__parse_tests menu=true}
-tests/codeblock__parse.py
 ```
