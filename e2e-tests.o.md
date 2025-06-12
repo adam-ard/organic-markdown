@@ -161,9 +161,7 @@ EOF
 )
 ```
 
-```bash {name=e2e-tests-script tangle=e2e-tests/tests.sh}
-#!/bin/bash
-
+```bash {name=e2e-tests dir=e2e-tests menu=true}
 # remove output files
 rm -rf out
 

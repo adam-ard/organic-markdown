@@ -1,6 +1,6 @@
 # Build
 
-To build a new `omd` script, run the following in the `lit` directory. Don't tangle the stuff in `e2e-tests/`. It should stay isolated by tangling specific files.
+To build a new `omd` script, run the following. Don't run `omd tangle` because that will also tangle the stuff in `e2e-tests/`, which should be tested using the new `lit/omd` file. Here we get around that by just tangling `omd_file` and nothing else.
 
 ```bash {name=build-omd menu=true}
 rm -f lit/omd
@@ -18,14 +18,10 @@ omd run all_tests
 
 # e2e tests
 
-To e2e test the new `omd` script, run the following in the `e2e-tests` directory. I tangle only the `e2e-tests/tests.sh` file, so that the rest of the files can be tangled by the omd that is under test `lit/omd` -- when `e2e-tests/tests.sh` is run it calls `lit/omd` explicitly.
+To e2e test the new `omd` script, run the following:
 
-```bash {name=e2e-tests-omd menu=true}
-rm -f e2e-tests/tests.sh
-omd tangle e2e-tests-script
-chmod u+x e2e-tests/tests.sh
-cd e2e-tests
-./tests.sh
+```bash
+omd run e2e-tests
 ```
 
 # Diff
@@ -41,9 +37,9 @@ diff lit/omd `which omd`
 To do an official release.
 
 - Update the version in the file: `lit\version.o.md`.
-- Run `omd-build`
+- Run `build-omd`
 - Run `all_tests`
-- Run `e2e-tests-omd`
+- Run `e2e-tests`
 - If all pass, create a commit with the version update and push.
 - Create a new release on the right of the github project page (make sure create a tag with the version as well)
 - Attach the `lit/omd` file to the release.
