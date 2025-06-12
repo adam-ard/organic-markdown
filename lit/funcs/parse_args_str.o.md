@@ -36,9 +36,7 @@ def parse_args_str(txt):
 
 # Testing
 
-```python {name=parse_args_str_tests_file tangle=tests/parse_args_str.py}
-#!/usr/bin/env python3
-
+```python {name=parse_args_str_tests menu=true}
 @<omd_assert@>
 
 def test(txt, expected_args, expected_rest):
@@ -64,8 +62,3 @@ test("(((())))", "((()))", "")
 @<test_passed(name="parse_args_str")@>
 ```
 
-# Run Tests
-
-```bash {name=parse_args_str_tests menu=true}
-tests/parse_args_str.py
-```

@@ -28,9 +28,7 @@ def parse_exec(txt):
 
 # Testing
 
-```python {name=parse_exec_tests_file tangle=tests/parse_exec.py}
-#!/usr/bin/env python3
-
+```python {name=parse_exec_tests menu=true}
 @<omd_assert@>
 
 def test(txt, expected_name, expected_exec, expected_success):
@@ -49,10 +47,4 @@ test("one*", "one", True, True)
 test("a*", "a", True, True)
 
 @<test_passed(name="parse_exec")@>
-```
-
-# Run Tests
-
-```bash {name=parse_exec_tests menu=true}
-tests/parse_exec.py
 ```

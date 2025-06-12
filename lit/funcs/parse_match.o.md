@@ -35,9 +35,7 @@ def parse_match(txt):
 
 Here I swap out the `@<` and `@>` characters for the `:<` and `:>` characters. This drastically simplifies the test code. Otherwise I have to worry about escaping to avoid unwanted code substitutions that will happen during the tangle step.
 
-```python {name=parse_match_tests_file tangle=tests/parse_match.py}
-#!/usr/bin/env python3
-
+```python {name=parse_match_tests menu=true}
 o_sym = ":<"
 c_sym = ":>"
 
@@ -79,10 +77,4 @@ test('one*(arg1="val1")', {"name": 'one', "exec": True, "args": 'arg1="val1"', "
 
 
 @<test_passed(name="parse_match")@>
-```
-
-# Run Tests
-
-```bash {name=parse_match_tests menu=true}
-tests/parse_match.py
 ```

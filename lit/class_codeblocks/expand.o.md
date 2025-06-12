@@ -356,9 +356,7 @@ full_file = {"blocks": [{"t": "",
 
 ### 🧪 Expand Tests
 
-```python {name=expand_tests_file tangle=tests/expand.py}
-#!/usr/bin/env python3
-
+```python {name=expand_tests menu=true}
 @<imports@>
 
 o_sym = ":<"
@@ -429,12 +427,4 @@ test(':<asdfasdfasdf:>', "")
 
 test("[This is the text from block two::<two:>, can you believe it?]", "[This is the text from block two:[This is the text from block one:[This is some text], wasn't that nice?], can you believe it?]")
 @<test_passed(name="expand")@>
-```
-
----
-
-### ✅ Run the tests
-
-```bash {name=expand_tests menu=true}
-tests/expand.py
 ```

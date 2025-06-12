@@ -21,9 +21,7 @@ def parse_args(txt):
 
 Here I swap out the `@<` and `@>` characters for the `:<` and `:>` characters. This drastically simplifies the test code. Otherwise I have to worry about escaping to avoid unwanted code substitutions that will happen during the tangle step.
 
-```python {name=parse_args_tests_file tangle=tests/parse_args.py}
-#!/usr/bin/env python3
-
+```python {name=parse_args_tests menu=true}
 o_sym = ":<"
 c_sym = ":>"
 
@@ -61,10 +59,4 @@ test(txt, {"ret_name": "parsed_bool",
 
 
 @<test_passed(name="parse_args")@>
-```
-
-# Run Tests
-
-```bash {name=parse_args_tests menu=true}
-tests/parse_args.py
 ```

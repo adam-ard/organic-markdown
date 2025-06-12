@@ -22,9 +22,7 @@ def parse_arg_name(txt):
 
 # Testing
 
-```python {name=parse_arg_name_tests_file tangle=tests/parse_arg_name.py}
-#!/usr/bin/env python3
-
+```python {name=parse_arg_name_tests menu=true}
 @<omd_assert@>
 
 def test(txt, expected_name, expected_rest):
@@ -45,10 +43,4 @@ test("name1 = value1", "name1", " = value1")
 test("name1 \t = value1", "name1", " \t = value1")
 
 @<test_passed(name="parse_arg_name")@>
-```
-
-# Run Tests
-
-```bash {name=parse_arg_name_tests menu=true}
-tests/parse_arg_name.py
 ```

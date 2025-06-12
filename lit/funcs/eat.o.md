@@ -20,9 +20,7 @@ def eat_eq(txt):
 
 ## Tests
 
-```python {name=eat_tests_file tangle=tests/eat_tests.py}
-#!/usr/bin/env python3
-
+```python {name=eat_tests menu=true}
 @<omd_assert@>
 
 @<eat_ws@>
@@ -77,8 +75,4 @@ expected = None
 omd_assert(expected, eat_eq(txt))
 
 @<test_passed(name="eat")@>
-```
-
-```bash {name=eat_tests menu=true}
-tests/eat_tests.py
 ```

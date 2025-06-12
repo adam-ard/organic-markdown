@@ -63,8 +63,6 @@ def get_run_cmd(self, args={}):
 Here are a few tests to confirm that the get_run_cmd functionality is working correctly:
 
 ```python {name=get_run_cmd_tests menu=true}
-#!/usr/bin/env python3
-
 import os
 import uuid
 

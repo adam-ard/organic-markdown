@@ -35,9 +35,7 @@ def parse_default(txt):
 
 Here I swap out the `@<` and `@>` characters for the `:<` and `:>` characters. This drastically simplifies the test code. Otherwise I have to worry about escaping to avoid unwanted code substitutions that will happen during the tangle step.
 
-```python {name=parse_default_tests_file tangle=tests/parse_default.py}
-#!/usr/bin/env python3
-
+```python {name=parse_default_tests menu=true}
 o_sym = ":<"
 c_sym = ":>"
 
@@ -63,10 +61,4 @@ test("{:<a{5}:>}", ":<a{5}:>", "")
 test("{{{{{{}}}}}}", "{{{{{}}}}}", "")
 
 @<test_passed(name="parse_default")@>
-```
-
-# Run Tests
-
-```bash {name=parse_default_tests menu=true}
-tests/parse_default.py
 ```

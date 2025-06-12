@@ -59,8 +59,6 @@ This parser is intentionally flexible. It gracefully handles unexpected attribut
 Here’s a test file that verifies parsing logic across various input scenarios:
 
 ```python {name=codeblock__parse_tests menu=true}
-#!/usr/bin/env python3
-
 @<omd_assert@>
 
 def parse_menu_attrib(val):

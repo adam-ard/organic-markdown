@@ -4,28 +4,9 @@ To build a new `omd` script, run the following in the `lit` directory. Don't tan
 
 ```bash {name=build-omd menu=true}
 rm -f lit/omd
-rm -rf tests
-mkdir tests
-
 omd tangle omd_file
 black lit/omd
 chmod u+x lit/omd
-
-omd tangle split_lines_tests_file
-omd tangle eat_tests_file
-omd tangle parse_name_tests_file
-omd tangle parse_exec_tests_file
-omd tangle parse_args_str_tests_file
-omd tangle parse_arg_name_tests_file
-omd tangle parse_arg_value_tests_file
-omd tangle parse_default_tests_file
-omd tangle parse_arg_name_value_tests_file
-omd tangle parse_args_tests_file
-omd tangle parse_match_tests_file
-omd tangle get_match_tests_file
-omd tangle expand_tests_file
-
-chmod u+x tests/*
 ```
 
 # Unit Tests

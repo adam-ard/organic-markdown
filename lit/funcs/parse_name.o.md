@@ -22,9 +22,7 @@ def parse_name(txt):
 
 # Tests
 
-```python {name=parse_name_tests_file tangle=tests/parse_name.py}
-#!/usr/bin/env python3
-
+```python {name=parse_name_tests menu=true}
 @<omd_assert@>
 
 def test(txt, expected_name, expected_rest):
@@ -53,10 +51,4 @@ test('one\\()()', 'one\\()', "()")
 test('one\\{}()', 'one\\{}', "()")
 
 @<test_passed(name="parse_name")@>
-```
-
-# Run Tests
-
-```bash {name=parse_name_tests menu=true}
-tests/parse_name.py
 ```

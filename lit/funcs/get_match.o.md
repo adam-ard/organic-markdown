@@ -48,9 +48,7 @@ def get_match_inner(txt, cur):
 
 Here I swap out the `@<` and `@>` characters for the `:<` and `:>` characters. This drastically simplifies the test code. Otherwise I have to worry about escaping to avoid unwanted code substitutions that will happen during the tangle step.
 
-```python {name=get_match_tests_file tangle=tests/get_match.py}
-#!/usr/bin/env python3
-
+```python {name=get_match_tests menu=true}
 o_sym = ":<"
 c_sym = ":>"
 
@@ -117,8 +115,3 @@ test_one(':<one*(two=":<three*:>"):>', 0, 'one', True, 'two=":<three*:>"', '')
 @<test_passed(name="get_match")@>
 ```
 
-# Run Tests
-
-```bash {name=get_match_tests menu=true}
-tests/get_match.py
-```

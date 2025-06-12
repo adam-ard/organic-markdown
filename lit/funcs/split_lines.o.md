@@ -38,9 +38,7 @@ def split_lines(txt):
 
 Here I swap out the `@<` and `@>` characters for the `:<` and `:>` characters. This drastically simplifies the test code. Otherwise I have to worry about escaping to avoid unwanted code substitutions that will happen during the tangle step.
 
-```python {name=split_lines_tests_file tangle=tests/split_lines.py}
-#!/usr/bin/env python3
-
+```python {name=split_lines_tests menu=true}
 o_sym = ":<"
 c_sym = ":>"
 
@@ -85,10 +83,4 @@ expected = ["A::::::<B(a=1\nb=2):::>", "C", "D"]
 omd_assert(expected, split_lines(txt))
 
 @<test_passed(name="split_lines")@>
-```
-
-### Run Tests
-
-```bash {name=split_lines_tests menu=true}
-tests/split_lines.py
 ```
