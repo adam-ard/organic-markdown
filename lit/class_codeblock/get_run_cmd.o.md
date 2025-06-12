@@ -62,17 +62,13 @@ def get_run_cmd(self, args={}):
 
 Here are a few tests to confirm that the get_run_cmd functionality is working correctly:
 
-
-```python {name=get_run_cmd_tests_file tangle=tests/get_run_cmd.py}
+```python {name=get_run_cmd_tests menu=true}
 #!/usr/bin/env python3
 
 import os
 import uuid
 
 @<omd_assert@>
-
-def escape_code(code):
-    return code
 
 class CodeBlocksFake:
     def expand(self, code, args):
@@ -86,81 +82,38 @@ class CodeBlockFake:
         self.docker_container = docker_container
         self.ssh_host = ssh_host
         self.cwd = cwd
+
+    def omd_assert(self, exp):
+      omd_assert(exp, self.get_run_cmd())
+
+    def omd_assert_regex(self, regex_exp):
+      omd_assert_regex(regex_exp, self.get_run_cmd())
+
     @<codeblock__get_run_cmd@>
 
 ### when there is an invalid language specified
-
-cb = CodeBlockFake("not_a_language", "<cmd>", None, None, "/the/path")
-cmd = cb.get_run_cmd()
-
-omd_assert(None, cmd)
+CodeBlockFake("not_a_language", "<cmd>", None, None, "/the/path").omd_assert(None)
 
 ### when there is no language specified
-
-cb = CodeBlockFake(None, "<cmd>", None, None, "/the/path")
-cmd = cb.get_run_cmd()
-
-omd_assert(None, cmd)
+CodeBlockFake(None, "<cmd>", None, None, "/the/path").omd_assert(None)
 
 #### When there is no cwd
-
-cb = CodeBlockFake("bash", "<cmd>", None, None, None)
-cmd = cb.get_run_cmd()
-
-expected_regex = r"bash /tmp/[^\s]+\.sh"
-
-omd_assert_regex(expected_regex, cmd)
+CodeBlockFake("bash", "<cmd>", None, None, None).omd_assert_regex(r"bash /tmp/[^\s]+\.sh")
 
 #### normal local
+CodeBlockFake("bash", "<cmd>", None, None, "/the/path").omd_assert_regex("cd /the/path && bash /tmp/[^\s]+\.sh")
 
-cb = CodeBlockFake("bash", "<cmd>", None, None, "/the/path")
-cmd = cb.get_run_cmd()
-
-expected_regex = r"cd /the/path && bash /tmp/[^\s]+\.sh"
-
-omd_assert_regex(expected_regex, cmd)
-
-### docker 
-
-cb = CodeBlockFake("bash", "<cmd>", "my_docker", None, "/the/path")
-cmd = cb.get_run_cmd()
-
-expected_regex=r"""docker cp /tmp/[^\s]+\.sh my_docker:/tmp/[^\s]+\.sh && docker exec my_docker bash -c "cd /the/path && bash /tmp/[^\s]+\.sh" && docker exec my_docker rm /tmp/omd-[^\s]+\.sh"""
-
-omd_assert_regex(expected_regex, cmd)
+### docker
+CodeBlockFake("bash", "<cmd>", "my_docker", None, "/the/path").omd_assert_regex(r"""docker cp /tmp/[^\s]+\.sh my_docker:/tmp/[^\s]+\.sh && docker exec my_docker bash -c "cd /the/path && bash /tmp/[^\s]+\.sh" && docker exec my_docker rm /tmp/omd-[^\s]+\.sh""")
 
 #### docker no cwd
-
-cb = CodeBlockFake("bash", "<cmd>", "my_docker", None, None)
-cmd = cb.get_run_cmd()
-
-expected_regex=r"""docker cp /tmp/[^\s]+\.sh my_docker:/tmp/[^\s]+\.sh && docker exec my_docker bash -c "bash /tmp/[^\s]+\.sh" && docker exec my_docker rm /tmp/omd-[^\s]+\.sh"""
-
-omd_assert_regex(expected_regex, cmd)
+CodeBlockFake("bash", "<cmd>", "my_docker", None, None).omd_assert_regex(r"""docker cp /tmp/[^\s]+\.sh my_docker:/tmp/[^\s]+\.sh && docker exec my_docker bash -c "bash /tmp/[^\s]+\.sh" && docker exec my_docker rm /tmp/omd-[^\s]+\.sh""")
 
 #### different language
-
-cb = CodeBlockFake("perl", "<cmd>", None, None, "/the/path")
-cmd = cb.get_run_cmd()
-
-expected_regex=r"""cd /the/path && perl /tmp/[^\s]+\.pl"""
-omd_assert_regex(expected_regex, cmd)
+CodeBlockFake("perl", "<cmd>", None, None, "/the/path").omd_assert_regex(r"""cd /the/path && perl /tmp/[^\s]+\.pl""")
 
 #### ssh
-
-cb = CodeBlockFake("ruby", "<cmd>", None, "aard@my-host.com", "/the/other/path")
-cmd = cb.get_run_cmd()
-
-expected_regex=r"""scp /tmp/[^\s]+\.rb aard@my-host.com:/tmp/[^\s]+\.rb && ssh aard@my-host.com 'cd /the/other/path && ruby /tmp/[^\s]+\.rb' && ssh aard@my-host.com rm /tmp/[^\s]+\.rb"""
-
-omd_assert_regex(expected_regex, cmd)
+CodeBlockFake("ruby", "<cmd>", None, "aard@my-host.com", "/the/other/path").omd_assert_regex(r"""scp /tmp/[^\s]+\.rb aard@my-host.com:/tmp/[^\s]+\.rb && ssh aard@my-host.com 'cd /the/other/path && ruby /tmp/[^\s]+\.rb' && ssh aard@my-host.com rm /tmp/[^\s]+\.rb""")
 
 @<test_passed(name="get_run_cmd")@>
 ```
-
-To run the get_run_cmd test:
-
-```bash {name=get_run_cmd_tests menu=true}
-tests/get_run_cmd.py
-```
-

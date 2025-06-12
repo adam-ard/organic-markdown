@@ -11,7 +11,6 @@ omd tangle omd_file
 black lit/omd
 chmod u+x lit/omd
 
-omd tangle get_run_cmd_tests_file
 omd tangle codeblock__parse_tests_file
 omd tangle split_lines_tests_file
 omd tangle eat_tests_file

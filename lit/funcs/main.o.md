@@ -28,7 +28,6 @@ Each function is documented and defined in its own separate file. Here, we’re 
 @<parse_arg_value@>
 @<parse_arg_name_value@>
 @<parse_args@>
-@<escape_code@>
 @<import_file@>
 ```
 
@@ -55,5 +54,4 @@ Each function is documented and defined in its own separate file. Here, we’re 
 - [@<parse_arg_value@>](parse_arg_value.o.md)
 - [@<parse_arg_name_value@>](parse_arg_name_value.o.md)
 - [@<parse_args@>](parse_args.o.md)
-- [@<escape_code@>](escape_code.o.md)
 - [@<import_file@>](experimental_features.o.md)
