@@ -1,13 +1,5 @@
 Use these so that the opening and closing ref symbols don't get expanded
 
-```bash {name=o}
-@<
-```
-
-```bash {name=c}
-@>
-```
-
 ```bash {name=OMD_UT}
 ../lit/omd
 ```
@@ -43,7 +35,7 @@ actual="$(@<OMD_UT@> @<got@>)"
 
 ```bash {name=CMP_EXPAND}
 expected="@<exp@>"
-actual="$(@<OMD_UT@> expand "@<o@>@<got@>@<c@>")"
+actual="$(@<OMD_UT@> expand "@<got@>")"
 
 @<CMP_IF@>
 ```
@@ -229,7 +221,7 @@ Here goes nothing testing 2"
 @<CMP_EXPAND(exp="This is my message: Dude!" got="my_msg(the_msg=Dude!)")@>
 
 expected_output="hello \"world\""
-actual_output=$(@<OMD_UT@> expand "@<o@>ssh-test*@<c@>")
+actual_output=$(@<OMD_UT@> expand "ssh-test*")
 actual_output="$(echo "$actual_output" | sed 's/[[:space:]]*$//')"
 @<CMP(exp="$expected_output" got="$actual_output")@>
 

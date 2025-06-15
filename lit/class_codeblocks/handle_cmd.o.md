@@ -75,8 +75,10 @@ elif words[0] == "info":
     return self.run_block_fn(rest, CodeBlock.info)
 elif words[0] == "origin":
     return self.run_block_fn(rest, CodeBlock.origin)
-elif words[0] == "expand":
+elif words[0] == "expand-str":
     print(self.expand(rest))
+elif words[0] == "expand":
+    print(self.expand(f"{o_sym}{rest}{c_sym}"))
 else:
     print(f"unknown command: {' '.join(words)}")
 ```
