@@ -303,6 +303,7 @@ This inserts the runtime result of `arch` into the tangled file.
 * [The Joy of Literate Programming](https://rethinkingsoftware.substack.com/p/the-joy-of-literate-programming)
 * [Organic Markdown Intro](https://rethinkingsoftware.substack.com/p/organic-markdown-intro)
 * [DRY on Steroids](https://rethinkingsoftware.substack.com/p/dry-on-steroids-with-literate-programming)
+* [Literate Testing](https://rethinkingsoftware.substack.com/p/literate-testing)
 * [YouTube Tutorials](https://www.youtube.com/@adam-ard/videos)
 
 ## Development
