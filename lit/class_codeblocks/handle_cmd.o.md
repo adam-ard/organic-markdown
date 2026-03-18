@@ -1,8 +1,8 @@
 # `CodeBlocks::handle_cmd`
 
-The `handle_cmd()` method is the central dispatcher for command-line interactions with `omd`. It is used in both **interactive mode** and **scripted mode** (e.g., via `omd run <name>`).
+The `handle_cmd()` method is the central dispatcher for command-line interactions with `omd`. It is used in both **interactive mode** and **scripted mode** (for example, `omd run <name>` or `omd --help`).
 
-It parses and routes input words (typically from `sys.argv`) to the appropriate method based on how many arguments are provided.
+It parses and routes input words (typically from `sys.argv`) to the appropriate method based on how many arguments are provided. The one-word command table now includes help aliases so the CLI can advertise its own built-in commands before showing the project-specific command inventory.
 
 ---
 
@@ -27,12 +27,14 @@ def handle_cmd(self, words):
 
 ## 🧩 One-Word Commands
 
-These commands are run with just a single word like `status` or `tangle`.
+These commands are run with just a single word like `status`, `tangle`, or `--help`.
 
 ### 🔗 `@<handle_one_word_commands@>`
 
 ```python {name=handle_one_word_commands}
-if words[0] == "version":
+if words[0] in ["--help", "-h", "help"]:
+    self.print_help()
+elif words[0] == "version":
     print("@<version@>")
 elif words[0] == "cmds":
     self.print_parseable_cmds()
@@ -50,6 +52,7 @@ else:
 
 #### Command Summary:
 
+* `--help`, `-h`, `help` — Print CLI usage along with discovered project commands and output files
 * `cmds` — Print all runnable commands in parseable JSON
 * `files` — Print all output files targeted by tangling
 * `status` — Print a human-readable summary of both commands and output files
@@ -124,7 +127,7 @@ else:
 
 # Tests
 
-This test suite checks that the interactive command-handling logic works as expected—verifying behavior for both one-word and multi-word commands.
+This test suite checks both layers of command handling. The first set of checks covers the small interactive-loop command handler (`exit`, `reload`, and delegation to `CodeBlocks.handle_cmd`). The second set exercises the real `CodeBlocks.handle_cmd()` dispatcher, including the new `--help` aliases.
 
 It uses a lightweight mock `CodeBlocks` object with `reset()`, `parse()`, and `handle_cmd()` methods to keep the tests isolated and fast.
 
@@ -148,7 +151,62 @@ omd_assert(@<words@>, code_blocks.words)
 
 ### 🔧 Test Harness
 
+```python {name=codeblocks__handle_cmd_test}
+class CodeBlock:
+    def run(self):
+        pass
+
+    def tangle(self):
+        pass
+
+    def info(self):
+        pass
+
+    def origin(self):
+        pass
+
+class CodeBlocksDispatcher:
+    def __init__(self):
+        self.help_calls = 0
+        self.summary_calls = 0
+        self.run_calls = []
+
+    @<codeblocks__handle_cmd@>
+
+    def print_help(self):
+        self.help_calls += 1
+
+    def print_summary(self):
+        self.summary_calls += 1
+
+    def print_parseable_cmds(self):
+        pass
+
+    def print_files(self):
+        pass
+
+    def run_all_blocks_fn(self, fn):
+        pass
+
+    def run_block_fn(self, rest, fn):
+        self.run_calls.append(rest)
+
+dispatcher = CodeBlocksDispatcher()
+dispatcher.handle_cmd(["--help"])
+dispatcher.handle_cmd(["-h"])
+dispatcher.handle_cmd(["help"])
+omd_assert(3, dispatcher.help_calls)
+
+dispatcher.handle_cmd(["status"])
+omd_assert(1, dispatcher.summary_calls)
+
+dispatcher.handle_cmd(["run", "build-omd"])
+omd_assert("build-omd", dispatcher.run_calls[0])
+```
+
 ```python {name=handle_cmd_tests menu=true}
+@<omd_assert@>
+
 class CodeBlocks:
     def __init__(self):
         self.reset()
@@ -184,6 +242,8 @@ code_blocks = CodeBlocks()
                   parsed=False
                   words="[\"diff\", \"command\"]"
                   fail_msg="didn't run multi-word command")@>
+
+@<codeblocks__handle_cmd_test@>
 
 @<test_passed(name="Handle Cmd")@>
 ```

@@ -1,10 +1,11 @@
 # Run all tests
 
-We could just add to this list in the individual test files and delete this file eventually.
+This file wires the project-wide literate test suite together in one place. New top-level behavior, such as the CLI help output, gets added here so the standard `all_tests` command keeps covering it.
 
 ```bash {name=all_tests menu=true}
 echo '@<main_code_tests*@>'
 echo '@<handle_cmd_tests*@>'
+echo '@<print_help_tests*@>'
 echo '@<f_parse_menu_attrib_tests*@>'
 echo '@<intersperse_tests*@>'
 echo '@<get_run_cmd_tests*@>'
