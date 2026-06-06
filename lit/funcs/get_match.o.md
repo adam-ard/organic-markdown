@@ -1,6 +1,6 @@
 # Source
 
-`get_match` returns the next match (or None if there isn't one) and whether or not it's a string execution replacement. It will return matches in a left to right order.
+`get_match` returns the next parsed ref match, or `None` if there is not one. Matches are returned from left to right and include their location and full source text alongside the parsed name, arguments, execution annotation, default value, and whether default syntax was present.
 
 
 ```python {name=get_match}
@@ -73,6 +73,7 @@ def test(txt, start, full, name, exec, args, default):
                 "name": name,
                 "exec": exec,
                 "args": args,
+                "has_default": full[:-len(c_sym)].endswith("}"),
                 "default": default}, match)
 
 def test_one(txt, start, name, exec, args, default):
@@ -83,6 +84,7 @@ def test_one(txt, start, name, exec, args, default):
                 "name": name,
                 "exec": exec,
                 "args": args,
+                "has_default": txt[:-len(c_sym)].endswith("}"),
                 "default": default}, match)
 
 test_error("asdf:<one()>asdf")
@@ -100,7 +102,7 @@ test("asdf:<one*:>asdf", 4, ":<one*:>", "one", True, "", "")
 test("asdf:<asdf() asdf() asdf:>asdf:<asdf:>asdf", 30, ":<asdf:>", "asdf", False, "", "")
 
 test_one(':<one:>', 0, 'one', False, '', '')
-test_one(':<one:>', 0, 'one', False, '', '')
+test_one(':<one{}:>', 0, 'one', False, '', '')
 test_one(':<one*:>', 0, 'one', True, '', '')
 test_one(':<one(arg1="val1"):>', 0, 'one', False, 'arg1="val1"', '')
 test_one(':<one*(arg1="val1"):>', 0, 'one', True, 'arg1="val1"', '')
@@ -114,4 +116,3 @@ test_one(':<one*(two=":<three*:>"):>', 0, 'one', True, 'two=":<three*:>"', '')
 
 @<test_passed(name="get_match")@>
 ```
-

@@ -1,6 +1,8 @@
 # Source
 
-The `parse_match` function parses a ref string into its separate parts. For example, the ref string `@<ref-name*(one=1 two=2){asdf}@>`, when passed to the function, would yeild: `{"name": "ref-name", "exec": True, "args": "one=1 two=2", "default": "asdf"}`. If there are any problems parsing the parts of a match, `None` is returned instead a dict.
+The `parse_match` function parses a ref string into its separate parts. For example, the ref string `@<ref-name*(one=1 two=2){asdf}@>` yields its name, execution annotation, arguments, and default.
+
+It also records whether the `{...}` default syntax was present. This distinction matters because an explicit empty default, `@<ref{}@>`, is different from a ref with no default, `@<ref@>`. If there are any problems parsing the parts of a match, `None` is returned instead of a dict.
 
 ```python {name=parse_match}
 def parse_match(txt):
@@ -20,6 +22,7 @@ def parse_match(txt):
         print(f'Error parsing args from: "{o_txt}"')
         return None
 
+    has_default = len(txt) > 0
     default, txt = parse_default(txt)
     if default == None:
         print(f'Error parsing default from: "{o_txt}"')
@@ -28,6 +31,7 @@ def parse_match(txt):
     return {"name": name,
             "exec": exec,
             "args": args,
+            "has_default": has_default,
             "default": default.strip('"')}
 ```
 
@@ -49,6 +53,8 @@ c_sym = ":>"
 
 def test(txt, expected_args):
     args = parse_match(txt)
+    if expected_args is not None:
+        expected_args = expected_args | {"has_default": txt.endswith("}")}
     omd_assert(expected_args, args)
 
 test('', None)

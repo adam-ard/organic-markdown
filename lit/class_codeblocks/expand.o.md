@@ -10,6 +10,7 @@ Despite its brevity, this function enables:
 * Defaults: `@<name{default}@>`
 * Argument passing: `@<template(arg=value)@>`
 * Nesting, recursion, and multi-line expansion
+* Removal of lines containing unresolved refs without defaults
 
 It’s deceptively small—and very sensitive to change—but it's where all the magic happens.
 
@@ -17,7 +18,7 @@ It’s deceptively small—and very sensitive to change—but it's where all the
 
 ### How it Works
 
-* `expand(txt)` splits input into lines, and processes each line via `expand_line()`.
+* `expand(txt)` splits input into logical lines and processes each line via `expand_line()`. It uses an explicit loop so the filtering behavior is easy to follow: expanded lines are appended to the output unless `expand_line()` returns `None`.
 * `expand_line()`:
 
   * Scans the string for the next literate reference (e.g., `@<foo@>`)
@@ -29,8 +30,11 @@ It’s deceptively small—and very sensitive to change—but it's where all the
   * If not found:
 
     * Appends the rest of the string
-  * Returns the fully resolved, recursively substituted line.
-* The final output is reassembled line-by-line using `intersperse()` to preserve context and indentation.
+  * If a ref has no argument value, named block, or explicit default, returns `None` to discard the whole logical line containing it.
+  * Otherwise, returns the fully resolved, recursively substituted line.
+* The final output filters discarded lines, then reassembles the remaining lines using `intersperse()` to preserve context and indentation.
+
+An explicit empty default, `@<name{}@>`, still substitutes an empty string without discarding its line. This gives callers a way to intentionally keep surrounding text while making the ref optional.
 
 ---
 
@@ -38,9 +42,12 @@ It’s deceptively small—and very sensitive to change—but it's where all the
 
 ```python {name=codeblocks__expand}
 def expand(self, txt, args={}):
-    return "\n".join(
-        [self.expand_line(x, args) for x in split_lines(txt)]
-    )
+    expanded_lines = []
+    for line in split_lines(txt):
+        expanded = self.expand_line(line, args)
+        if expanded is not None:
+            expanded_lines.append(expanded)
+    return "\n".join(expanded_lines)
 
 def expand_line(self, txt, args={}):
     out = []
@@ -60,8 +67,10 @@ def expand_line(self, txt, args={}):
         if args is not None and name in args:
             out.append(self.expand(args[name], args | new_args))
 
-        # Case 2: No block exists — use the default
+        # Case 2: No block or default exists — discard the containing line
         elif blk is None:
+            if not match["has_default"]:
+                return None
             out.append(self.expand(match["default"], args | new_args))
 
         # Case 3: Execute block and insert result
@@ -93,7 +102,8 @@ The test suite covers:
 * Infinite loop protection
 * Recursion
 * Defaults
-* Missing values
+* Missing values remove their containing lines
+* Explicit empty defaults preserve their containing lines
 
 ---
 
@@ -422,8 +432,12 @@ test('a:<b:>c:<d:>e', "a1c3e\na2c4e")
 test("a:<three(two=\n2):>b", "a[This is the text from block two:2, can you believe it?]b")
 test(':<append:>', "1\n2\n3\n4")
 test(':<code_dir:>', "~/code")
-test(':<project_name_recurse:>', "")
-test(':<asdfasdfasdf:>', "")
+test("""before
+remove this :<asdfasdfasdf:> whole line
+after""", """before
+after""")
+test("keep this :<asdfasdfasdf{}:> line", "keep this  line")
+test(':<project_name_recurse{}:>', "")
 
 test("[This is the text from block two::<two:>, can you believe it?]", "[This is the text from block two:[This is the text from block one:[This is some text], wasn't that nice?], can you believe it?]")
 @<test_passed(name="expand")@>
