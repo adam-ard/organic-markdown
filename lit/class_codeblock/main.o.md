@@ -17,6 +17,7 @@ class CodeBlock:
     @<codeblock__info@>
     @<codeblock__get_run_cmd@>
     @<codeblock__run@>
+    @<codeblock__run_omd@>
     @<codeblock__run_return_results@>
     @<codeblock__tangle@>
     @<codeblock__parse@>
