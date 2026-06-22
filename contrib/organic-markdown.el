@@ -4,6 +4,7 @@
 ;; before loading this file.  Yasnippet support is enabled when available.
 
 (require 'cl-lib)
+(require 'project)
 
 (cl-defstruct my/omd-session
   root
@@ -62,12 +63,25 @@
   "Major mode for OMD command output buffers.")
 
 (defun my/omd-project-root (&optional directory)
-  "Return the nearest Git project root for DIRECTORY."
+  "Return the Organic Markdown execution root for DIRECTORY.
+Use the root recognized by Emacs's project system.  Fall back to the nearest
+Git root, then DIRECTORY itself, when no project is recognized."
   (let* ((directory
           (file-name-as-directory
            (expand-file-name (or directory default-directory))))
-         (project-root (locate-dominating-file directory ".git")))
-    (or project-root directory)))
+         (project (project-current nil directory))
+         (project-root (and project (project-root project)))
+         (git-root (locate-dominating-file directory ".git")))
+    (file-name-as-directory
+     (expand-file-name (or project-root git-root directory)))))
+
+(defun my/omd-context-directory ()
+  "Return the directory that should determine the current OMD project.
+For a file buffer, use the file's location rather than a potentially modified
+`default-directory'."
+  (if buffer-file-name
+      (file-name-directory (expand-file-name buffer-file-name))
+    default-directory))
 
 (defun my/omd-session-normalize-root (root)
   "Return ROOT as an absolute directory name."
@@ -470,7 +484,7 @@ When FRESH is non-nil, bypass the shared interactive control session."
 
 (defun my/omd-commands-sidebar-project-root ()
   "Return the nearest Organic Markdown root used for OMD commands."
-  (my/omd-project-root default-directory))
+  (my/omd-project-root (my/omd-context-directory)))
 
 (defun my/omd-commands-sidebar-window ()
   "Return the active OMD commands sidebar window, if one exists."
@@ -612,6 +626,7 @@ When FRESH is non-nil, bypass the shared interactive control session."
                         (window-parameters . ((no-delete-other-windows . t))))))))
     (with-current-buffer buffer
       (my/omd-commands-sidebar-mode)
+      (setq-local default-directory (my/omd-session-normalize-root root))
       (my/omd-commands-sidebar-render root))
     (set-window-dedicated-p window nil)
     (set-window-buffer window buffer)
@@ -641,7 +656,7 @@ When FRESH is non-nil, bypass the shared interactive control session."
 (global-set-key (kbd "C-c o") #'my/omd-commands-sidebar-toggle)
 (defun my/organic-markdown-project-root ()
   "Return the nearest Organic Markdown root used for OMD commands."
-  (my/omd-project-root default-directory))
+  (my/omd-project-root (my/omd-context-directory)))
 
 (defun my/organic-markdown-ref-at-point ()
   "Return the Organic Markdown block name at point, or nil."
