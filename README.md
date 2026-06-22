@@ -18,62 +18,6 @@ chmod u+x ~/bin/omd
 
 You're all set!
 
-### Emacs integration
-
-An optional Emacs integration is available at
-[`contrib/organic-markdown.el`](contrib/organic-markdown.el). It provides a
-right-hand command sidebar, commands for running and tangling blocks, navigation
-to the definition of a literate reference, command output buffers, and optional
-Yasnippet templates.
-
-First install [`markdown-mode`](https://jblevins.org/projects/markdown-mode/) and
-make sure the `omd` executable is available on Emacs's `exec-path`. If you use
-`use-package`, a minimal setup from a cloned Organic Markdown repository is:
-
-```emacs-lisp
-(use-package markdown-mode
-  :mode (("\\.md\\'" . markdown-mode)
-         ("\\.o\\.md\\'" . markdown-mode)))
-
-;; Replace this with the location of your Organic Markdown clone.
-(load "~/src/organic-markdown/contrib/organic-markdown.el")
-```
-
-Alternatively, copy `contrib/organic-markdown.el` into a directory on your
-Emacs `load-path`, then load it with:
-
-```emacs-lisp
-(require 'organic-markdown)
-```
-
-Restart Emacs or evaluate the new configuration. The integration is enabled
-automatically when a file ending in `.o.md` opens in `markdown-mode`.
-
-The available keys are:
-
-| Key | Context | Action |
-| --- | --- | --- |
-| `C-c o` | Any buffer in the project | Toggle the Organic Markdown command sidebar |
-| `C-c @` | An `@<name@>` reference | Open the file that defines the reference |
-| `C-c x` | A command block header | Run the command at point |
-| `C-c t` | An `.o.md` buffer | Run `omd tangle` for the project |
-| `C-c z` | A command block header | Show that command's existing output buffer |
-| `RET` | Sidebar entry | Open the corresponding file or command |
-| `x` | Sidebar command | Run the selected command |
-| `g` | Sidebar | Refresh the command list |
-| `g` | Command output buffer | Run the command again |
-
-To see commands in the sidebar you must add the `menu=true` to the code block, for example:
-
-``````markdown
-```bash {name=build menu=true}
-make
-```
-``````
-
-If Yasnippet is installed and loaded, the integration also defines `ocode`,
-`ofile`, and `ocmd` snippets for `markdown-mode`.
-
 ## Using OMD
 
 To create an Organic Markdown file, make a new file with the extension `*.o.md`. By default, `omd` reads all `.o.md` files in the current directory (and all subdirectories recursively).
@@ -375,3 +319,60 @@ git clone https://github.com/adam-ard/organic-markdown.git
 ```
 
 then modify the files in the `lit` directory and build new versions of `omd`. Here are the commands I use to administer the repo: [Project Commands](proj_cmd.o.md).
+
+## Emacs integration
+
+An optional Emacs integration is available at
+[`contrib/organic-markdown.el`](contrib/organic-markdown.el). It provides a
+right-hand command sidebar, commands for running and tangling blocks, navigation
+to the definition of a literate reference, command output buffers, and optional
+Yasnippet templates.
+
+First install [`markdown-mode`](https://jblevins.org/projects/markdown-mode/) and
+make sure the `omd` executable is available on Emacs's `exec-path`. If you use
+`use-package`, a minimal setup from a cloned Organic Markdown repository is:
+
+```emacs-lisp
+(use-package markdown-mode
+  :mode (("\\.md\\'" . markdown-mode)
+         ("\\.o\\.md\\'" . markdown-mode)))
+
+;; Replace this with the location of your Organic Markdown clone.
+(load "~/src/organic-markdown/contrib/organic-markdown.el")
+```
+
+Alternatively, copy `contrib/organic-markdown.el` into a directory on your
+Emacs `load-path`, then load it with:
+
+```emacs-lisp
+(require 'organic-markdown)
+```
+
+Restart Emacs or evaluate the new configuration. The integration is enabled
+automatically when a file ending in `.o.md` opens in `markdown-mode`.
+
+The available keys are:
+
+| Key | Context | Action |
+| --- | --- | --- |
+| `C-c o` | Any buffer in the project | Toggle the Organic Markdown command sidebar |
+| `C-c @` | An `@<name@>` reference | Open the file that defines the reference |
+| `C-c x` | A command block header | Run the command at point |
+| `C-c t` | An `.o.md` buffer | Run `omd tangle` for the project |
+| `C-c z` | A command block header | Show that command's existing output buffer |
+| `RET` | Sidebar entry | Open the corresponding file or command |
+| `x` | Sidebar command | Run the selected command |
+| `g` | Sidebar | Refresh the command list |
+| `g` | Command output buffer | Run the command again |
+
+To see commands in the sidebar you must add the `menu=true` to the code block, for example:
+
+``````markdown
+```bash {name=build menu=true}
+make
+```
+``````
+
+If Yasnippet is installed and loaded, the integration also defines `ocode`,
+`ofile`, and `ocmd` snippets for `markdown-mode`.
+
