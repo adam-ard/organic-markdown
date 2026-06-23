@@ -3,30 +3,7 @@
 ;; Install `markdown-mode` and ensure the `omd` executable is on `exec-path`
 ;; before loading this file.  Yasnippet support is enabled when available.
 
-(require 'cl-lib)
 (require 'project)
-
-(cl-defstruct my/omd-session
-  root
-  name
-  buffer
-  process
-  ready
-  pending
-  current
-  queue)
-
-(cl-defstruct my/omd-request
-  line
-  on-output
-  on-complete
-  output)
-
-(defconst my/omd-session-prompt "> "
-  "Prompt emitted by interactive `omd`.")
-
-(defvar my/omd-control-sessions (make-hash-table :test #'equal)
-  "Shared control OMD sessions keyed by normalized project root.")
 
 (defvar-local my/omd-command-output-root nil
   "Project root associated with the current OMD command output buffer.")
@@ -43,14 +20,8 @@
 (defvar-local my/omd-command-output-header nil
   "Header text shown at the top of the current OMD output buffer.")
 
-(defvar-local my/omd-command-output-session nil
-  "Reusable interactive OMD session dedicated to the current output buffer.")
-
 (defvar-local my/omd-command-output-process nil
-  "Fallback one-shot process for the current OMD output buffer.")
-
-(defvar-local my/omd-command-output-backend nil
-  "Backend used by the current OMD output buffer.")
+  "One-shot OMD process for the current output buffer.")
 
 (defvar my/omd-command-output-mode-map
   (let ((map (make-sparse-keymap)))
@@ -83,226 +54,13 @@ For a file buffer, use the file's location rather than a potentially modified
       (file-name-directory (expand-file-name buffer-file-name))
     default-directory))
 
-(defun my/omd-session-normalize-root (root)
+(defun my/omd-normalize-root (root)
   "Return ROOT as an absolute directory name."
   (file-name-as-directory (expand-file-name root)))
 
-(defun my/omd-session-buffer-name (root name)
-  "Return the hidden session buffer name for ROOT and NAME."
-  (let ((project-name
-         (file-name-nondirectory
-          (directory-file-name (my/omd-session-normalize-root root)))))
-    (format " *omd-session:%s:%s*" project-name name)))
-
-(defun my/omd-session-log (session text)
-  "Append TEXT to SESSION's hidden log buffer."
-  (let ((buffer (my/omd-session-buffer session)))
-    (when (buffer-live-p buffer)
-      (with-current-buffer buffer
-        (let ((inhibit-read-only t))
-          (goto-char (point-max))
-          (insert text))))))
-
-(defun my/omd-session-live-p (session)
-  "Return non-nil when SESSION has a live subprocess."
-  (and session
-       (process-live-p (my/omd-session-process session))))
-
-(defun my/omd-session-create (root name)
-  "Create a new reusable OMD session for ROOT labeled NAME."
-  (make-my/omd-session
-   :root (my/omd-session-normalize-root root)
-   :name name
-   :buffer nil
-   :process nil
-   :ready nil
-   :pending ""
-   :current nil
-   :queue nil))
-
-(defun my/omd-session-complete-request (request status detail)
-  "Finish REQUEST with STATUS and DETAIL."
-  (let ((callback (my/omd-request-on-complete request)))
-    (when callback
-      (funcall callback
-               (my/omd-request-output request)
-               status
-               detail))))
-
-(defun my/omd-session-flush-output (session text)
-  "Deliver TEXT to SESSION's current request."
-  (when (> (length text) 0)
-    (let ((request (my/omd-session-current session)))
-      (when request
-        (setf (my/omd-request-output request)
-              (concat (my/omd-request-output request) text))
-        (let ((callback (my/omd-request-on-output request)))
-          (when callback
-            (funcall callback text)))))))
-
-(defun my/omd-session-dispatch (session)
-  "Send SESSION's next queued request, if possible."
-  (when (and (my/omd-session-live-p session)
-             (my/omd-session-ready session)
-             (null (my/omd-session-current session))
-             (my/omd-session-queue session))
-    (let ((request (car (my/omd-session-queue session))))
-      (setf (my/omd-session-queue session)
-            (cdr (my/omd-session-queue session)))
-      (setf (my/omd-session-current session) request)
-      (setf (my/omd-request-output request) "")
-      (process-send-string
-       (my/omd-session-process session)
-       (concat (my/omd-request-line request) "\n")))))
-
-(defun my/omd-session-consume (session)
-  "Consume any complete prompt-delimited output pending in SESSION."
-  (let ((prompt-length (length my/omd-session-prompt)))
-    (unless (my/omd-session-ready session)
-      (when (string-prefix-p my/omd-session-prompt
-                             (my/omd-session-pending session))
-        (setf (my/omd-session-pending session)
-              (substring (my/omd-session-pending session) prompt-length))
-        (setf (my/omd-session-ready session) t)
-        (my/omd-session-dispatch session)))
-    (when (my/omd-session-current session)
-      (let* ((pending (my/omd-session-pending session))
-             (pending-length (length pending)))
-        (cond
-         ((and (>= pending-length prompt-length)
-               (string= (substring pending (- pending-length prompt-length))
-                        my/omd-session-prompt))
-          (my/omd-session-flush-output
-           session
-           (substring pending 0 (- pending-length prompt-length)))
-          (setf (my/omd-session-pending session) "")
-          (let ((request (my/omd-session-current session)))
-            (setf (my/omd-session-current session) nil)
-            (my/omd-session-complete-request request 'ok "finished")
-            (my/omd-session-dispatch session)))
-         ((> pending-length prompt-length)
-          (let ((safe-output (substring pending 0 (- pending-length prompt-length))))
-            (setf (my/omd-session-pending session)
-                  (substring pending (- pending-length prompt-length)))
-            (my/omd-session-flush-output session safe-output))))))))
-
-(defun my/omd-session-filter (process output)
-  "Handle interactive OMD OUTPUT from PROCESS."
-  (let ((session (process-get process 'my/omd-session)))
-    (when session
-      (my/omd-session-log session output)
-      (setf (my/omd-session-pending session)
-            (concat (my/omd-session-pending session) output))
-      (my/omd-session-consume session))))
-
-(defun my/omd-session-sentinel (process event)
-  "Handle PROCESS lifecycle EVENT for an OMD session."
-  (let ((session (process-get process 'my/omd-session)))
-    (when session
-      (my/omd-session-log session (format "\n[%s]\n" (string-trim event)))
-      (let ((request (my/omd-session-current session))
-            (queued (my/omd-session-queue session))
-            (detail (string-trim event)))
-        (setf (my/omd-session-process session) nil)
-        (setf (my/omd-session-ready session) nil)
-        (setf (my/omd-session-pending session) "")
-        (setf (my/omd-session-current session) nil)
-        (setf (my/omd-session-queue session) nil)
-        (when request
-          (my/omd-session-complete-request request 'error detail))
-        (dolist (queued-request queued)
-          (my/omd-session-complete-request queued-request 'error detail))))))
-
-(defun my/omd-session-start (session)
-  "Ensure SESSION has a live interactive `omd` subprocess."
-  (unless (my/omd-session-live-p session)
-    (let* ((root (my/omd-session-root session))
-           (buffer (get-buffer-create
-                    (my/omd-session-buffer-name root (my/omd-session-name session))))
-           (default-directory root)
-           (process
-            (make-process
-             :name (format "omd:%s:%s"
-                           (file-name-nondirectory
-                            (directory-file-name root))
-                           (my/omd-session-name session))
-             :buffer buffer
-             :command '("omd")
-             :coding 'utf-8-unix
-             :noquery t
-             :connection-type 'pipe
-             :filter #'my/omd-session-filter
-             :sentinel #'my/omd-session-sentinel)))
-      (setf (my/omd-session-buffer session) buffer)
-      (setf (my/omd-session-process session) process)
-      (setf (my/omd-session-ready session) nil)
-      (setf (my/omd-session-pending session) "")
-      (setf (my/omd-session-current session) nil)
-      (setf (my/omd-session-queue session) nil)
-      (process-put process 'my/omd-session session)))
-  session)
-
-(defun my/omd-session-stop (session)
-  "Stop SESSION and clear its pending state."
-  (when session
-    (let ((process (my/omd-session-process session)))
-      (setf (my/omd-session-current session) nil)
-      (setf (my/omd-session-queue session) nil)
-      (setf (my/omd-session-pending session) "")
-      (setf (my/omd-session-ready session) nil)
-      (setf (my/omd-session-process session) nil)
-      (when (process-live-p process)
-        (delete-process process)))))
-
-(defun my/omd-session-request-line (args)
-  "Return a safe interactive command line for ARGS, or nil."
-  (when (cl-every (lambda (arg)
-                    (and (stringp arg)
-                         (> (length arg) 0)
-                         (not (string-match-p "[[:space:]]" arg))))
-                  args)
-    (mapconcat #'identity args " ")))
-
-(defun my/omd-session-send (session line on-complete &optional on-output)
-  "Queue LINE in SESSION and install ON-COMPLETE and ON-OUTPUT callbacks."
-  (my/omd-session-start session)
-  (let ((request (make-my/omd-request
-                  :line line
-                  :on-output on-output
-                  :on-complete on-complete
-                  :output "")))
-    (setf (my/omd-session-queue session)
-          (append (my/omd-session-queue session) (list request)))
-    (my/omd-session-dispatch session)
-    session))
-
-(defun my/omd-session-call (session line)
-  "Synchronously send LINE through SESSION and return its output."
-  (let ((done nil)
-        (result nil)
-        (status nil)
-        (detail nil))
-    (my/omd-session-send
-     session
-     line
-     (lambda (output request-status request-detail)
-       (setq result output)
-       (setq status request-status)
-       (setq detail request-detail)
-       (setq done t)))
-    (while (not done)
-      (unless (accept-process-output (my/omd-session-process session) 0.1)
-        (when (not (my/omd-session-live-p session))
-          (setq done t)
-          (setq status 'error)
-          (setq detail "OMD session exited unexpectedly"))))
-    (if (eq status 'ok)
-        result
-      (error "%s" (or detail "OMD session failed")))))
-
 (defun my/omd-direct-call (root args)
-  "Run one direct `omd` call from ROOT with ARGS and return its output."
-  (let ((default-directory (my/omd-session-normalize-root root)))
+  "Run one `omd` call from ROOT with ARGS and return its output."
+  (let ((default-directory (my/omd-normalize-root root)))
     (with-temp-buffer
       (let ((status (apply #'process-file "omd" nil t nil args))
             (output (buffer-string)))
@@ -313,24 +71,11 @@ For a file buffer, use the file's location rather than a potentially modified
                      "OMD command failed"
                    (string-trim output))))))))
 
-(defun my/omd-control-session (root)
-  "Return the shared control session for ROOT."
-  (let* ((normalized-root (my/omd-session-normalize-root root))
-         (session (gethash normalized-root my/omd-control-sessions)))
-    (unless (my/omd-session-live-p session)
-      (setq session (my/omd-session-create normalized-root "control"))
-      (puthash normalized-root session my/omd-control-sessions))
-    session))
-
-(defun my/omd-control-call (root args &optional fresh)
+(defun my/omd-control-call (root args)
   "Run ARGS from ROOT through OMD.
-When FRESH is non-nil, bypass the shared interactive control session."
-  (if fresh
-      (my/omd-direct-call root args)
-    (let ((line (my/omd-session-request-line args)))
-      (if line
-          (my/omd-session-call (my/omd-control-session root) line)
-        (my/omd-direct-call root args)))))
+The CLI starts or contacts the project daemon as needed, so Emacs keeps no
+separate long-running OMD process."
+  (my/omd-direct-call root args))
 
 (defun my/omd-command-output-append (buffer text)
   "Append TEXT to BUFFER."
@@ -351,19 +96,8 @@ When FRESH is non-nil, bypass the shared interactive control session."
             (or detail "error"))
           (format-time-string "%Y-%m-%d %H:%M:%S")))
 
-(defun my/omd-command-output-session-complete (buffer _output status detail)
-  "Append session completion status for BUFFER."
-  (when (buffer-live-p buffer)
-    (my/omd-command-output-append
-     buffer
-     (my/omd-command-output-status-line status detail))))
-
-(defun my/omd-command-output-session-chunk (buffer chunk)
-  "Append streamed session CHUNK to BUFFER."
-  (my/omd-command-output-append buffer chunk))
-
-(defun my/omd-command-output-direct-sentinel (process event)
-  "Handle completion EVENT for fallback PROCESS."
+(defun my/omd-command-output-sentinel (process event)
+  "Handle completion EVENT for PROCESS."
   (let ((buffer (process-get process 'my/output-buffer)))
     (when (buffer-live-p buffer)
       (with-current-buffer buffer
@@ -380,21 +114,14 @@ When FRESH is non-nil, bypass the shared interactive control session."
   "Stop BUFFER's active OMD execution, if any."
   (when (buffer-live-p buffer)
     (with-current-buffer buffer
-      (pcase my/omd-command-output-backend
-        ('session
-         (when my/omd-command-output-session
-           (my/omd-session-stop my/omd-command-output-session)))
-        ('process
-         (when (process-live-p my/omd-command-output-process)
-           (delete-process my/omd-command-output-process))))
+      (when (process-live-p my/omd-command-output-process)
+        (delete-process my/omd-command-output-process))
       (setq-local my/omd-command-output-process nil))))
 
-(defun my/omd-command-output-start-direct (buffer root command args)
+(defun my/omd-command-output-start-process (buffer root command args)
   "Run ARGS for COMMAND directly from ROOT, sending output to BUFFER."
-  (let ((default-directory (my/omd-session-normalize-root root)))
+  (let ((default-directory (my/omd-normalize-root root)))
     (with-current-buffer buffer
-      (setq-local my/omd-command-output-backend 'process)
-      (setq-local my/omd-command-output-session nil)
       (setq-local my/omd-command-output-process nil))
     (let ((process (apply #'start-file-process command nil "omd" args)))
       (set-process-query-on-exit-flag process nil)
@@ -405,7 +132,7 @@ When FRESH is non-nil, bypass the shared interactive control session."
          (my/omd-command-output-append
           (process-get proc 'my/output-buffer)
           output)))
-      (set-process-sentinel process #'my/omd-command-output-direct-sentinel)
+      (set-process-sentinel process #'my/omd-command-output-sentinel)
       (with-current-buffer buffer
         (setq-local my/omd-command-output-process process)))))
 
@@ -414,12 +141,11 @@ When FRESH is non-nil, bypass the shared interactive control session."
   (let* ((args (or args (list "run" command)))
          (buffer-name (or buffer-name (format "*%s*" command)))
          (header (or header (format "$ omd run %s\n\n" command)))
-         (buffer (get-buffer-create buffer-name))
-         (line (my/omd-session-request-line args)))
+         (buffer (get-buffer-create buffer-name)))
     (my/omd-command-output-stop-active buffer)
     (with-current-buffer buffer
       (my/omd-command-output-mode)
-      (setq-local default-directory (my/omd-session-normalize-root root))
+      (setq-local default-directory (my/omd-normalize-root root))
       (setq-local my/omd-command-output-root root)
       (setq-local my/omd-command-output-command command)
       (setq-local my/omd-command-output-args args)
@@ -428,23 +154,7 @@ When FRESH is non-nil, bypass the shared interactive control session."
       (let ((inhibit-read-only t))
         (erase-buffer)
         (insert header)))
-    (if line
-        (let ((session
-               (or (and (buffer-live-p buffer)
-                        (buffer-local-value 'my/omd-command-output-session buffer))
-                   (my/omd-session-create
-                    root
-                    (format "output:%s" buffer-name)))))
-          (with-current-buffer buffer
-            (setq-local my/omd-command-output-backend 'session)
-            (setq-local my/omd-command-output-session session)
-            (setq-local my/omd-command-output-process nil))
-          (my/omd-session-send
-           session
-           line
-           (apply-partially #'my/omd-command-output-session-complete buffer)
-           (apply-partially #'my/omd-command-output-session-chunk buffer)))
-      (my/omd-command-output-start-direct buffer root command args))
+    (my/omd-command-output-start-process buffer root command args)
     (display-buffer buffer)
     buffer))
 
@@ -539,7 +249,7 @@ When FRESH is non-nil, bypass the shared interactive control session."
              (json-array-type 'list)
              (json-key-type 'symbol))
          (json-read-from-string
-          (my/omd-control-call root '("cmds") t)))
+          (my/omd-control-call root '("cmds"))))
      (error nil))
    (my/omd-commands-sidebar-scan-fallback root)))
 
@@ -626,7 +336,7 @@ When FRESH is non-nil, bypass the shared interactive control session."
                         (window-parameters . ((no-delete-other-windows . t))))))))
     (with-current-buffer buffer
       (my/omd-commands-sidebar-mode)
-      (setq-local default-directory (my/omd-session-normalize-root root))
+      (setq-local default-directory (my/omd-normalize-root root))
       (my/omd-commands-sidebar-render root))
     (set-window-dedicated-p window nil)
     (set-window-buffer window buffer)
@@ -690,7 +400,7 @@ When FRESH is non-nil, bypass the shared interactive control session."
             (condition-case nil
                 (car (split-string
                       (string-trim
-                       (my/omd-control-call root (list "origin" name) t))
+                       (my/omd-control-call root (list "origin" name)))
                       "\n"
                       t))
               (error nil)))
@@ -806,23 +516,6 @@ When FRESH is non-nil, bypass the shared interactive control session."
 
 (add-hook 'markdown-mode-hook #'my/organic-markdown-enable-actions)
 
-(defun my/organic-markdown-invalidate-sessions (root)
-  "Stop reusable OMD sessions for ROOT after its daemon cache changes."
-  (let* ((normalized-root (my/omd-session-normalize-root root))
-         (control (gethash normalized-root my/omd-control-sessions)))
-    (when control
-      (my/omd-session-stop control)
-      (remhash normalized-root my/omd-control-sessions))
-    (dolist (buffer (buffer-list))
-      (with-current-buffer buffer
-        (when (and my/omd-command-output-root
-                   (string= normalized-root
-                            (my/omd-session-normalize-root
-                             my/omd-command-output-root))
-                   my/omd-command-output-session)
-          (my/omd-session-stop my/omd-command-output-session)
-          (setq-local my/omd-command-output-session nil))))))
-
 (defun my/organic-markdown-reparse-sentinel (process event)
   "Handle completion EVENT for an automatic reparse PROCESS."
   (when (memq (process-status process) '(exit signal))
@@ -830,16 +523,14 @@ When FRESH is non-nil, bypass the shared interactive control session."
           (file (process-get process 'my/omd-file)))
       (if (and (eq (process-status process) 'exit)
                (zerop (process-exit-status process)))
-          (progn
-            (my/organic-markdown-invalidate-sessions root)
-            (let ((sidebar (get-buffer my/omd-commands-sidebar-buffer-name)))
-              (when (buffer-live-p sidebar)
-                (with-current-buffer sidebar
-                  (when (and my/omd-commands-sidebar-root
-                             (string= (my/omd-session-normalize-root root)
-                                      (my/omd-session-normalize-root
-                                       my/omd-commands-sidebar-root)))
-                    (my/omd-commands-sidebar-render root))))))
+          (let ((sidebar (get-buffer my/omd-commands-sidebar-buffer-name)))
+            (when (buffer-live-p sidebar)
+              (with-current-buffer sidebar
+                (when (and my/omd-commands-sidebar-root
+                           (string= (my/omd-normalize-root root)
+                                    (my/omd-normalize-root
+                                     my/omd-commands-sidebar-root)))
+                  (my/omd-commands-sidebar-render root)))))
         (message "OMD could not reparse %s: %s"
                  (abbreviate-file-name file)
                  (string-trim event))))))
