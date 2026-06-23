@@ -1,18 +1,30 @@
 # Main Code
 
-The `main_code` section is where our program gets going. Two modes are available: interactive and command. In interactive mode all the literate code is parsed and then you get dropped into a repl, where you can ask questions. Command mode parses the code, runs a single command, and then exits. Usually command mode is sufficient, because the parsing is fast, but if you had a lot of code, it might be nice to parse it once and run several commands in a row without having to pay the price of parsing over and over.
+The `main_code` section routes private daemon startup separately from the public
+CLI. Public invocations obtain the parsed project snapshot from the per-project
+daemon, then retain the established local command and interactive behavior. This
+keeps terminal ownership in the foreground process while avoiding repeated
+Pandoc work.
 
 The way the code determines which mode to invoke is by the number of command-line arguments. If there are zero args, then OMD invokes interactive mode. Otherwise, it executes a single command in command mode.
 
 ### @<main_code@>
 
 ```python {name=main_code}
-@<parse@>
+if len(sys.argv) > 1 and sys.argv[1] == "--omd-daemon":
+    daemon_main(sys.argv[2], sys.argv[3], sys.argv[4])
+elif len(sys.argv) > 1 and sys.argv[1] == "reparse":
+    if len(sys.argv) != 3:
+        print("usage: omd reparse <filename>", file=sys.stderr)
+        sys.exit(2)
+    sys.exit(daemon_reparse(os.getcwd(), sys.argv[2]))
+else:
+    code_blocks = daemon_snapshot(os.getcwd())
 
-if len(sys.argv) > 1:
+if len(sys.argv) > 1 and sys.argv[1] not in ["--omd-daemon", "reparse"]:
     @<cmd_exit@>
 
-else:
+elif len(sys.argv) == 1:
     @<interactive_mode@>
 ```
 
@@ -26,17 +38,25 @@ Simple test that check that the right mode is executed at the right time: comman
 class sys:
   argv = ["script_name"]
 
+def daemon_snapshot(_root):
+  return None
+
+def daemon_main(_root, _token, _registry):
+  pass
+
+def daemon_reparse(_root, _filename):
+  return 0
+
 interactive_mode_ran = False;
-@<main_code(parse="pass" cmd_exit="pass" interactive_mode="interactive_mode_ran=True")@>
+@<main_code(cmd_exit="pass" interactive_mode="interactive_mode_ran=True")@>
 
 omd_assert(True, interactive_mode_ran)
 
 sys.argv.append("extra")
 sys.argv.append("args")
-@<main_code(parse="pass" cmd_exit="interactive_mode_ran=False" interactive_mode="pass")@>
+@<main_code(cmd_exit="interactive_mode_ran=False" interactive_mode="pass")@>
 
 omd_assert(False, interactive_mode_ran)
 
 @<test_passed(name="Main Code")@>
 ```
-

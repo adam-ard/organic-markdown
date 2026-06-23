@@ -10,6 +10,8 @@ Here’s its structure:
 class CodeBlocks:
     def __init__(self):
         self.code_blocks = []
+        self.file_contributions = {}
+        self.file_order = []
     @<codeblocks__parse@>
     @<codeblocks__print@>
     @<codeblocks__expand@>

@@ -1,6 +1,6 @@
 # `CodeBlocks::parse`
 
-This method walks the current directory tree, locates all `.o.md` files, and uses Pandoc to parse them into JSON. That JSON is then translated into Python data structures so that each code block—and any constants defined in YAML—can be loaded into the system.
+This method walks the current directory tree, locates all `.o.md` files, and uses Pandoc to parse them into JSON. Parsed blocks are retained per source file before a merged working collection is built. Keeping the unmerged contributions makes a daemon reparse transactional: one changed file can be replaced without reparsing its neighbors, including when names are shared across files.
 
 ---
 
@@ -81,16 +81,49 @@ The code below does the following:
 
 ```python {name=codeblocks__parse}
 def parse(self):
-    # Read all files in the current directory (recursively) with .o.md extension
+    self.code_blocks = []
+    self.file_contributions = {}
+    self.file_order = []
     for root, dirs, files in os.walk("."):
         for cur_file in files:
             cur_full_file = f"{root}/{cur_file}"
             if cur_full_file.endswith(".o.md"):
                 self.parse_file(cur_full_file)
+    self.rebuild()
 
 def parse_file(self, filename):
-    data = json.loads(pypandoc.convert_file(filename, 'json', format="md"))
-    self.parse_json(data, filename)
+    key = os.path.normpath(filename)
+    data = json.loads(pypandoc.convert_file(key, 'json', format="md"))
+    contribution = self.parse_json(data, filename)
+    self.file_contributions[key] = contribution
+    if key not in self.file_order:
+        self.file_order.append(key)
+
+def reparse_file(self, filename):
+    filename = os.path.normpath(filename)
+    if not filename.endswith(".o.md"):
+        raise ValueError("reparse requires an .o.md file")
+    if os.path.exists(filename):
+        data = json.loads(pypandoc.convert_file(filename, 'json', format="md"))
+        previous = self.file_contributions.get(filename, [])
+        origin = previous[0].origin_file if previous else filename
+        contribution = self.parse_json(data, origin)
+        self.file_contributions[filename] = contribution
+        if filename not in self.file_order:
+            self.file_order.append(filename)
+    else:
+        self.file_contributions.pop(filename, None)
+        if filename in self.file_order:
+            self.file_order.remove(filename)
+    self.rebuild()
+
+def rebuild(self):
+    self.code_blocks = []
+    for filename in self.file_order:
+        for source in self.file_contributions.get(filename, []):
+            cb = pickle.loads(pickle.dumps(source))
+            cb.code_blocks = self
+            self.add_code_block(cb)
 
 def add_code_block(self, code_block):
     if code_block.name is not None:
@@ -102,6 +135,7 @@ def add_code_block(self, code_block):
     self.code_blocks.append(code_block)
 
 def parse_json(self, data, origin_file):
+    contribution = []
     for section, constants in data['meta'].items():
         if section == "constants":
             for key, val in constants['c'].items():
@@ -116,18 +150,98 @@ def parse_json(self, data, origin_file):
                 cb.origin_file = origin_file
                 cb.name = key
                 cb.code = str
-                cb.code_blocks = self
-
-                # Append to existing block with same name if needed
-                self.add_code_block(cb)
+                contribution.append(cb)
 
     for block in data['blocks']:
         if block['t'] == "CodeBlock":
             cb = CodeBlock()
             cb.origin_file = origin_file
             cb.parse(block['c'])
-            cb.code_blocks = self
+            contribution.append(cb)
+    return contribution
+```
 
-            # Append to existing block with same name if needed
-            self.add_code_block(cb)
+# Tests
+
+The incremental test uses a small Pandoc double to prove that replacing one
+file rebuilds same-named blocks in project order, deleting a file removes its
+contribution, and a parser failure retains the last valid state.
+
+```python {name=codeblocks__reparse_tests menu=true}
+@<imports@>
+@<omd_assert@>
+
+class CodeBlock:
+    def __init__(self):
+        self.name = None
+        self.code = ""
+        self.origin_file = None
+        self.code_blocks = None
+
+    def parse(self, value):
+        self.name = value[0][0]
+        self.code = value[1]
+
+class FakePandoc:
+    fail = False
+
+    @staticmethod
+    def convert_file(filename, _output, format=None):
+        if FakePandoc.fail:
+            raise RuntimeError("bad markdown")
+        with open(filename, "r", encoding="utf-8") as source:
+            code = source.read()
+        return json.dumps({"meta": {}, "blocks": [
+            {"t": "CodeBlock", "c": [["shared", [], []], code]}
+        ]})
+
+pypandoc = FakePandoc
+
+class CodeBlocks:
+    def __init__(self):
+        self.code_blocks = []
+        self.file_contributions = {}
+        self.file_order = []
+
+    def get_code_block(self, name):
+        for block in self.code_blocks:
+            if block.name == name:
+                return block
+
+    @<codeblocks__parse@>
+
+with tempfile.TemporaryDirectory() as directory:
+    original = os.getcwd()
+    try:
+        os.chdir(directory)
+        with open("one.o.md", "w", encoding="utf-8") as output:
+            output.write("one")
+        with open("two.o.md", "w", encoding="utf-8") as output:
+            output.write("two")
+        blocks = CodeBlocks()
+        blocks.parse_file("one.o.md")
+        blocks.parse_file("two.o.md")
+        blocks.rebuild()
+        omd_assert(["one", "two"], blocks.get_code_block("shared").code.splitlines())
+
+        with open("one.o.md", "w", encoding="utf-8") as output:
+            output.write("changed")
+        blocks.reparse_file("one.o.md")
+        omd_assert(["changed", "two"], blocks.get_code_block("shared").code.splitlines())
+
+        FakePandoc.fail = True
+        try:
+            blocks.reparse_file("one.o.md")
+        except RuntimeError:
+            pass
+        FakePandoc.fail = False
+        omd_assert(["changed", "two"], blocks.get_code_block("shared").code.splitlines())
+
+        os.remove("two.o.md")
+        blocks.reparse_file("two.o.md")
+        omd_assert("changed", blocks.get_code_block("shared").code)
+    finally:
+        os.chdir(original)
+
+@<test_passed(name="CodeBlocks.reparse")@>
 ```

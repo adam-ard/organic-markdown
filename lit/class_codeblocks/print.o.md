@@ -39,6 +39,7 @@ def print_help(self):
     print("  tangle              tangle all output files")
     print("  tangle <name>       tangle one named block")
     print("  run <name>          run one named command block")
+    print("  reparse <filename>  update one file in the project daemon")
     print("  info                print info for all code blocks")
     print("  info <name>         print info for one named block")
     print("  origin <name>       print the source file for a named block")
@@ -50,6 +51,7 @@ def print_help(self):
     print("Interactive mode commands:")
     print("  exit                leave interactive mode")
     print("  reload              re-parse all .o.md files")
+    print("  reparse <filename>  update one cached .o.md file")
     print("")
     self.print_summary()
 ```

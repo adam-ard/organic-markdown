@@ -805,6 +805,69 @@ When FRESH is non-nil, bypass the shared interactive control session."
     (my/organic-markdown-actions-mode 1)))
 
 (add-hook 'markdown-mode-hook #'my/organic-markdown-enable-actions)
+
+(defun my/organic-markdown-invalidate-sessions (root)
+  "Stop reusable OMD sessions for ROOT after its daemon cache changes."
+  (let* ((normalized-root (my/omd-session-normalize-root root))
+         (control (gethash normalized-root my/omd-control-sessions)))
+    (when control
+      (my/omd-session-stop control)
+      (remhash normalized-root my/omd-control-sessions))
+    (dolist (buffer (buffer-list))
+      (with-current-buffer buffer
+        (when (and my/omd-command-output-root
+                   (string= normalized-root
+                            (my/omd-session-normalize-root
+                             my/omd-command-output-root))
+                   my/omd-command-output-session)
+          (my/omd-session-stop my/omd-command-output-session)
+          (setq-local my/omd-command-output-session nil))))))
+
+(defun my/organic-markdown-reparse-sentinel (process event)
+  "Handle completion EVENT for an automatic reparse PROCESS."
+  (when (memq (process-status process) '(exit signal))
+    (let ((root (process-get process 'my/omd-root))
+          (file (process-get process 'my/omd-file)))
+      (if (and (eq (process-status process) 'exit)
+               (zerop (process-exit-status process)))
+          (progn
+            (my/organic-markdown-invalidate-sessions root)
+            (let ((sidebar (get-buffer my/omd-commands-sidebar-buffer-name)))
+              (when (buffer-live-p sidebar)
+                (with-current-buffer sidebar
+                  (when (and my/omd-commands-sidebar-root
+                             (string= (my/omd-session-normalize-root root)
+                                      (my/omd-session-normalize-root
+                                       my/omd-commands-sidebar-root)))
+                    (my/omd-commands-sidebar-render root))))))
+        (message "OMD could not reparse %s: %s"
+                 (abbreviate-file-name file)
+                 (string-trim event))))))
+
+(defun my/organic-markdown-reparse-after-save ()
+  "Asynchronously update the project daemon after saving an `.o.md` file."
+  (when (and buffer-file-name
+             (string-suffix-p ".o.md" buffer-file-name))
+    (let* ((file (expand-file-name buffer-file-name))
+           (root (my/omd-project-root (file-name-directory file)))
+           (default-directory root)
+           (process (make-process
+                     :name "omd-reparse"
+                     :buffer nil
+                     :command (list "omd" "reparse" file)
+                     :noquery t
+                     :sentinel #'my/organic-markdown-reparse-sentinel)))
+      (process-put process 'my/omd-root root)
+      (process-put process 'my/omd-file file))))
+
+(defun my/organic-markdown-enable-reparse-on-save ()
+  "Enable daemon reparsing after saves in `.o.md` buffers."
+  (when (and buffer-file-name
+             (string-suffix-p ".o.md" buffer-file-name))
+    (add-hook 'after-save-hook
+              #'my/organic-markdown-reparse-after-save nil t)))
+
+(add-hook 'markdown-mode-hook #'my/organic-markdown-enable-reparse-on-save)
 (with-eval-after-load 'yasnippet
   (yas-define-snippets
  'markdown-mode

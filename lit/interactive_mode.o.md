@@ -21,11 +21,15 @@ if words[0] == "exit":
     break
 
 if words[0] == "reload":
-    code_blocks = CodeBlocks()
-    code_blocks.parse()
+    code_blocks = daemon_reload(os.getcwd())
     print("code reloaded")
+    continue
+
+if words[0] == "reparse" and len(words) == 2:
+    if daemon_reparse(os.getcwd(), words[1]) == 0:
+        code_blocks = daemon_snapshot(os.getcwd())
+        print("file reparsed")
     continue
 
 code_blocks.handle_cmd(words)
 ```
-

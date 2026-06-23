@@ -376,3 +376,13 @@ make
 If Yasnippet is installed and loaded, the integration also defines `ocode`,
 `ofile`, and `ocmd` snippets for `markdown-mode`.
 
+
+## NOTE:
+
+The first project-aware command starts a daemon for that working directory. It parses the project once; later CLI invocations reuse the cached result while commands still execute in the foreground terminal. The daemon exits after 30 minutes without a request and restarts transparently. Cache updates are explicit. After changing a source file outside an integration that handles saves automatically, run:
+
+```bash
+omd reparse path/to/file.o.md
+```
+
+The path may be absolute or relative to the project directory. Reparsing a missing `.o.md` path removes its cached contribution. The supplied Emacs integration runs `reparse` asynchronously whenever an `.o.md` buffer is saved.

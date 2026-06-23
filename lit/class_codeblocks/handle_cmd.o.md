@@ -221,7 +221,22 @@ class CodeBlocks:
     def handle_cmd(self, words):
         self.words = words
 
+class os:
+    @staticmethod
+    def getcwd():
+        return "."
+
 code_blocks = CodeBlocks()
+
+def daemon_reload(_root):
+    code_blocks.parse()
+    return code_blocks
+
+def daemon_snapshot(_root):
+    return code_blocks
+
+def daemon_reparse(_root, _filename):
+    return 0
 
 @<handle_cmd_test(cmd=exit
                   parsed=False

@@ -381,12 +381,16 @@ c_sym = ":>"
 class CodeBlocks:
     def __init__(self):
         self.code_blocks = []
+        self.file_contributions = {}
+        self.file_order = []
     @<codeblocks__get_code_block@>
     @<codeblocks__parse@>
     @<codeblocks__expand@>
 
 blks = CodeBlocks()
-blks.parse_json(full_file, "test_file.omd")
+blks.file_order = ["test_file.omd"]
+blks.file_contributions["test_file.omd"] = blks.parse_json(full_file, "test_file.omd")
+blks.rebuild()
 
 def test(txt, expected_expanded):
     expanded = blks.expand(txt)
