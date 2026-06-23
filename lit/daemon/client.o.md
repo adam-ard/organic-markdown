@@ -6,6 +6,12 @@ clients wait for the published record. A stale lock is reclaimed after the
 bounded startup window. The daemon is detached using the platform facilities
 provided by `subprocess`.
 
+`omd kill` is intentionally different from normal daemon calls: it should only
+stop an already-running daemon for the current directory, not start a new daemon
+just so it can be stopped. For that reason `daemon_kill()` reads the registry
+directly, sends the server's existing `stop` operation when possible, and cleans
+up stale registry records when the process is already gone.
+
 ```python {name=daemon_client}
 def daemon_read_record(registry_path, root):
     try:
@@ -105,4 +111,23 @@ def daemon_reparse(root, filename):
 def daemon_reload(root):
     daemon_call(root, "reload")
     return daemon_snapshot(root)
+
+def daemon_kill(root):
+    root = daemon_project_root(root)
+    registry_path, _lock_path = daemon_paths(root)
+    record = daemon_read_record(registry_path, root)
+    if not record:
+        return 0
+    try:
+        response = daemon_request(record, "stop")
+        if not response.get("ok"):
+            print(f"kill failed: {response.get('error', 'daemon request failed')}", file=sys.stderr)
+            return 1
+    except (OSError, ValueError, ConnectionError):
+        pass
+    try:
+        os.remove(registry_path)
+    except FileNotFoundError:
+        pass
+    return 0
 ```

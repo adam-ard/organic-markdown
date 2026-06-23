@@ -386,3 +386,13 @@ omd reparse path/to/file.o.md
 ```
 
 The path may be absolute or relative to the project directory. Reparsing a missing `.o.md` path removes its cached contribution. The supplied Emacs integration runs `reparse` asynchronously whenever an `.o.md` buffer is saved.
+
+If you want to discard the daemon cache completely, run:
+
+```bash
+omd kill
+```
+
+That stops the daemon for the current working directory. The next project-aware
+`omd` command will start a fresh daemon and parse the markdown files from
+scratch.

@@ -24,7 +24,7 @@ To e2e test the new `omd` script, run the following:
 omd run e2e-tests
 ```
 
-```bash {name=release_tests menu=true}
+```bash {name=release-tests menu=true}
 omd run build-omd
 omd run all_tests
 omd run e2e-tests
