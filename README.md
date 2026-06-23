@@ -329,8 +329,12 @@ to the definition of a literate reference, command output buffers, and optional
 Yasnippet templates.
 
 First install [`markdown-mode`](https://jblevins.org/projects/markdown-mode/) and
-make sure the `omd` executable is available on Emacs's `exec-path`. If you use
-`use-package`, a minimal setup from a cloned Organic Markdown repository is:
+make sure the `omd` executable is available on Emacs's `exec-path`. Loading the
+file only defines the integration; it does not install hooks, global keys, save
+hooks, or snippets until you opt in.
+
+If you use `use-package`, this setup recreates the default Organic Markdown
+editing experience:
 
 ```emacs-lisp
 (use-package markdown-mode
@@ -339,6 +343,14 @@ make sure the `omd` executable is available on Emacs's `exec-path`. If you use
 
 ;; Replace this with the location of your Organic Markdown clone.
 (load "~/src/organic-markdown/contrib/organic-markdown.el")
+
+;; Opt in to the standard integration:
+;;
+;; - enable `organic-markdown-mode` in `.o.md` markdown buffers
+;; - bind `C-c o` globally to the command sidebar
+;; - run `omd reparse <file>` after saving `.o.md` buffers
+;; - install the Organic Markdown Yasnippet snippets if Yasnippet is loaded
+(organic-markdown-setup)
 ```
 
 Alternatively, copy `contrib/organic-markdown.el` into a directory on your
@@ -346,10 +358,31 @@ Emacs `load-path`, then load it with:
 
 ```emacs-lisp
 (require 'organic-markdown)
+(organic-markdown-setup)
 ```
 
-Restart Emacs or evaluate the new configuration. The integration is enabled
-automatically when a file ending in `.o.md` opens in `markdown-mode`.
+Restart Emacs or evaluate the new configuration. With the setup above, the
+integration is enabled automatically when a file ending in `.o.md` opens in
+`markdown-mode`.
+
+You can customize the integration before calling `organic-markdown-setup`:
+
+```emacs-lisp
+(setq organic-markdown-command "omd"
+      organic-markdown-enable-auto-reparse t
+      organic-markdown-enable-snippets t
+      organic-markdown-sidebar-width 36
+      organic-markdown-global-sidebar-key (kbd "C-c o"))
+```
+
+Set `organic-markdown-global-sidebar-key` to `nil` if you do not want the
+global sidebar key. You can also skip `organic-markdown-setup` and install only
+the pieces you want, for example:
+
+```emacs-lisp
+(add-hook 'markdown-mode-hook #'organic-markdown-enable-mode)
+(organic-markdown-install-snippets)
+```
 
 The available keys are:
 

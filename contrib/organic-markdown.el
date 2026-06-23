@@ -1,39 +1,64 @@
 ;;; organic-markdown.el --- Emacs integration for Organic Markdown -*- lexical-binding: t; -*-
 
 ;; Install `markdown-mode` and ensure the `omd` executable is on `exec-path`
-;; before loading this file.  Yasnippet support is enabled when available.
+;; before enabling this integration.  Yasnippet support is available through
+;; `organic-markdown-install-snippets' when Yasnippet is installed.
 
+;;; Commentary:
+
+;; This file provides editor conveniences for Organic Markdown projects:
+;;
+;; - a minor mode for `.o.md' buffers;
+;; - a project command sidebar;
+;; - command output buffers;
+;; - jump-to-origin support for literate references;
+;; - optional daemon reparsing after save;
+;; - optional Yasnippet snippets.
+;;
+;; Loading the file defines these commands but does not change global keys,
+;; markdown hooks, save hooks, or snippets.  Call `organic-markdown-setup' for
+;; the standard opt-in setup, or install only the pieces you want.
+
+;;; Code:
+
+(require 'json)
 (require 'project)
+(require 'subr-x)
 
-(defvar-local my/omd-command-output-root nil
-  "Project root associated with the current OMD command output buffer.")
+(defgroup organic-markdown nil
+  "Emacs integration for Organic Markdown."
+  :group 'tools
+  :prefix "organic-markdown-")
 
-(defvar-local my/omd-command-output-command nil
-  "OMD command associated with the current output buffer.")
+(defcustom organic-markdown-command "omd"
+  "Command used to invoke Organic Markdown."
+  :type 'string
+  :group 'organic-markdown)
 
-(defvar-local my/omd-command-output-args nil
-  "Argument list used to launch the current OMD output buffer.")
+(defcustom organic-markdown-enable-auto-reparse t
+  "Non-nil means `organic-markdown-mode' reparses `.o.md' files after save."
+  :type 'boolean
+  :group 'organic-markdown)
 
-(defvar-local my/omd-command-output-buffer-name nil
-  "Buffer name used for the current OMD output buffer.")
+(defcustom organic-markdown-enable-snippets t
+  "Non-nil means `organic-markdown-setup' installs Yasnippet snippets."
+  :type 'boolean
+  :group 'organic-markdown)
 
-(defvar-local my/omd-command-output-header nil
-  "Header text shown at the top of the current OMD output buffer.")
+(defcustom organic-markdown-sidebar-width 36
+  "Width used for the Organic Markdown commands sidebar."
+  :type 'integer
+  :group 'organic-markdown)
 
-(defvar-local my/omd-command-output-process nil
-  "One-shot OMD process for the current output buffer.")
+(defcustom organic-markdown-global-sidebar-key (kbd "C-c o")
+  "Global key installed by `organic-markdown-install-global-keybindings'.
+Set this to nil before calling `organic-markdown-setup' if you do not want a
+global sidebar key."
+  :type '(choice (const :tag "Do not bind a global key" nil)
+                 key-sequence)
+  :group 'organic-markdown)
 
-(defvar my/omd-command-output-mode-map
-  (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map special-mode-map)
-    (define-key map (kbd "g") #'my/omd-command-output-rerun)
-    map)
-  "Keymap for OMD command output buffers.")
-
-(define-derived-mode my/omd-command-output-mode special-mode "OMD-Run"
-  "Major mode for OMD command output buffers.")
-
-(defun my/omd-project-root (&optional directory)
+(defun organic-markdown-default-project-root (&optional directory)
   "Return the Organic Markdown execution root for DIRECTORY.
 Use the root recognized by Emacs's project system.  Fall back to the nearest
 Git root, then DIRECTORY itself, when no project is recognized."
@@ -46,7 +71,80 @@ Git root, then DIRECTORY itself, when no project is recognized."
     (file-name-as-directory
      (expand-file-name (or project-root git-root directory)))))
 
-(defun my/omd-context-directory ()
+(defcustom organic-markdown-project-root-function
+  #'organic-markdown-default-project-root
+  "Function used to find the Organic Markdown project root.
+The function receives one directory argument and should return the directory
+where `organic-markdown-command' should run."
+  :type 'function
+  :group 'organic-markdown)
+
+(defvar-local organic-markdown-command-output-root nil
+  "Project root associated with the current OMD command output buffer.")
+
+(defvar-local organic-markdown-command-output-command nil
+  "OMD command associated with the current output buffer.")
+
+(defvar-local organic-markdown-command-output-args nil
+  "Argument list used to launch the current OMD output buffer.")
+
+(defvar-local organic-markdown-command-output-buffer-name nil
+  "Buffer name used for the current OMD output buffer.")
+
+(defvar-local organic-markdown-command-output-header nil
+  "Header text shown at the top of the current OMD output buffer.")
+
+(defvar-local organic-markdown-command-output-process nil
+  "One-shot OMD process for the current output buffer.")
+
+(defvar organic-markdown-command-output-mode-map
+  (let ((map (make-sparse-keymap)))
+    (set-keymap-parent map special-mode-map)
+    (define-key map (kbd "g") #'organic-markdown-command-output-rerun)
+    map)
+  "Keymap for OMD command output buffers.")
+
+(define-derived-mode organic-markdown-command-output-mode special-mode "OMD-Run"
+  "Major mode for OMD command output buffers.")
+
+(defvar organic-markdown-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "C-c o") #'organic-markdown-commands-sidebar-toggle)
+    (define-key map (kbd "C-c @") #'organic-markdown-find-origin)
+    (define-key map (kbd "C-c x") #'organic-markdown-run-command-at-point)
+    (define-key map (kbd "C-c t") #'organic-markdown-tangle-project)
+    (define-key map (kbd "C-c z") #'organic-markdown-show-command-output)
+    map)
+  "Keymap for `organic-markdown-mode'.")
+
+(define-minor-mode organic-markdown-mode
+  "Minor mode for editing Organic Markdown `.o.md' buffers.
+The mode provides local keybindings for the command sidebar, running command
+blocks, tangling the current project, showing command output, and jumping to the
+origin of a literate reference.  When
+`organic-markdown-enable-auto-reparse' is non-nil, enabling the mode also adds a
+buffer-local `after-save-hook' that runs `omd reparse' for saved `.o.md' files."
+  :lighter " OMD"
+  :keymap organic-markdown-mode-map
+  (if organic-markdown-mode
+      (when organic-markdown-enable-auto-reparse
+        (add-hook 'after-save-hook
+                  #'organic-markdown-reparse-after-save nil t))
+    (remove-hook 'after-save-hook
+                 #'organic-markdown-reparse-after-save t)))
+
+(defun organic-markdown-buffer-p (&optional file)
+  "Return non-nil when FILE, or the current buffer file, is an `.o.md' file."
+  (let ((file (or file buffer-file-name)))
+    (and file (string-suffix-p ".o.md" file))))
+
+(defun organic-markdown-enable-mode ()
+  "Enable `organic-markdown-mode' in `.o.md' buffers.
+This function is suitable for `markdown-mode-hook'."
+  (when (organic-markdown-buffer-p)
+    (organic-markdown-mode 1)))
+
+(defun organic-markdown-context-directory ()
   "Return the directory that should determine the current OMD project.
 For a file buffer, use the file's location rather than a potentially modified
 `default-directory'."
@@ -54,15 +152,21 @@ For a file buffer, use the file's location rather than a potentially modified
       (file-name-directory (expand-file-name buffer-file-name))
     default-directory))
 
-(defun my/omd-normalize-root (root)
+(defun organic-markdown-project-root (&optional directory)
+  "Return the nearest Organic Markdown root for DIRECTORY."
+  (funcall organic-markdown-project-root-function
+           (or directory (organic-markdown-context-directory))))
+
+(defun organic-markdown-normalize-root (root)
   "Return ROOT as an absolute directory name."
   (file-name-as-directory (expand-file-name root)))
 
-(defun my/omd-direct-call (root args)
-  "Run one `omd` call from ROOT with ARGS and return its output."
-  (let ((default-directory (my/omd-normalize-root root)))
+(defun organic-markdown-direct-call (root args)
+  "Run one `omd' call from ROOT with ARGS and return its output."
+  (let ((default-directory (organic-markdown-normalize-root root)))
     (with-temp-buffer
-      (let ((status (apply #'process-file "omd" nil t nil args))
+      (let ((status (apply #'process-file
+                           organic-markdown-command nil t nil args))
             (output (buffer-string)))
         (if (zerop status)
             output
@@ -71,13 +175,13 @@ For a file buffer, use the file's location rather than a potentially modified
                      "OMD command failed"
                    (string-trim output))))))))
 
-(defun my/omd-control-call (root args)
+(defun organic-markdown-control-call (root args)
   "Run ARGS from ROOT through OMD.
 The CLI starts or contacts the project daemon as needed, so Emacs keeps no
 separate long-running OMD process."
-  (my/omd-direct-call root args))
+  (organic-markdown-direct-call root args))
 
-(defun my/omd-command-output-append (buffer text)
+(defun organic-markdown-command-output-append (buffer text)
   "Append TEXT to BUFFER."
   (when (buffer-live-p buffer)
     (with-current-buffer buffer
@@ -88,7 +192,7 @@ separate long-running OMD process."
         (when moving
           (goto-char (point-max)))))))
 
-(defun my/omd-command-output-status-line (status detail)
+(defun organic-markdown-command-output-status-line (status detail)
   "Return a timestamped status line for STATUS and DETAIL."
   (format "\n[%s] %s"
           (if (eq status 'ok)
@@ -96,121 +200,129 @@ separate long-running OMD process."
             (or detail "error"))
           (format-time-string "%Y-%m-%d %H:%M:%S")))
 
-(defun my/omd-command-output-sentinel (process event)
+(defun organic-markdown-command-output-sentinel (process event)
   "Handle completion EVENT for PROCESS."
-  (let ((buffer (process-get process 'my/output-buffer)))
+  (let ((buffer (process-get process 'organic-markdown-output-buffer)))
     (when (buffer-live-p buffer)
       (with-current-buffer buffer
-        (setq my/omd-command-output-process nil))
-      (my/omd-command-output-append
+        (setq organic-markdown-command-output-process nil))
+      (organic-markdown-command-output-append
        buffer
-       (my/omd-command-output-status-line
+       (organic-markdown-command-output-status-line
         (if (string-match-p "\\`finished" (string-trim event))
             'ok
           'error)
         (string-trim event))))))
 
-(defun my/omd-command-output-stop-active (buffer)
+(defun organic-markdown-command-output-stop-active (buffer)
   "Stop BUFFER's active OMD execution, if any."
   (when (buffer-live-p buffer)
     (with-current-buffer buffer
-      (when (process-live-p my/omd-command-output-process)
-        (delete-process my/omd-command-output-process))
-      (setq-local my/omd-command-output-process nil))))
+      (when (process-live-p organic-markdown-command-output-process)
+        (delete-process organic-markdown-command-output-process))
+      (setq-local organic-markdown-command-output-process nil))))
 
-(defun my/omd-command-output-start-process (buffer root command args)
+(defun organic-markdown-command-output-start-process (buffer root command args)
   "Run ARGS for COMMAND directly from ROOT, sending output to BUFFER."
-  (let ((default-directory (my/omd-normalize-root root)))
+  (let ((default-directory (organic-markdown-normalize-root root)))
     (with-current-buffer buffer
-      (setq-local my/omd-command-output-process nil))
-    (let ((process (apply #'start-file-process command nil "omd" args)))
+      (setq-local organic-markdown-command-output-process nil))
+    (let ((process
+           (apply #'start-file-process
+                  (format "organic-markdown:%s" command)
+                  nil
+                  organic-markdown-command
+                  args)))
       (set-process-query-on-exit-flag process nil)
-      (process-put process 'my/output-buffer buffer)
+      (process-put process 'organic-markdown-output-buffer buffer)
       (set-process-filter
        process
        (lambda (proc output)
-         (my/omd-command-output-append
-          (process-get proc 'my/output-buffer)
+         (organic-markdown-command-output-append
+          (process-get proc 'organic-markdown-output-buffer)
           output)))
-      (set-process-sentinel process #'my/omd-command-output-sentinel)
+      (set-process-sentinel process
+                            #'organic-markdown-command-output-sentinel)
       (with-current-buffer buffer
-        (setq-local my/omd-command-output-process process)))))
+        (setq-local organic-markdown-command-output-process process)))))
 
-(defun my/omd-command-output-start (root command &optional args buffer-name header)
-  "Run COMMAND from ROOT in its dedicated output buffer."
+(defun organic-markdown-command-output-start
+    (root command &optional args buffer-name header)
+  "Run COMMAND from ROOT in its dedicated output buffer.
+Optional ARGS, BUFFER-NAME, and HEADER customize the exact CLI invocation and
+displayed buffer."
   (let* ((args (or args (list "run" command)))
          (buffer-name (or buffer-name (format "*%s*" command)))
          (header (or header (format "$ omd run %s\n\n" command)))
          (buffer (get-buffer-create buffer-name)))
-    (my/omd-command-output-stop-active buffer)
+    (organic-markdown-command-output-stop-active buffer)
     (with-current-buffer buffer
-      (my/omd-command-output-mode)
-      (setq-local default-directory (my/omd-normalize-root root))
-      (setq-local my/omd-command-output-root root)
-      (setq-local my/omd-command-output-command command)
-      (setq-local my/omd-command-output-args args)
-      (setq-local my/omd-command-output-buffer-name buffer-name)
-      (setq-local my/omd-command-output-header header)
+      (organic-markdown-command-output-mode)
+      (setq-local default-directory (organic-markdown-normalize-root root))
+      (setq-local organic-markdown-command-output-root root)
+      (setq-local organic-markdown-command-output-command command)
+      (setq-local organic-markdown-command-output-args args)
+      (setq-local organic-markdown-command-output-buffer-name buffer-name)
+      (setq-local organic-markdown-command-output-header header)
       (let ((inhibit-read-only t))
         (erase-buffer)
         (insert header)))
-    (my/omd-command-output-start-process buffer root command args)
+    (organic-markdown-command-output-start-process buffer root command args)
     (display-buffer buffer)
     buffer))
 
-(defun my/omd-command-output-rerun ()
+(defun organic-markdown-command-output-rerun ()
   "Rerun the OMD command associated with the current output buffer."
   (interactive)
-  (unless (and my/omd-command-output-root
-               my/omd-command-output-command
-               my/omd-command-output-args)
+  (unless (and organic-markdown-command-output-root
+               organic-markdown-command-output-command
+               organic-markdown-command-output-args)
     (user-error "Current buffer is not an OMD command output buffer"))
-  (my/omd-command-output-start
-   my/omd-command-output-root
-   my/omd-command-output-command
-   my/omd-command-output-args
-   my/omd-command-output-buffer-name
-   my/omd-command-output-header))
+  (organic-markdown-command-output-start
+   organic-markdown-command-output-root
+   organic-markdown-command-output-command
+   organic-markdown-command-output-args
+   organic-markdown-command-output-buffer-name
+   organic-markdown-command-output-header))
 
-(require 'json)
-
-(defvar my/omd-commands-sidebar-buffer-name "*OMD Commands*"
+(defvar organic-markdown-commands-sidebar-buffer-name "*OMD Commands*"
   "Buffer name used for the OMD commands sidebar.")
 
-(defvar-local my/omd-commands-sidebar-root nil
+(defvar-local organic-markdown-commands-sidebar-root nil
   "Project root associated with the current OMD commands sidebar buffer.")
 
-(defvar my/omd-commands-sidebar-mode-map
+(defvar organic-markdown-commands-sidebar-mode-map
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map special-mode-map)
-    (define-key map (kbd "RET") #'my/omd-commands-sidebar-visit)
-    (define-key map (kbd "g") #'my/omd-commands-sidebar-refresh)
-    (define-key map (kbd "x") #'my/omd-commands-sidebar-run-command)
+    (define-key map (kbd "RET") #'organic-markdown-commands-sidebar-visit)
+    (define-key map (kbd "g") #'organic-markdown-commands-sidebar-refresh)
+    (define-key map (kbd "x") #'organic-markdown-commands-sidebar-run-command)
     map)
   "Keymap for the OMD commands sidebar.")
 
-(define-derived-mode my/omd-commands-sidebar-mode special-mode "OMD-Commands"
+(define-derived-mode organic-markdown-commands-sidebar-mode
+  special-mode "OMD-Commands"
   "Major mode for the OMD commands sidebar.")
 
-(defun my/omd-commands-sidebar-project-root ()
+(defun organic-markdown-commands-sidebar-project-root ()
   "Return the nearest Organic Markdown root used for OMD commands."
-  (my/omd-project-root (my/omd-context-directory)))
+  (organic-markdown-project-root (organic-markdown-context-directory)))
 
-(defun my/omd-commands-sidebar-window ()
+(defun organic-markdown-commands-sidebar-window ()
   "Return the active OMD commands sidebar window, if one exists."
   (catch 'sidebar-window
     (dolist (window (window-list))
-      (when (window-parameter window 'my/omd-commands-sidebar)
+      (when (window-parameter window 'organic-markdown-commands-sidebar)
         (throw 'sidebar-window window)))))
 
-(defun my/omd-commands-sidebar-target-window ()
+(defun organic-markdown-commands-sidebar-target-window ()
   "Return the first non-sidebar window, if one exists."
   (catch 'target-window
     (dolist (window (window-list))
       (unless (window-parameter window 'window-side)
         (throw 'target-window window)))))
 
-(defun my/omd-commands-sidebar-find-command-name (attributes)
+(defun organic-markdown-commands-sidebar-find-command-name (attributes)
   "Extract a command name from ATTRIBUTES, or nil if none exists."
   (cond
    ((string-match "name=\"\\([^\"]+\\)\"" attributes)
@@ -219,8 +331,8 @@ separate long-running OMD process."
     (match-string 1 attributes))
    (t nil)))
 
-(defun my/omd-commands-sidebar-scan-fallback (root)
-  "Return command metadata for ROOT by scanning `*.o.md` files directly."
+(defun organic-markdown-commands-sidebar-scan-fallback (root)
+  "Return command metadata for ROOT by scanning `*.o.md' files directly."
   (let (entries)
     (dolist (file (directory-files-recursively root "\\.o\\.md\\'"))
       (let (commands)
@@ -230,35 +342,38 @@ separate long-running OMD process."
           (while (re-search-forward "^```.*{\\([^}\n]*\\)}" nil t)
             (let ((attributes (match-string 1)))
               (when (string-match-p "\\bmenu=true\\b" attributes)
-                (let ((name (my/omd-commands-sidebar-find-command-name attributes)))
+                (let ((name
+                       (organic-markdown-commands-sidebar-find-command-name
+                        attributes)))
                   (when name
                     (setq commands (append commands (list name)))))))))
         (when commands
           (setq entries
                 (append entries
                         (list
-                         `((file . ,(concat "./" (file-relative-name file root)))
+                         `((file . ,(concat "./"
+                                             (file-relative-name file root)))
                            (cmds . ,commands))))))))
     entries))
 
-(defun my/omd-commands-sidebar-fetch (root)
+(defun organic-markdown-commands-sidebar-fetch (root)
   "Return grouped command metadata for ROOT."
-(or
+  (or
    (condition-case nil
        (let ((json-object-type 'alist)
              (json-array-type 'list)
              (json-key-type 'symbol))
          (json-read-from-string
-          (my/omd-control-call root '("cmds"))))
+          (organic-markdown-control-call root '("cmds"))))
      (error nil))
-   (my/omd-commands-sidebar-scan-fallback root)))
+   (organic-markdown-commands-sidebar-scan-fallback root)))
 
-(defun my/omd-commands-sidebar-render (root)
+(defun organic-markdown-commands-sidebar-render (root)
   "Render the OMD commands sidebar for ROOT in the current buffer."
-  (let ((entries (my/omd-commands-sidebar-fetch root))
+  (let ((entries (organic-markdown-commands-sidebar-fetch root))
         (inhibit-read-only t))
     (erase-buffer)
-    (setq-local my/omd-commands-sidebar-root root)
+    (setq-local organic-markdown-commands-sidebar-root root)
     (insert (propertize "OMD Commands" 'face 'bold) "\n")
     (insert (abbreviate-file-name root) "\n\n")
     (if entries
@@ -269,21 +384,21 @@ separate long-running OMD process."
             (insert
              (propertize file
                          'face 'font-lock-keyword-face
-                         'my/omd-file absolute-file)
+                         'organic-markdown-file absolute-file)
              "\n")
             (dolist (command commands)
               (insert
                (propertize (format "  %s" command)
-                           'my/omd-file absolute-file
-                           'my/omd-command command)
+                           'organic-markdown-file absolute-file
+                           'organic-markdown-command command)
                "\n"))
             (insert "\n")))
       (insert "No OMD commands found.\n"))
     (goto-char (point-min))))
 
-(defun my/omd-commands-sidebar-open-file (file &optional command)
+(defun organic-markdown-commands-sidebar-open-file (file &optional command)
   "Open FILE in the main editing area and optionally jump to COMMAND."
-  (let ((target-window (or (my/omd-commands-sidebar-target-window)
+  (let ((target-window (or (organic-markdown-commands-sidebar-target-window)
                            (selected-window))))
     (select-window target-window)
     (find-file file)
@@ -299,76 +414,76 @@ separate long-running OMD process."
            t))
       (beginning-of-line))))
 
-(defun my/omd-commands-sidebar-visit ()
+(defun organic-markdown-commands-sidebar-visit ()
   "Visit the file or command at point in the OMD commands sidebar."
   (interactive)
-  (let ((file (get-text-property (point) 'my/omd-file))
-        (command (get-text-property (point) 'my/omd-command)))
+  (let ((file (get-text-property (point) 'organic-markdown-file))
+        (command (get-text-property (point) 'organic-markdown-command)))
     (unless file
       (user-error "Point is not on an OMD commands entry"))
-    (my/omd-commands-sidebar-open-file file command)))
+    (organic-markdown-commands-sidebar-open-file file command)))
 
-(defun my/omd-commands-sidebar-run-command ()
+(defun organic-markdown-commands-sidebar-run-command ()
   "Run the OMD command at point asynchronously."
   (interactive)
-  (let ((command (get-text-property (point) 'my/omd-command)))
+  (let ((command (get-text-property (point) 'organic-markdown-command)))
     (unless command
       (user-error "Point is not on an OMD command"))
-    (my/omd-command-output-start my/omd-commands-sidebar-root command)))
+    (organic-markdown-command-output-start
+     organic-markdown-commands-sidebar-root
+     command)))
 
-(defun my/omd-commands-sidebar-refresh ()
+(defun organic-markdown-commands-sidebar-refresh ()
   "Refresh the current OMD commands sidebar."
   (interactive)
-  (unless my/omd-commands-sidebar-root
+  (unless organic-markdown-commands-sidebar-root
     (user-error "Current buffer is not an OMD commands sidebar"))
-  (my/omd-commands-sidebar-render my/omd-commands-sidebar-root))
+  (organic-markdown-commands-sidebar-render
+   organic-markdown-commands-sidebar-root))
 
-(defun my/omd-commands-sidebar-open (root)
+(defun organic-markdown-commands-sidebar-open (root)
   "Show the OMD commands sidebar for ROOT."
-  (let* ((buffer (get-buffer-create my/omd-commands-sidebar-buffer-name))
-         (window (or (my/omd-commands-sidebar-window)
+  (let* ((buffer (get-buffer-create
+                  organic-markdown-commands-sidebar-buffer-name))
+         (window (or (organic-markdown-commands-sidebar-window)
                      (display-buffer-in-side-window
                       buffer
-                      '((side . right)
+                      `((side . right)
                         (slot . 0)
-                        (window-width . 36)
+                        (window-width . ,organic-markdown-sidebar-width)
                         (preserve-size . (t . nil))
-                        (window-parameters . ((no-delete-other-windows . t))))))))
+                        (window-parameters
+                         . ((no-delete-other-windows . t))))))))
     (with-current-buffer buffer
-      (my/omd-commands-sidebar-mode)
-      (setq-local default-directory (my/omd-normalize-root root))
-      (my/omd-commands-sidebar-render root))
+      (organic-markdown-commands-sidebar-mode)
+      (setq-local default-directory (organic-markdown-normalize-root root))
+      (organic-markdown-commands-sidebar-render root))
     (set-window-dedicated-p window nil)
     (set-window-buffer window buffer)
-    (set-window-parameter window 'my/omd-commands-sidebar t)
+    (set-window-parameter window 'organic-markdown-commands-sidebar t)
     (set-window-dedicated-p window t)
     (with-selected-window window
       (setq-local window-size-fixed 'width)
       (setq-local truncate-lines t))
     window))
 
-(defun my/omd-commands-sidebar-toggle ()
+(defun organic-markdown-commands-sidebar-toggle ()
   "Toggle the OMD commands sidebar for the current project."
   (interactive)
-  (let* ((root (my/omd-commands-sidebar-project-root))
-         (window (my/omd-commands-sidebar-window))
+  (let* ((root (organic-markdown-commands-sidebar-project-root))
+         (window (organic-markdown-commands-sidebar-window))
          (sidebar-root
           (and window
-               (buffer-local-value 'my/omd-commands-sidebar-root
+               (buffer-local-value 'organic-markdown-commands-sidebar-root
                                    (window-buffer window)))))
     (if (and window
              sidebar-root
              (string= (expand-file-name sidebar-root)
                       (expand-file-name root)))
         (delete-window window)
-      (my/omd-commands-sidebar-open root))))
+      (organic-markdown-commands-sidebar-open root))))
 
-(global-set-key (kbd "C-c o") #'my/omd-commands-sidebar-toggle)
-(defun my/organic-markdown-project-root ()
-  "Return the nearest Organic Markdown root used for OMD commands."
-  (my/omd-project-root (my/omd-context-directory)))
-
-(defun my/organic-markdown-ref-at-point ()
+(defun organic-markdown-ref-at-point ()
   "Return the Organic Markdown block name at point, or nil."
   (save-excursion
     (let ((origin (point))
@@ -380,7 +495,7 @@ separate long-running OMD process."
       (when (search-backward open-marker (line-beginning-position) t)
         (setq start (point))
         (when (search-forward close-marker (line-end-position) t)
-            (setq finish (point))
+          (setq finish (point))
           (when (<= start origin finish)
             (setq reference
                   (buffer-substring-no-properties (+ start 2) (- finish 2)))
@@ -389,18 +504,20 @@ separate long-running OMD process."
               (setq reference (substring reference 0 (match-beginning 0))))
             (string-trim reference)))))))
 
-(defun my/organic-markdown-find-origin ()
+(defun organic-markdown-find-origin ()
   "Jump to the file that defines the Organic Markdown reference at point."
   (interactive)
-  (let ((name (my/organic-markdown-ref-at-point)))
+  (let ((name (organic-markdown-ref-at-point)))
     (unless name
       (user-error "Point is not on an Organic Markdown reference"))
-    (let* ((root (my/organic-markdown-project-root))
+    (let* ((root (organic-markdown-project-root))
            (origin
             (condition-case nil
                 (car (split-string
                       (string-trim
-                       (my/omd-control-call root (list "origin" name)))
+                       (organic-markdown-control-call
+                        root
+                        (list "origin" name)))
                       "\n"
                       t))
               (error nil)))
@@ -413,7 +530,8 @@ separate long-running OMD process."
                     (with-temp-buffer
                       (insert-file-contents file)
                       (when (re-search-forward
-                             (format "{[^}\n]*name=%s\\b" (regexp-quote name))
+                             (format "{[^}\n]*name=%s\\b"
+                                     (regexp-quote name))
                              nil
                              t)
                         (throw 'match file))))))))
@@ -427,67 +545,48 @@ separate long-running OMD process."
              t)
         (beginning-of-line)))))
 
-(defvar my/organic-markdown-navigation-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "C-c @") #'my/organic-markdown-find-origin)
-    map)
-  "Keymap for Organic Markdown navigation commands.")
-
-(define-minor-mode my/organic-markdown-navigation-mode
-  "Minor mode for Organic Markdown navigation helpers."
-  :lighter nil
-  :keymap my/organic-markdown-navigation-mode-map)
-
-(defun my/organic-markdown-enable-navigation ()
-  "Enable Organic Markdown navigation in `*.o.md` buffers."
-  (when (and buffer-file-name
-             (string-suffix-p ".o.md" buffer-file-name))
-    (my/organic-markdown-navigation-mode 1)))
-
-(add-hook 'markdown-mode-hook #'my/organic-markdown-enable-navigation)
-
-(defun my/organic-markdown-block-attributes-at-point ()
+(defun organic-markdown-block-attributes-at-point ()
   "Return the code block attributes from the current header line, or nil."
   (save-excursion
     (beginning-of-line)
     (when (looking-at "^```[^`\n]*{\\([^}\n]*\\)}")
       (match-string-no-properties 1))))
 
-(defun my/organic-markdown-command-at-point ()
+(defun organic-markdown-command-at-point ()
   "Return the runnable Organic Markdown command at point, or nil."
-  (let ((attributes (my/organic-markdown-block-attributes-at-point)))
+  (let ((attributes (organic-markdown-block-attributes-at-point)))
     (when (and attributes
                (string-match-p "\\bmenu=true\\b" attributes))
-      (my/omd-commands-sidebar-find-command-name attributes))))
+      (organic-markdown-commands-sidebar-find-command-name attributes))))
 
-(defun my/organic-markdown-run-command-at-point ()
+(defun organic-markdown-run-command-at-point ()
   "Run the Organic Markdown command declared on the current header line."
   (interactive)
-  (let ((command (my/organic-markdown-command-at-point)))
+  (let ((command (organic-markdown-command-at-point)))
     (unless command
       (user-error "Point is not on a runnable Organic Markdown command header"))
-    (my/omd-command-output-start
-     (my/organic-markdown-project-root)
+    (organic-markdown-command-output-start
+     (organic-markdown-project-root)
      command)))
 
-(defun my/organic-markdown-tangle-project ()
-  "Run `omd tangle` for the current Organic Markdown project."
+(defun organic-markdown-tangle-project ()
+  "Run `omd tangle' for the current Organic Markdown project."
   (interactive)
-  (let* ((root (my/organic-markdown-project-root))
+  (let* ((root (organic-markdown-project-root))
          (project-name
           (file-name-nondirectory
            (directory-file-name (expand-file-name root)))))
-    (my/omd-command-output-start
+    (organic-markdown-command-output-start
      root
      "tangle"
      '("tangle")
      (format "*omd-tangle: %s*" project-name)
      "$ omd tangle\n\n")))
 
-(defun my/organic-markdown-show-command-output ()
+(defun organic-markdown-show-command-output ()
   "Jump to the existing output buffer for the command header at point."
   (interactive)
-  (let* ((command (my/organic-markdown-command-at-point))
+  (let* ((command (organic-markdown-command-at-point))
          (buffer (and command (get-buffer (format "*%s*" command)))))
     (unless command
       (user-error "Point is not on a runnable Organic Markdown command header"))
@@ -495,93 +594,93 @@ separate long-running OMD process."
       (user-error "No output buffer exists yet for %s" command))
     (pop-to-buffer buffer)))
 
-(defvar my/organic-markdown-actions-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "C-c x") #'my/organic-markdown-run-command-at-point)
-    (define-key map (kbd "C-c t") #'my/organic-markdown-tangle-project)
-    (define-key map (kbd "C-c z") #'my/organic-markdown-show-command-output)
-    map)
-  "Keymap for Organic Markdown action commands.")
-
-(define-minor-mode my/organic-markdown-actions-mode
-  "Minor mode for Organic Markdown action helpers."
-  :lighter nil
-  :keymap my/organic-markdown-actions-mode-map)
-
-(defun my/organic-markdown-enable-actions ()
-  "Enable Organic Markdown actions in `*.o.md` buffers."
-  (when (and buffer-file-name
-             (string-suffix-p ".o.md" buffer-file-name))
-    (my/organic-markdown-actions-mode 1)))
-
-(add-hook 'markdown-mode-hook #'my/organic-markdown-enable-actions)
-
-(defun my/organic-markdown-reparse-sentinel (process event)
+(defun organic-markdown-reparse-sentinel (process event)
   "Handle completion EVENT for an automatic reparse PROCESS."
   (when (memq (process-status process) '(exit signal))
-    (let ((root (process-get process 'my/omd-root))
-          (file (process-get process 'my/omd-file)))
+    (let ((root (process-get process 'organic-markdown-root))
+          (file (process-get process 'organic-markdown-file)))
       (if (and (eq (process-status process) 'exit)
                (zerop (process-exit-status process)))
-          (let ((sidebar (get-buffer my/omd-commands-sidebar-buffer-name)))
+          (let ((sidebar (get-buffer
+                          organic-markdown-commands-sidebar-buffer-name)))
             (when (buffer-live-p sidebar)
               (with-current-buffer sidebar
-                (when (and my/omd-commands-sidebar-root
-                           (string= (my/omd-normalize-root root)
-                                    (my/omd-normalize-root
-                                     my/omd-commands-sidebar-root)))
-                  (my/omd-commands-sidebar-render root)))))
+                (when (and organic-markdown-commands-sidebar-root
+                           (string= (organic-markdown-normalize-root root)
+                                    (organic-markdown-normalize-root
+                                     organic-markdown-commands-sidebar-root)))
+                  (organic-markdown-commands-sidebar-render root)))))
         (message "OMD could not reparse %s: %s"
                  (abbreviate-file-name file)
                  (string-trim event))))))
 
-(defun my/organic-markdown-reparse-after-save ()
-  "Asynchronously update the project daemon after saving an `.o.md` file."
-  (when (and buffer-file-name
-             (string-suffix-p ".o.md" buffer-file-name))
+(defun organic-markdown-reparse-after-save ()
+  "Asynchronously update the project daemon after saving an `.o.md' file."
+  (when (organic-markdown-buffer-p)
     (let* ((file (expand-file-name buffer-file-name))
-           (root (my/omd-project-root (file-name-directory file)))
+           (root (organic-markdown-project-root (file-name-directory file)))
            (default-directory root)
            (process (make-process
                      :name "omd-reparse"
                      :buffer nil
-                     :command (list "omd" "reparse" file)
+                     :command (list organic-markdown-command "reparse" file)
                      :noquery t
-                     :sentinel #'my/organic-markdown-reparse-sentinel)))
-      (process-put process 'my/omd-root root)
-      (process-put process 'my/omd-file file))))
+                     :sentinel #'organic-markdown-reparse-sentinel)))
+      (process-put process 'organic-markdown-root root)
+      (process-put process 'organic-markdown-file file))))
 
-(defun my/organic-markdown-enable-reparse-on-save ()
-  "Enable daemon reparsing after saves in `.o.md` buffers."
-  (when (and buffer-file-name
-             (string-suffix-p ".o.md" buffer-file-name))
-    (add-hook 'after-save-hook
-              #'my/organic-markdown-reparse-after-save nil t)))
+(defun organic-markdown-install-global-keybindings (&optional key)
+  "Bind KEY globally to `organic-markdown-commands-sidebar-toggle'.
+When KEY is nil, use `organic-markdown-global-sidebar-key'.  This function is
+opt-in; loading `organic-markdown.el' does not install global keybindings."
+  (interactive)
+  (let ((key (or key organic-markdown-global-sidebar-key)))
+    (unless key
+      (user-error "No Organic Markdown global sidebar key configured"))
+    (global-set-key key #'organic-markdown-commands-sidebar-toggle)))
 
-(add-hook 'markdown-mode-hook #'my/organic-markdown-enable-reparse-on-save)
-(with-eval-after-load 'yasnippet
-  (yas-define-snippets
- 'markdown-mode
- '(("ocode"
-    "#### code: ${1:name}
+(defun organic-markdown-install-snippets ()
+  "Install Organic Markdown snippets for Yasnippet's `markdown-mode'.
+This function is safe to call before or after Yasnippet has loaded.  It has no
+effect unless Yasnippet is installed."
+  (interactive)
+  (with-eval-after-load 'yasnippet
+    (when (fboundp 'yas-define-snippets)
+      (yas-define-snippets
+       'markdown-mode
+       '(("ocode"
+          "#### code: ${1:name}
 \\`\\`\\`${2:lang} {name=$1}
 $0
 \\`\\`\\`"
-    "organic markdown code block")
+          "organic markdown code block")
 
-   ("ofile"
-    "#### file: ${1:path}
+         ("ofile"
+          "#### file: ${1:path}
 \\`\\`\\`${2:lang} {tangle=$1}
 $0
 \\`\\`\\`"
-    "organic markdown file block")
+          "organic markdown file block")
 
-   ("ocmd"
-    "#### cmd: ${1:name}
+         ("ocmd"
+          "#### cmd: ${1:name}
 \\`\\`\\`${2:lang} {name=$1 menu=true}
 $0
 \\`\\`\\`"
-    "organic markdown command block"))))
+          "organic markdown command block"))))))
+
+(defun organic-markdown-setup ()
+  "Install the standard Organic Markdown Emacs integration.
+This adds `organic-markdown-enable-mode' to `markdown-mode-hook', optionally
+binds `organic-markdown-global-sidebar-key' globally, and optionally installs
+Yasnippet snippets according to `organic-markdown-enable-snippets'."
+  (interactive)
+  (add-hook 'markdown-mode-hook #'organic-markdown-enable-mode)
+  (when organic-markdown-global-sidebar-key
+    (organic-markdown-install-global-keybindings
+     organic-markdown-global-sidebar-key))
+  (when organic-markdown-enable-snippets
+    (organic-markdown-install-snippets)))
 
 (provide 'organic-markdown)
 
