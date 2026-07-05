@@ -12,7 +12,7 @@
 ;; - a project command sidebar;
 ;; - command output buffers;
 ;; - jump-to-origin support for literate references;
-;; - optional daemon reparsing after save;
+;; - optional sidebar refresh after save;
 ;; - optional Yasnippet snippets.
 ;;
 ;; Loading the file defines these commands but does not change global keys,
@@ -36,7 +36,11 @@
   :group 'organic-markdown)
 
 (defcustom organic-markdown-enable-auto-reparse t
-  "Non-nil means `organic-markdown-mode' reparses `.o.md' files after save."
+  "Non-nil means `organic-markdown-mode' refreshes project metadata after save.
+
+The name is retained for compatibility with existing user configuration.  OMD
+now refreshes its parsed cache automatically during ordinary commands, so the
+save hook only refreshes visible editor UI such as the command sidebar."
   :type 'boolean
   :group 'organic-markdown)
 
@@ -123,15 +127,16 @@ The mode provides local keybindings for the command sidebar, running command
 blocks, tangling the current project, showing command output, and jumping to the
 origin of a literate reference.  When
 `organic-markdown-enable-auto-reparse' is non-nil, enabling the mode also adds a
-buffer-local `after-save-hook' that runs `omd reparse' for saved `.o.md' files."
+buffer-local `after-save-hook' that refreshes visible Organic Markdown UI after
+saving `.o.md' files."
   :lighter " OMD"
   :keymap organic-markdown-mode-map
   (if organic-markdown-mode
       (when organic-markdown-enable-auto-reparse
         (add-hook 'after-save-hook
-                  #'organic-markdown-reparse-after-save nil t))
+                  #'organic-markdown-refresh-after-save nil t))
     (remove-hook 'after-save-hook
-                 #'organic-markdown-reparse-after-save t)))
+                 #'organic-markdown-refresh-after-save t)))
 
 (defun organic-markdown-buffer-p (&optional file)
   "Return non-nil when FILE, or the current buffer file, is an `.o.md' file."
@@ -177,8 +182,8 @@ For a file buffer, use the file's location rather than a potentially modified
 
 (defun organic-markdown-control-call (root args)
   "Run ARGS from ROOT through OMD.
-The CLI starts or contacts the project daemon as needed, so Emacs keeps no
-separate long-running OMD process."
+The CLI refreshes its parsed cache as needed, so Emacs keeps no separate
+long-running OMD process."
   (organic-markdown-direct-call root args))
 
 (defun organic-markdown-command-output-append (buffer text)
@@ -594,40 +599,24 @@ displayed buffer."
       (user-error "No output buffer exists yet for %s" command))
     (pop-to-buffer buffer)))
 
-(defun organic-markdown-reparse-sentinel (process event)
-  "Handle completion EVENT for an automatic reparse PROCESS."
-  (when (memq (process-status process) '(exit signal))
-    (let ((root (process-get process 'organic-markdown-root))
-          (file (process-get process 'organic-markdown-file)))
-      (if (and (eq (process-status process) 'exit)
-               (zerop (process-exit-status process)))
-          (let ((sidebar (get-buffer
-                          organic-markdown-commands-sidebar-buffer-name)))
-            (when (buffer-live-p sidebar)
-              (with-current-buffer sidebar
-                (when (and organic-markdown-commands-sidebar-root
-                           (string= (organic-markdown-normalize-root root)
-                                    (organic-markdown-normalize-root
-                                     organic-markdown-commands-sidebar-root)))
-                  (organic-markdown-commands-sidebar-render root)))))
-        (message "OMD could not reparse %s: %s"
-                 (abbreviate-file-name file)
-                 (string-trim event))))))
-
-(defun organic-markdown-reparse-after-save ()
-  "Asynchronously update the project daemon after saving an `.o.md' file."
+(defun organic-markdown-refresh-after-save ()
+  "Refresh visible Organic Markdown UI after saving an `.o.md' file."
   (when (organic-markdown-buffer-p)
     (let* ((file (expand-file-name buffer-file-name))
            (root (organic-markdown-project-root (file-name-directory file)))
-           (default-directory root)
-           (process (make-process
-                     :name "omd-reparse"
-                     :buffer nil
-                     :command (list organic-markdown-command "reparse" file)
-                     :noquery t
-                     :sentinel #'organic-markdown-reparse-sentinel)))
-      (process-put process 'organic-markdown-root root)
-      (process-put process 'organic-markdown-file file))))
+           (sidebar (get-buffer organic-markdown-commands-sidebar-buffer-name)))
+      (when (buffer-live-p sidebar)
+        (with-current-buffer sidebar
+          (when (and organic-markdown-commands-sidebar-root
+                     (string= (organic-markdown-normalize-root root)
+                              (organic-markdown-normalize-root
+                               organic-markdown-commands-sidebar-root)))
+            (condition-case error
+                (organic-markdown-commands-sidebar-render root)
+              (error
+               (message "OMD could not refresh %s: %s"
+                        (abbreviate-file-name file)
+                        (error-message-string error))))))))))
 
 (defun organic-markdown-install-global-keybindings (&optional key)
   "Bind KEY globally to `organic-markdown-commands-sidebar-toggle'.
