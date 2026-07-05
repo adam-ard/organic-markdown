@@ -116,7 +116,6 @@ where `organic-markdown-command' should run."
 (defvar organic-markdown-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "C-c o") #'organic-markdown-commands-sidebar-toggle)
-    (define-key map (kbd "C-c @") #'organic-markdown-find-origin)
     (define-key map (kbd "M-.") #'organic-markdown-find-origin)
     (define-key map (kbd "M-?") #'organic-markdown-find-references)
     (define-key map (kbd "M-,") #'organic-markdown-pop-location)
