@@ -12,6 +12,7 @@
 ;; - a project command sidebar;
 ;; - command output buffers;
 ;; - jump-to-origin support for literate references;
+;; - project-wide reference search for literate references;
 ;; - optional sidebar refresh after save;
 ;; - optional Yasnippet snippets.
 ;;
@@ -24,6 +25,7 @@
 (require 'json)
 (require 'project)
 (require 'subr-x)
+(require 'button)
 
 (defgroup organic-markdown nil
   "Emacs integration for Organic Markdown."
@@ -115,6 +117,9 @@ where `organic-markdown-command' should run."
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "C-c o") #'organic-markdown-commands-sidebar-toggle)
     (define-key map (kbd "C-c @") #'organic-markdown-find-origin)
+    (define-key map (kbd "M-.") #'organic-markdown-find-origin)
+    (define-key map (kbd "M-?") #'organic-markdown-find-references)
+    (define-key map (kbd "M-,") #'organic-markdown-pop-location)
     (define-key map (kbd "C-c x") #'organic-markdown-run-command-at-point)
     (define-key map (kbd "C-c t") #'organic-markdown-tangle-project)
     (define-key map (kbd "C-c z") #'organic-markdown-show-command-output)
@@ -125,7 +130,7 @@ where `organic-markdown-command' should run."
   "Minor mode for editing Organic Markdown `.o.md' buffers.
 The mode provides local keybindings for the command sidebar, running command
 blocks, tangling the current project, showing command output, and jumping to the
-origin of a literate reference.  When
+origin of or finding references to a literate reference.  When
 `organic-markdown-enable-auto-reparse' is non-nil, enabling the mode also adds a
 buffer-local `after-save-hook' that refreshes visible Organic Markdown UI after
 saving `.o.md' files."
@@ -509,6 +514,41 @@ displayed buffer."
               (setq reference (substring reference 0 (match-beginning 0))))
             (string-trim reference)))))))
 
+(defun organic-markdown-definition-at-point ()
+  "Return the Organic Markdown block name defined on the current line, or nil."
+  (save-excursion
+    (beginning-of-line)
+    (when (looking-at "^```[^`\n]*{\\([^}\n]*\\)}")
+      (organic-markdown-commands-sidebar-find-command-name
+       (match-string-no-properties 1)))))
+
+(defun organic-markdown-reference-name-at-point ()
+  "Return the Organic Markdown reference or definition name at point, or nil."
+  (or (organic-markdown-ref-at-point)
+      (organic-markdown-definition-at-point)))
+
+(defvar organic-markdown-location-stack nil
+  "Stack of locations saved before Organic Markdown navigation commands.")
+
+(defun organic-markdown-push-location ()
+  "Save the current buffer and point for `organic-markdown-pop-location'."
+  (when buffer-file-name
+    (push (point-marker) organic-markdown-location-stack)))
+
+(defun organic-markdown-pop-location ()
+  "Return to the previous Organic Markdown navigation location."
+  (interactive)
+  (let ((marker (pop organic-markdown-location-stack)))
+    (unless marker
+      (user-error "No previous Organic Markdown location"))
+    (let ((buffer (marker-buffer marker))
+          (position (marker-position marker)))
+      (unless (buffer-live-p buffer)
+        (user-error "Previous Organic Markdown buffer no longer exists"))
+      (switch-to-buffer buffer)
+      (goto-char position)
+      (set-marker marker nil nil))))
+
 (defun organic-markdown-find-origin ()
   "Jump to the file that defines the Organic Markdown reference at point."
   (interactive)
@@ -542,6 +582,7 @@ displayed buffer."
                         (throw 'match file))))))))
       (unless origin-file
         (user-error "Could not resolve %s" name))
+      (organic-markdown-push-location)
       (find-file origin-file)
       (goto-char (point-min))
       (when (re-search-forward
@@ -549,6 +590,89 @@ displayed buffer."
              nil
              t)
         (beginning-of-line)))))
+
+(define-derived-mode organic-markdown-references-mode special-mode
+  "OMD-Refs"
+  "Major mode for Organic Markdown reference search results.")
+
+(defun organic-markdown-reference-regexp (name)
+  "Return a regexp that matches literate references to NAME.
+The delimiter after NAME keeps a search for `foo' from matching references to
+`foobar', while still matching defaults, arguments, and execution refs."
+  (concat (regexp-quote "@<")
+          (regexp-quote name)
+          "\\(?:[*({]\\|@>\\)"))
+
+(defun organic-markdown-reference-locations (root name)
+  "Return all `.o.md' reference locations for NAME under ROOT."
+  (let ((regexp (organic-markdown-reference-regexp name))
+        locations)
+    (dolist (file (directory-files-recursively root "\\.o\\.md\\'"))
+      (with-temp-buffer
+        (insert-file-contents file)
+        (goto-char (point-min))
+        (while (re-search-forward regexp nil t)
+          (let ((line (line-number-at-pos))
+                (text (string-trim-right
+                       (buffer-substring-no-properties
+                        (line-beginning-position)
+                        (line-end-position)))))
+            (setq locations
+                  (append locations
+                          (list (list file line text))))))))
+    locations))
+
+(defun organic-markdown-references-open-location (file line)
+  "Open FILE and move point to LINE."
+  (organic-markdown-push-location)
+  (find-file file)
+  (goto-char (point-min))
+  (forward-line (1- line)))
+
+(defun organic-markdown-references-render (root name locations)
+  "Render reference LOCATIONS for NAME under ROOT."
+  (let ((buffer (get-buffer-create
+                 (format "*OMD References: %s*" name))))
+    (with-current-buffer buffer
+      (organic-markdown-references-mode)
+      (let ((inhibit-read-only t))
+        (erase-buffer)
+        (insert (format "References to %s\n" name))
+        (insert (abbreviate-file-name root) "\n\n")
+        (if locations
+            (dolist (location locations)
+              (let* ((file (nth 0 location))
+                     (line (nth 1 location))
+                     (text (nth 2 location))
+                     (label (format "%s:%d"
+                                    (file-relative-name file root)
+                                    line)))
+                (insert-text-button
+                 label
+                 'action (lambda (_button)
+                           (organic-markdown-references-open-location
+                            file line))
+                 'follow-link t)
+                (insert ": " text "\n")))
+          (insert "No references found.\n")))
+      (goto-char (point-min)))
+    (display-buffer buffer)))
+
+(defun organic-markdown-find-references (name)
+  "Find all literate references to NAME in the current project."
+  (interactive
+   (let ((default (organic-markdown-reference-name-at-point)))
+     (list
+      (read-string
+       (if default
+           (format "Find references for block (default %s): " default)
+         "Find references for block: ")
+       nil nil default))))
+  (when (string-empty-p name)
+    (user-error "Missing Organic Markdown reference name"))
+  (let* ((root (organic-markdown-project-root))
+         (locations (organic-markdown-reference-locations root name)))
+    (organic-markdown-references-render root name locations)))
 
 (defun organic-markdown-block-attributes-at-point ()
   "Return the code block attributes from the current header line, or nil."
