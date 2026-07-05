@@ -127,7 +127,7 @@ else:
 
 # Tests
 
-This test suite checks both layers of command handling. The first set of checks covers the small interactive-loop command handler (`exit`, `reload`, and delegation to `CodeBlocks.handle_cmd`). The second set exercises the real `CodeBlocks.handle_cmd()` dispatcher, including the new `--help` aliases.
+This test suite checks both layers of command handling. The first set of checks covers the small interactive-loop command handler (`exit` and delegation to `CodeBlocks.handle_cmd`). The second set exercises the real `CodeBlocks.handle_cmd()` dispatcher, including the new `--help` aliases.
 
 It uses a lightweight mock `CodeBlocks` object with `reset()`, `parse()`, and `handle_cmd()` methods to keep the tests isolated and fast.
 
@@ -228,25 +228,13 @@ class os:
 
 code_blocks = CodeBlocks()
 
-def daemon_reload(_root):
-    code_blocks.parse()
+def omd_load_code_blocks(_root):
     return code_blocks
-
-def daemon_snapshot(_root):
-    return code_blocks
-
-def daemon_reparse(_root, _filename):
-    return 0
 
 @<handle_cmd_test(cmd=exit
                   parsed=False
                   words=[]
                   fail_msg="didn't run exit")@>
-
-@<handle_cmd_test(cmd=reload
-                  parsed=True
-                  words=[]
-                  fail_msg="didn't run reload")@>
 
 @<handle_cmd_test(cmd=diff_command
                   parsed=False

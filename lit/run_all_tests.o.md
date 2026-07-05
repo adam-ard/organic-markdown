@@ -4,6 +4,7 @@ This file wires the project-wide literate test suite together in one place. New 
 
 ```bash {name=all_tests menu=true}
 echo '@<main_code_tests*@>'
+echo '@<parsed_project_cache_tests*@>'
 echo '@<handle_cmd_tests*@>'
 echo '@<print_help_tests*@>'
 echo '@<f_parse_menu_attrib_tests*@>'

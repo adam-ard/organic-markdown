@@ -1,11 +1,16 @@
 # Interactive Mode
 
-Interactive mode is an infinite loop. After printing a command prompt it reads input from the user. After splitting the input into a list based on characters separated by whitespace, it check the first word for a couple simple matches. If the word is `exit`, we break out of the loop and exit the program. If the word is `reload`, we parse the literate files again and continue. Otherwise, we pass the command to `handle_cmd` function to execute a single command. After which we loop back and print another command prompt, and wait for the next command.
+Interactive mode is an infinite loop. Before each prompt it refreshes the
+`CodeBlocks` collection through the parsed project cache, so edits made while
+the session is open are picked up automatically without a manual reload command.
+After reading input, `exit` leaves the loop and every other command is delegated
+to the normal `CodeBlocks.handle_cmd()` dispatcher.
 
 ### @<interactive_mode@>
 
 ```python {name=interactive_mode}
 while True:
+    code_blocks = omd_load_code_blocks(os.getcwd())
     cmd = input("> ") # print prompt
     @<handle_cmd@>
 ```
@@ -19,17 +24,6 @@ words = cmd.split(" ")
 
 if words[0] == "exit":
     break
-
-if words[0] == "reload":
-    code_blocks = daemon_reload(os.getcwd())
-    print("code reloaded")
-    continue
-
-if words[0] == "reparse" and len(words) == 2:
-    if daemon_reparse(os.getcwd(), words[1]) == 0:
-        code_blocks = daemon_snapshot(os.getcwd())
-        print("file reparsed")
-    continue
 
 code_blocks.handle_cmd(words)
 ```

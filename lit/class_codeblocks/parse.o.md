@@ -1,6 +1,6 @@
 # `CodeBlocks::parse`
 
-This method walks the current directory tree, locates all `.o.md` files, and uses Pandoc to parse them into JSON. Parsed blocks are retained per source file before a merged working collection is built. Keeping the unmerged contributions makes a daemon reparse transactional: one changed file can be replaced without reparsing its neighbors, including when names are shared across files.
+This method walks the current directory tree, locates all `.o.md` files, and uses Pandoc to parse them into JSON. Parsed blocks are retained per source file before a merged working collection is built. Keeping the unmerged contributions makes cache refreshes incremental: one changed file can be replaced without reparsing its neighbors, including when names are shared across files.
 
 ---
 

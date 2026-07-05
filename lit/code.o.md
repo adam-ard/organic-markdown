@@ -16,7 +16,7 @@ This represents a shift in mindset: the *source of truth* becomes your literate 
 @<funcs@>
 @<class__codeblock@>
 @<class__codeblocks@>
-@<daemon_runtime@>
+@<parsed_project_cache@>
 
 @<main@>
 ```
@@ -28,5 +28,5 @@ This represents a shift in mindset: the *source of truth* becomes your literate 
 * [`@<funcs@>`](funcs.o.md)
 * [`@<class__codeblock@>`](class_code_block.o.md)
 * [`@<class__codeblocks@>`](class_code_blocks.o.md)
-* [`@<daemon_runtime@>`](daemon/main.o.md)
+* [`@<parsed_project_cache@>`](cache.o.md)
 * [`@<main@>`](main.o.md)
