@@ -97,25 +97,26 @@ expected_output=$(cat <<'EOF'
 
 #include <stdio.h>
 #include <stdlib.h>
+
 #include <string.h>
 
 void main()
 {
     printf("Hello Organic Markdown World\n");
     printf("testing_me-1\n");
-    
+
     printf("testing_me-2\n");
-    
+
     printf("testing_me-3\n");
-    
+
     printf("testing_me-5\n");
     /*
      *  printf("testing_me-1\n");
-     *  
+
      *  printf("testing_me-2\n");
-     *  
+
      *  printf("testing_me-3\n");
-     *  
+
      *  printf("testing_me-5\n");
      */
     // wonderful-> 1 <-end1

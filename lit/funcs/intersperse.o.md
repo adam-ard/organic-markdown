@@ -5,10 +5,17 @@ To be honest, I think intersperse is probably a bad name for this, but I couldn'
 Input -> ["1\n2\n3", "4\n5", "6"]
 Output -> ["146", "256", "356"]
 
-Actually, the resulting list, right before being returned, get joined by `\n` characters, so a single string will get returned. Like this: "146\n256\n356". Here is the code for the `intersperse` function:
+Actually, the resulting list, right before being returned, get joined by `\n` characters, so a single string will get returned. Like this: "146\n256\n356".
+
+Here is the code for the `intersperse` function:
 
 ```python {name=intersperse}
-def intersperse(sections):
+def intersperse(sections_in):
+    sections = []
+    for s in sections_in:
+        if s != "":
+            sections.append(s)
+
     out = []
     max_lines = get_max_lines(sections)
     for i in range(max_lines):
@@ -16,9 +23,16 @@ def intersperse(sections):
         for s in sections:
             lines = s.split("\n")
             if i < len(lines):
-                line += lines[i]
+                add_line = lines[i]
             else:
-                line += lines[-1]   # repeat the last entry
+                add_line = lines[-1]   # repeat the last entry
+
+            if add_line == "":
+                line = ""
+                break
+
+            line += add_line
+
         out.append(line)
     return "\n".join(out)
 ```
@@ -34,13 +48,22 @@ Here are a few tests to confirm that the intersperse functionality is working co
 @<omd_assert@>
 
 omd_assert(intersperse([]), "")
+omd_assert(intersperse(["", "a", ""]), "a")
 omd_assert(intersperse(["a", "b"]), "ab")
 omd_assert(intersperse(["a\nb", "c\nd"]), "ac\nbd")
 omd_assert(intersperse(["a\nb\nc", "d\ne"]), "ad\nbe\nce")
 omd_assert(intersperse(["a\nb\nc\nd", "e\nf"]), "ae\nbf\ncf\ndf")
 omd_assert(intersperse(["e\nf", "a\nb\nc\nd"]), "ea\nfb\nfc\nfd")
 omd_assert(intersperse(["e\nf", ":", "a\nb\nc\nd", ":"]), "e:a:\nf:b:\nf:c:\nf:d:")
+omd_assert(
+    intersperse(["#include ", "<one>\n<two>\n\n<three>", ""]),
+    "#include <one>\n#include <two>\n\n#include <three>",
+)
+omd_assert(intersperse(["keep ", "", " line"]), "keep  line")
 
+omd_assert(
+      intersperse(["prefix", "a\n", "1\n2\n3\n4\n5"]),
+      "prefixa1\n\n\n\n",
+  )
 @<test_passed(name="intersperse")@>
 ```
-

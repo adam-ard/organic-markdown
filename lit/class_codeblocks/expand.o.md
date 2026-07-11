@@ -32,7 +32,7 @@ It’s deceptively small—and very sensitive to change—but it's where all the
     * Appends the rest of the string
   * If a ref has no argument value, named block, or explicit default, returns `None` to discard the whole logical line containing it.
   * Otherwise, returns the fully resolved, recursively substituted line.
-* The final output filters discarded lines, then reassembles the remaining lines using `intersperse()` to preserve context and indentation.
+* The final output filters discarded lines, then reassembles the remaining lines using `intersperse()` to preserve context and indentation. Explicitly blank rows in a multiline replacement remain blank instead of receiving the surrounding context.
 
 An explicit empty default, `@<name{}@>`, still substitutes an empty string without discarding its line. This gives callers a way to intentionally keep surrounding text while making the ref optional.
 
@@ -282,6 +282,15 @@ indent_6 = [["",
     // :<indent_5:>
 }"""]
 
+includes_with_gap = [["",
+                      [],
+                      [["name", "includes_with_gap"],
+                       ]],
+                     """<one>
+<two>
+
+<three>"""]
+
 
 
 full_file = {"blocks": [{"t": "",
@@ -348,6 +357,9 @@ full_file = {"blocks": [{"t": "",
                          "c": indent_6
                          },
                         {"t": "CodeBlock",
+                         "c": includes_with_gap
+                         },
+                        {"t": "CodeBlock",
                          "c": code_block_3
                          },
                         {"t": "CodeBlock",
@@ -411,7 +423,7 @@ test(':<two_1(one="qwerty"):>', "[This is the text from block one:qwerty, wasn't
 test(':<indent_4:>', f"""indent_block {{
     one
         {""}
-    {""}
+
     two
       three
     four
@@ -419,11 +431,15 @@ test(':<indent_4:>', f"""indent_block {{
 test(':<indent_6:>', f"""indent_block {{
     // one
     // {"    "}
-    // {""}
+
     // two
     //   three
     // four
 }}""")
+test('#include :<includes_with_gap:>', """#include <one>
+#include <two>
+
+#include <three>""")
 
 
 test('--->:<indent_2:>:<one:><-----', """--->one[This is some text]<-----
