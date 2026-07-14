@@ -123,6 +123,7 @@ where `organic-markdown-command' should run."
     (define-key map (kbd "M-,") #'organic-markdown-pop-location)
     (define-key map (kbd "C-c x") #'organic-markdown-run-command-at-point)
     (define-key map (kbd "C-c v") #'organic-markdown-expand-block-at-point)
+    (define-key map (kbd "C-c V") #'organic-markdown-expand-region)
     (define-key map (kbd "C-c t") #'organic-markdown-tangle-project)
     (define-key map (kbd "C-c z") #'organic-markdown-show-command-output)
     map)
@@ -684,9 +685,10 @@ The delimiter after NAME keeps a search for `foo' from matching references to
       (match-string-no-properties 1))))
 
 (defun organic-markdown-enclosing-code-block ()
-  "Return metadata for the named fenced code block containing point.
-The result is a plist with `:name' and `:language' entries.  Return nil when
-point is not between a named block's opening and closing fences."
+  "Return metadata for the fenced code block containing point.
+The result is a plist with `:name', `:language', `:start', and `:end' entries.
+The name may be nil.  Return nil when point is not between an opening and
+closing fence."
   (save-excursion
     (let ((origin (point)))
       ;; Starting at the end of the line lets this include point on the opening
@@ -702,11 +704,14 @@ point is not between a named block's opening and closing fences."
           (goto-char (match-end 0))
           (when (and (re-search-forward "^```[ \t]*$" nil t)
                      (<= start origin (match-end 0)))
-            (let ((name
-                   (organic-markdown-commands-sidebar-find-command-name
-                    attributes)))
-              (when name
-                (list :name name :language language)))))))))
+            (let* ((end (match-end 0))
+                   (name
+                    (organic-markdown-commands-sidebar-find-command-name
+                     attributes)))
+              (list :name name
+                    :language language
+                    :start start
+                    :end end))))))))
 
 (defun organic-markdown-language-mode (language)
   "Return the available major mode corresponding to LANGUAGE.
@@ -718,6 +723,45 @@ LANGUAGE-mode name.  Fall back to `fundamental-mode'."
         (and (fboundp mode) mode))
       'fundamental-mode))
 
+(defvar organic-markdown-expansion-view-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "q") #'quit-window)
+    map)
+  "Keymap for `organic-markdown-expansion-view-mode'.")
+
+(define-minor-mode organic-markdown-expansion-view-mode
+  "Make an expanded Organic Markdown block a read-only, dismissible view."
+  :lighter " OMD-View"
+  :keymap organic-markdown-expansion-view-mode-map
+  (read-only-mode (if organic-markdown-expansion-view-mode 1 -1)))
+
+(defvar organic-markdown-expand-string-buffer-number 0
+  "Number used to give each `omd expand-str' result a distinct buffer.")
+
+(defun organic-markdown-next-expand-string-buffer ()
+  "Create and return the next numbered `omd expand-str' buffer."
+  (let (name)
+    (while
+        (get-buffer
+         (setq name
+               (format "*omd expand-str #%d*"
+                       (setq organic-markdown-expand-string-buffer-number
+                             (1+ organic-markdown-expand-string-buffer-number))))))
+    (get-buffer-create name)))
+
+(defun organic-markdown-display-expansion (buffer root mode output)
+  "Display OUTPUT in BUFFER from ROOT using major MODE.
+Make BUFFER read-only and let `q' dismiss its window."
+  (with-current-buffer buffer
+    (funcall mode)
+    (setq-local default-directory (organic-markdown-normalize-root root))
+    (let ((inhibit-read-only t))
+      (erase-buffer)
+      (insert output))
+    (goto-char (point-min))
+    (organic-markdown-expansion-view-mode 1))
+  (pop-to-buffer buffer))
+
 (defun organic-markdown-expand-block-at-point ()
   "Expand the named code block containing point and display its source.
 Run `omd expand NAME' from the current Organic Markdown project.  Display the
@@ -725,7 +769,7 @@ result in `*omd expand NAME*' using the major mode declared by the block's
 fence language."
   (interactive)
   (let ((block (organic-markdown-enclosing-code-block)))
-    (unless block
+    (unless (and block (plist-get block :name))
       (user-error "Point is not inside a named Organic Markdown code block"))
     (let* ((name (plist-get block :name))
            (language (plist-get block :language))
@@ -742,14 +786,37 @@ fence language."
                (user-error "OMD could not expand %s: %s"
                            name
                            (error-message-string error))))))
-      (with-current-buffer buffer
-        (funcall mode)
-        (setq-local default-directory (organic-markdown-normalize-root root))
-        (let ((inhibit-read-only t))
-          (erase-buffer)
-          (insert output))
-        (goto-char (point-min)))
-      (pop-to-buffer buffer))))
+      (organic-markdown-display-expansion buffer root mode output))))
+
+(defun organic-markdown-expand-region (begin end)
+  "Expand the active region from BEGIN to END and display the result.
+Run `omd expand-str TEXT' from the current Organic Markdown project.  Each
+result is shown in a new numbered, read-only buffer.  When the entire region is
+inside a fenced code block, use that block's language mode."
+  (interactive "r")
+  (unless (use-region-p)
+    (user-error "Select a region to expand"))
+  (let* ((text (buffer-substring-no-properties begin end))
+         (source-mode major-mode)
+         (block (save-excursion
+                  (goto-char begin)
+                  (organic-markdown-enclosing-code-block)))
+         (language (and block
+                        (<= end (plist-get block :end))
+                        (plist-get block :language)))
+         (mode (if (and language (not (string-empty-p language)))
+                   (organic-markdown-language-mode language)
+                 source-mode))
+         (root (organic-markdown-project-root))
+         (output
+          (condition-case error
+              (organic-markdown-control-call root (list "expand-str" text))
+            (error
+             (user-error "OMD could not expand the selected region: %s"
+                         (error-message-string error)))))
+         (buffer (organic-markdown-next-expand-string-buffer)))
+    (deactivate-mark)
+    (organic-markdown-display-expansion buffer root mode output)))
 
 (defun organic-markdown-command-at-point ()
   "Return the runnable Organic Markdown command at point, or nil."
