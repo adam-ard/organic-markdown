@@ -11,6 +11,7 @@
 ;; - a minor mode for `.o.md' buffers;
 ;; - a project command sidebar;
 ;; - command output buffers;
+;; - expanded code block previews;
 ;; - jump-to-origin support for literate references;
 ;; - project-wide reference search for literate references;
 ;; - optional sidebar refresh after save;
@@ -26,6 +27,7 @@
 (require 'project)
 (require 'subr-x)
 (require 'button)
+(require 'ansi-color)
 
 (defgroup organic-markdown nil
   "Emacs integration for Organic Markdown."
@@ -120,6 +122,7 @@ where `organic-markdown-command' should run."
     (define-key map (kbd "M-?") #'organic-markdown-find-references)
     (define-key map (kbd "M-,") #'organic-markdown-pop-location)
     (define-key map (kbd "C-c x") #'organic-markdown-run-command-at-point)
+    (define-key map (kbd "C-c v") #'organic-markdown-expand-block-at-point)
     (define-key map (kbd "C-c t") #'organic-markdown-tangle-project)
     (define-key map (kbd "C-c z") #'organic-markdown-show-command-output)
     map)
@@ -197,7 +200,7 @@ long-running OMD process."
       (let ((inhibit-read-only t)
             (moving (= (point) (point-max))))
         (goto-char (point-max))
-        (insert text)
+        (insert (ansi-color-apply text))
         (when moving
           (goto-char (point-max)))))))
 
@@ -679,6 +682,74 @@ The delimiter after NAME keeps a search for `foo' from matching references to
     (beginning-of-line)
     (when (looking-at "^```[^`\n]*{\\([^}\n]*\\)}")
       (match-string-no-properties 1))))
+
+(defun organic-markdown-enclosing-code-block ()
+  "Return metadata for the named fenced code block containing point.
+The result is a plist with `:name' and `:language' entries.  Return nil when
+point is not between a named block's opening and closing fences."
+  (save-excursion
+    (let ((origin (point)))
+      ;; Starting at the end of the line lets this include point on the opening
+      ;; fence, even when point is before the attributes.
+      (goto-char (line-end-position))
+      (when (re-search-backward
+             "^```\\([^[:space:]`{\n]*\\)[ \t]*{\\([^}\n]*\\)}"
+             nil
+             t)
+        (let ((start (match-beginning 0))
+              (language (match-string-no-properties 1))
+              (attributes (match-string-no-properties 2)))
+          (goto-char (match-end 0))
+          (when (and (re-search-forward "^```[ \t]*$" nil t)
+                     (<= start origin (match-end 0)))
+            (let ((name
+                   (organic-markdown-commands-sidebar-find-command-name
+                    attributes)))
+              (when name
+                (list :name name :language language)))))))))
+
+(defun organic-markdown-language-mode (language)
+  "Return the available major mode corresponding to LANGUAGE.
+Use markdown-mode's language mapping when available, then try the conventional
+LANGUAGE-mode name.  Fall back to `fundamental-mode'."
+  (or (and (fboundp 'markdown-get-lang-mode)
+           (markdown-get-lang-mode language))
+      (let ((mode (intern (concat (downcase language) "-mode"))))
+        (and (fboundp mode) mode))
+      'fundamental-mode))
+
+(defun organic-markdown-expand-block-at-point ()
+  "Expand the named code block containing point and display its source.
+Run `omd expand NAME' from the current Organic Markdown project.  Display the
+result in `*omd expand NAME*' using the major mode declared by the block's
+fence language."
+  (interactive)
+  (let ((block (organic-markdown-enclosing-code-block)))
+    (unless block
+      (user-error "Point is not inside a named Organic Markdown code block"))
+    (let* ((name (plist-get block :name))
+           (language (plist-get block :language))
+           (_ (when (string-empty-p language)
+                (user-error "Code block %s does not declare a fence language"
+                            name)))
+           (root (organic-markdown-project-root))
+           (buffer (get-buffer-create (format "*omd expand %s*" name)))
+           (mode (organic-markdown-language-mode language))
+           (output
+            (condition-case error
+                (organic-markdown-control-call root (list "expand" name))
+              (error
+               (user-error "OMD could not expand %s: %s"
+                           name
+                           (error-message-string error))))))
+      (with-current-buffer buffer
+        (funcall mode)
+        (setq-local default-directory (organic-markdown-normalize-root root))
+        (let ((inhibit-read-only t))
+          (erase-buffer)
+          (insert output))
+        (goto-char (point-min)))
+      (pop-to-buffer buffer))))
 
 (defun organic-markdown-command-at-point ()
   "Return the runnable Organic Markdown command at point, or nil."

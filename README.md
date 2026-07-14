@@ -391,6 +391,7 @@ The available keys are:
 | `C-c o` | Any buffer in the project | Toggle the Organic Markdown command sidebar |
 | `C-c @` | An `@<name@>` reference | Open the file that defines the reference |
 | `C-c x` | A command block header | Run the command at point |
+| `C-c v` | Inside a named code block | Expand the block in a language-mode buffer |
 | `C-c t` | An `.o.md` buffer | Run `omd tangle` for the project |
 | `C-c z` | A command block header | Show that command's existing output buffer |
 | `RET` | Sidebar entry | Open the corresponding file or command |
