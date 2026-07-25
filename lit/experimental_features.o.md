@@ -24,12 +24,15 @@ For example:
 ````markdown
 <div id="omd-code-1" class="omd-code-anchor"></div>
 
-- Code block: `build`
-- Language: `bash`
+<h4 class="omd-code-title"><code>build</code></h4>
+
 - menu: `true`
 
+<div class="omd-code-panel has-language">
+<div class="omd-language-label">bash</div>
 <pre><code class="language-bash">make
 </code></pre>
+</div>
 ````
 
 ```python {name=codeblocks__weave_file}
@@ -109,14 +112,38 @@ def weave_html_document(self, title, body):
     }}
     h1, h2, h3, h4, h5 {{ line-height: 1.25; scroll-margin-top: 1rem; }}
     .omd-code-block {{
+      position: relative;
       margin: 3.5rem 0;
-      padding: 1.25rem 1.4rem;
+      padding: 1.75rem 1.4rem 1.25rem;
       background: var(--block);
       border: 1px solid var(--block-line);
       border-radius: 14px;
     }}
     .omd-code-anchor {{
       scroll-margin-top: 1rem;
+    }}
+    .omd-code-title {{
+      position: absolute;
+      top: 0;
+      left: 1.4rem;
+      transform: translateY(-50%);
+      margin: 0;
+      padding: 0.28rem 0.8rem;
+      background: var(--block);
+      border: 1px solid var(--block-line);
+      border-radius: 999px;
+      box-shadow: 0 3px 10px rgb(0 0 0 / 8%);
+      font-size: 1rem;
+      letter-spacing: -0.01em;
+    }}
+    .omd-code-title code {{
+      padding: 0;
+      color: var(--text);
+      background: transparent;
+    }}
+    .omd-code-title.unnamed {{
+      color: var(--muted);
+      font-weight: 500;
     }}
     a {{ color: var(--accent); text-underline-offset: 0.16em; }}
     pre {{
@@ -126,6 +153,29 @@ def weave_html_document(self, title, body):
       border: 1px solid var(--code-line);
       border-radius: 10px;
       line-height: 1.5;
+    }}
+    .omd-code-panel {{
+      position: relative;
+      margin: 1.75rem 0 1rem;
+    }}
+    .omd-code-panel pre {{
+      margin: 0;
+    }}
+    .omd-code-panel.has-language pre {{
+      padding-top: 1.65rem;
+    }}
+    .omd-language-label {{
+      position: absolute;
+      top: 0;
+      left: 1rem;
+      z-index: 1;
+      transform: translateY(-50%);
+      padding: 0.2rem 0.65rem;
+      color: var(--text);
+      background: var(--code);
+      border: 1px solid var(--code-line);
+      border-radius: 999px;
+      font: 600 0.82rem/1.2 ui-monospace, SFMono-Regular, Consolas, monospace;
     }}
     code {{ font-family: ui-monospace, SFMono-Regular, Consolas, monospace; }}
     :not(pre) > code {{
@@ -341,9 +391,21 @@ def weave_code_html(self, code, language, filename):
     rendered.append(html.escape(code[position:]))
 
     language_class = ""
+    panel_class = "omd-code-panel"
+    language_label = ""
     if language:
         language_class = f' class="language-{html.escape(language, quote=True)}"'
-    return f"<pre><code{language_class}>" + "".join(rendered) + "</code></pre>"
+        panel_class += " has-language"
+        language_label = (
+            '<div class="omd-language-label">'
+            f"{html.escape(language)}</div>"
+        )
+    return (
+        f'<div class="{panel_class}">'
+        f"{language_label}<pre><code{language_class}>"
+        + "".join(rendered)
+        + "</code></pre></div>"
+    )
 
 def weave_expand_prose(self, prose, reference_number):
     annotated = []
@@ -432,9 +494,24 @@ def weave_file(
                 'class="omd-code-anchor"></div>'
             ),
             "",
-            f"- Code block: `{name}`" if name else "- Code block: _unnamed_",
-            f"- Language: `{language}`" if language else "- Language: _not specified_",
         ]
+        if name:
+            details.extend(
+                [
+                    (
+                        '<h4 class="omd-code-title"><code>'
+                        f"{html.escape(name)}</code></h4>"
+                    ),
+                    "",
+                ]
+            )
+        else:
+            details.extend(
+                [
+                    '<h4 class="omd-code-title unnamed">Unnamed code block</h4>',
+                    "",
+                ]
+            )
         for key, value in self.weave_metadata_attributes(metadata, language):
             details.append(f"- {key}: `{value}`")
         details.extend(["", ""])
@@ -541,6 +618,7 @@ with tempfile.TemporaryDirectory() as directory:
         omd_assert(True, "border: 1px solid var(--code-line);" in guide)
         omd_assert(True, '<div class="omd-code-block">' in guide)
         omd_assert(True, "background: var(--block);" in guide)
+        omd_assert(True, "transform: translateY(-50%);" in guide)
         omd_assert(
             True,
             'The answer is <a id="omd-ref-1"></a>forty-two.' in guide,
@@ -549,8 +627,18 @@ with tempfile.TemporaryDirectory() as directory:
             True,
             '<div id="omd-code-1" class="omd-code-anchor">' in guide,
         )
-        omd_assert(True, "<li>Code block: <code>hello</code></li>" in guide)
-        omd_assert(True, "<li>Language: <code>python</code></li>" in guide)
+        omd_assert(
+            True,
+            '<h4 class="omd-code-title">' in guide
+            and "<code>hello</code>" in guide,
+        )
+        omd_assert(False, "<li>Code block:" in guide)
+        omd_assert(False, "<li>Language:" in guide)
+        omd_assert(
+            True,
+            '<div class="omd-language-label">' in guide
+            and "language-python" in guide,
+        )
         omd_assert(True, "<li>tangle: <code>hello.py</code></li>" in guide)
         omd_assert(True, "<li>menu: <code>true</code></li>" in guide)
         omd_assert(False, "Metadata:" in guide)
@@ -581,7 +669,17 @@ with tempfile.TemporaryDirectory() as directory:
             True,
             '<div id="omd-code-3" class="omd-code-anchor">' in tool,
         )
-        omd_assert(True, "<li>Language: <code>bash</code></li>" in tool)
+        omd_assert(
+            True,
+            '<h4 class="omd-code-title unnamed">' in tool
+            and "Unnamed code block" in tool,
+        )
+        omd_assert(False, "<li>Language:" in tool)
+        omd_assert(
+            True,
+            '<div class="omd-language-label">' in tool
+            and "language-bash" in tool,
+        )
         omd_assert(False, "Metadata:" in tool)
         omd_assert(
             True,
