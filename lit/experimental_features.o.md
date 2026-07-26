@@ -24,9 +24,7 @@ For example:
 ````markdown
 <div id="omd-code-1" class="omd-code-anchor"></div>
 
-<h4 class="omd-code-title"><code>build</code></h4>
-
-- menu: `true`
+<h4 class="omd-code-title"><span class="omd-card-kind">command</span><code>build</code></h4>
 
 <div class="omd-code-panel has-language">
 <div class="omd-language-label">bash</div>
@@ -78,6 +76,18 @@ def weave_html_document(self, title, body):
       --block-line: #b8d2c6;
       --code: #e8f0ec;
       --code-line: #b8d2c6;
+      --command-block: #eef1fb;
+      --command-line: #b9c5e7;
+      --command-code: #e4e9f8;
+      --command-accent: #405da8;
+      --file-block: #faf2e3;
+      --file-line: #dfc38e;
+      --file-code: #f3e7d1;
+      --file-accent: #986408;
+      --example-block: #f6eef9;
+      --example-line: #d7bce2;
+      --example-code: #f0e5f4;
+      --example-accent: #81519a;
     }}
     @media (prefers-color-scheme: dark) {{
       :root {{
@@ -91,6 +101,18 @@ def weave_html_document(self, title, body):
         --block-line: #365247;
         --code: #19221e;
         --code-line: #365247;
+        --command-block: #1c2234;
+        --command-line: #3f4f7b;
+        --command-code: #202941;
+        --command-accent: #9cb4ff;
+        --file-block: #2a2318;
+        --file-line: #6c5530;
+        --file-code: #332919;
+        --file-accent: #f2c46d;
+        --example-block: #291e2e;
+        --example-line: #664775;
+        --example-code: #322339;
+        --example-accent: #d6a6ea;
       }}
     }}
     * {{ box-sizing: border-box; }}
@@ -115,9 +137,33 @@ def weave_html_document(self, title, body):
       position: relative;
       margin: 3.5rem 0;
       padding: 1.75rem 1.4rem 1.25rem;
-      background: var(--block);
-      border: 1px solid var(--block-line);
+      background: var(--card-bg);
+      border: 1px solid var(--card-line);
       border-radius: 14px;
+    }}
+    .omd-card-code {{
+      --card-bg: var(--block);
+      --card-line: var(--block-line);
+      --card-code: var(--code);
+      --card-accent: var(--accent);
+    }}
+    .omd-card-command {{
+      --card-bg: var(--command-block);
+      --card-line: var(--command-line);
+      --card-code: var(--command-code);
+      --card-accent: var(--command-accent);
+    }}
+    .omd-card-file {{
+      --card-bg: var(--file-block);
+      --card-line: var(--file-line);
+      --card-code: var(--file-code);
+      --card-accent: var(--file-accent);
+    }}
+    .omd-card-example {{
+      --card-bg: var(--example-block);
+      --card-line: var(--example-line);
+      --card-code: var(--example-code);
+      --card-accent: var(--example-accent);
     }}
     .omd-code-anchor {{
       scroll-margin-top: 1rem;
@@ -129,8 +175,10 @@ def weave_html_document(self, title, body):
       transform: translateY(-50%);
       margin: 0;
       padding: 0.28rem 0.8rem;
-      background: var(--block);
-      border: 1px solid var(--block-line);
+      max-width: calc(100% - 2.8rem);
+      overflow-x: auto;
+      background: var(--card-bg);
+      border: 1px solid var(--card-line);
       border-radius: 999px;
       box-shadow: 0 3px 10px rgb(0 0 0 / 8%);
       font-size: 1rem;
@@ -145,6 +193,15 @@ def weave_html_document(self, title, body):
       color: var(--muted);
       font-weight: 500;
     }}
+    .omd-card-kind {{
+      margin-right: 0.55rem;
+      color: var(--card-accent);
+      font: 700 0.68rem/1 ui-monospace, SFMono-Regular, Consolas, monospace;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }}
+    .omd-code-title.kind-only .omd-card-kind {{ margin-right: 0; }}
+    .omd-code-block a {{ color: var(--card-accent); }}
     a {{ color: var(--accent); text-underline-offset: 0.16em; }}
     pre {{
       overflow-x: auto;
@@ -160,6 +217,8 @@ def weave_html_document(self, title, body):
     }}
     .omd-code-panel pre {{
       margin: 0;
+      background: var(--card-code);
+      border-color: var(--card-line);
     }}
     .omd-code-panel.has-language pre {{
       padding-top: 1.65rem;
@@ -172,8 +231,8 @@ def weave_html_document(self, title, body):
       transform: translateY(-50%);
       padding: 0.2rem 0.65rem;
       color: var(--text);
-      background: var(--code);
-      border: 1px solid var(--code-line);
+      background: var(--card-code);
+      border: 1px solid var(--card-line);
       border-radius: 999px;
       font: 600 0.82rem/1.2 ui-monospace, SFMono-Regular, Consolas, monospace;
     }}
@@ -183,10 +242,11 @@ def weave_html_document(self, title, body):
       background: var(--code);
       border-radius: 5px;
     }}
+    .omd-code-block :not(pre) > code {{ background: var(--card-code); }}
     pre .omd-reference {{
       padding: 0.08em 0.18em;
-      color: var(--accent);
-      background: color-mix(in srgb, var(--accent) 13%, transparent);
+      color: var(--card-accent);
+      background: color-mix(in srgb, var(--card-accent) 13%, transparent);
       border-radius: 4px;
       font-weight: 700;
     }}
@@ -195,6 +255,10 @@ def weave_html_document(self, title, body):
       padding-left: 1rem;
       color: var(--muted);
       border-left: 4px solid var(--line);
+    }}
+    math[display="block"] {{
+      margin: 1.5rem auto;
+      overflow-x: auto;
     }}
     @media (max-width: 640px) {{
       main {{ width: 100%; margin: 0; border: 0; border-radius: 0; }}
@@ -270,6 +334,34 @@ def weave_metadata_attributes(self, metadata, language):
         elif token:
             attributes.append((token, "true"))
     return attributes
+
+def weave_card_info(self, name, attributes):
+    menu = next((value for key, value in attributes if key == "menu"), None)
+    tangle = next((value for key, value in attributes if key == "tangle"), None)
+
+    if menu is not None and parse_menu_attrib(menu):
+        kind = "command"
+        title = name if name else "Unnamed command"
+        hidden_attributes = {"menu"}
+    elif tangle:
+        kind = "file"
+        title = os.path.abspath(self.expand(tangle))
+        hidden_attributes = {"tangle"}
+    elif not name:
+        kind = "example"
+        title = None
+        hidden_attributes = set()
+    else:
+        kind = "code"
+        title = name
+        hidden_attributes = set()
+
+    visible_attributes = [
+        (key, value)
+        for key, value in attributes
+        if key not in hidden_attributes
+    ]
+    return kind, title, visible_attributes
 
 def weave_definition_index(self):
     definition_index = {}
@@ -486,8 +578,13 @@ def weave_file(
 
         language, metadata, name = self.weave_code_info(match.group("info"))
 
+        attributes = self.weave_metadata_attributes(metadata, language)
+        card_kind, card_title, visible_attributes = self.weave_card_info(
+            name,
+            attributes,
+        )
         details = [
-            "::: {.omd-code-block}",
+            f"::: {{.omd-code-block .omd-card-{card_kind}}}",
             "",
             (
                 f'<div id="omd-code-{code_block_number}" '
@@ -495,12 +592,12 @@ def weave_file(
             ),
             "",
         ]
-        if name:
+        if card_title is None:
             details.extend(
                 [
                     (
-                        '<h4 class="omd-code-title"><code>'
-                        f"{html.escape(name)}</code></h4>"
+                        '<h4 class="omd-code-title kind-only">'
+                        f'<span class="omd-card-kind">{card_kind}</span></h4>'
                     ),
                     "",
                 ]
@@ -508,11 +605,15 @@ def weave_file(
         else:
             details.extend(
                 [
-                    '<h4 class="omd-code-title unnamed">Unnamed code block</h4>',
+                    (
+                        '<h4 class="omd-code-title">'
+                        f'<span class="omd-card-kind">{card_kind}</span>'
+                        f"<code>{html.escape(card_title)}</code></h4>"
+                    ),
                     "",
                 ]
             )
-        for key, value in self.weave_metadata_attributes(metadata, language):
+        for key, value in visible_attributes:
             details.append(f"- {key}: `{value}`")
         details.extend(["", ""])
         weaved_content.append("\n".join(details))
@@ -535,7 +636,12 @@ def weave_file(
     if output_dir:
         os.makedirs(output_dir, exist_ok=True)
     markdown = "".join(weaved_content)
-    body = pypandoc.convert_text(markdown, "html", format="md")
+    body = pypandoc.convert_text(
+        markdown,
+        "html",
+        format="md",
+        extra_args=["--mathml"],
+    )
     title = relative_output[:-len(".html")]
     document = self.weave_html_document(title, body)
     with open(weaved_filename, "w", encoding="utf-8") as output:
@@ -555,6 +661,7 @@ code, cross-file relative links, and same-page fragment links.
 
 o_sym = ":<"
 c_sym = ":>"
+@<parse_menu_attrib@>
 @<parse_name@>
 @<parse_exec@>
 @<parse_args_str@>
@@ -589,10 +696,11 @@ with tempfile.TemporaryDirectory() as directory:
         tool_ref = ":<tool:>"
         with open("guide.o.md", "w", encoding="utf-8") as output:
             output.write(
-                f"# Guide\n\nThe answer is {answer_ref}.\n"
+                f"# Guide\n\n$$\\bar K(p)=\\frac{{2\\pi}}{{n}}I(p).$$\n\n"
+                f"The answer is {answer_ref}.\n"
                 f"This same-file reference is {hello_ref}.\n\n"
                 f"The nested tool is {tool_ref}.\n\n"
-                "```python {name=hello tangle=hello.py menu=true}\n"
+                "```python {name=hello menu=true}\n"
                 f'print("{answer_ref}")\n'
                 "```\n"
             )
@@ -601,7 +709,8 @@ with tempfile.TemporaryDirectory() as directory:
                 f"# Tool\n\nUses {hello_ref}.\n\n"
                 "```bash {name=tool}\necho tool\n```\n\n"
                 "```text\nunnamed\n```\n\n"
-                "```python {name=answer}\nanswer = 42\n```\n"
+                "```python {name=answer tangle=generated/answer.py}\n"
+                "answer = 42\n```\n"
             )
 
         blocks = CodeBlocks(["guide.o.md", "nested/tool.o.md"])
@@ -614,10 +723,12 @@ with tempfile.TemporaryDirectory() as directory:
 
         omd_assert(True, guide.startswith("<!doctype html>"))
         omd_assert(True, "<title>guide</title>" in guide)
+        omd_assert(True, "<math" in guide)
+        omd_assert(True, "<mfrac>" in guide)
         omd_assert(True, "--code: #e8f0ec;" in guide)
         omd_assert(True, "border: 1px solid var(--code-line);" in guide)
-        omd_assert(True, '<div class="omd-code-block">' in guide)
-        omd_assert(True, "background: var(--block);" in guide)
+        omd_assert(True, "omd-card-command" in guide)
+        omd_assert(True, "background: var(--card-bg);" in guide)
         omd_assert(True, "transform: translateY(-50%);" in guide)
         omd_assert(
             True,
@@ -639,8 +750,9 @@ with tempfile.TemporaryDirectory() as directory:
             '<div class="omd-language-label">' in guide
             and "language-python" in guide,
         )
-        omd_assert(True, "<li>tangle: <code>hello.py</code></li>" in guide)
-        omd_assert(True, "<li>menu: <code>true</code></li>" in guide)
+        omd_assert(True, "omd-card-kind" in guide and "command" in guide)
+        omd_assert(False, "<li>tangle:" in guide)
+        omd_assert(False, "<li>menu:" in guide)
         omd_assert(False, "Metadata:" in guide)
         omd_assert(False, "OMD-CODE-1" in guide)
         omd_assert(True, '<pre><code class="language-python">' in guide)
@@ -671,9 +783,16 @@ with tempfile.TemporaryDirectory() as directory:
         )
         omd_assert(
             True,
-            '<h4 class="omd-code-title unnamed">' in tool
-            and "Unnamed code block" in tool,
+            '<h4 class="omd-code-title">' in tool
+            and "omd-card-example" in tool,
         )
+        omd_assert(False, "Unnamed code block" in tool)
+        omd_assert(True, "omd-code-title kind-only" in tool)
+        omd_assert(True, "example</span>" in tool)
+        omd_assert(True, "omd-card-code" in tool)
+        omd_assert(True, "omd-card-file" in tool)
+        omd_assert(True, "generated/answer.py" in tool)
+        omd_assert(False, "<li>tangle:" in tool)
         omd_assert(False, "<li>Language:" in tool)
         omd_assert(
             True,
