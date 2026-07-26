@@ -162,6 +162,28 @@ def weave_fence_pattern(self):
         r"(?P<code>.*?)^(?P=indent)(?P=fence)[ \t]*$"
     )
 
+def weave_split_front_matter(self, text):
+    match = re.match(
+        r"\A(?:\ufeff)?---[ \t]*\n.*?^(?:---|\.\.\.)[ \t]*\n",
+        text,
+        flags=re.DOTALL | re.MULTILINE,
+    )
+    if match is None:
+        return "", text
+    return text[:match.end()], text[match.end():]
+
+def weave_split_card_intro(self, text):
+    headings = list(
+        re.finditer(
+            r"(?m)^[ \t]{0,3}#{1,6}[ \t]+.+$",
+            text,
+        )
+    )
+    if not headings:
+        return text, ""
+    start = headings[-1].start()
+    return text[:start], text[start:]
+
 def weave_output_name(self, filename):
     relative_source = os.path.normpath(os.path.relpath(filename))
     if relative_source == ".." or relative_source.startswith(f"..{os.sep}"):
@@ -815,11 +837,28 @@ def weave_file(
 
     for match in self.weave_fence_pattern().finditer(content):
         code_block_number += 1
-        expanded, reference_number = self.weave_expand_prose(
-            content[position:match.start()],
+        prose = content[position:match.start()]
+        if position == 0:
+            front_matter, prose = self.weave_split_front_matter(prose)
+            expanded_front_matter, reference_number = self.weave_expand_prose(
+                front_matter,
+                reference_number,
+            )
+            weaved_content.append(expanded_front_matter)
+
+        if code_block_number == 1:
+            page_prose, card_prose = self.weave_split_card_intro(prose)
+        else:
+            page_prose, card_prose = "", prose
+        expanded_page_prose, reference_number = self.weave_expand_prose(
+            page_prose,
             reference_number,
         )
-        weaved_content.append(expanded)
+        weaved_content.append(expanded_page_prose)
+        expanded_prose, reference_number = self.weave_expand_prose(
+            card_prose,
+            reference_number,
+        )
 
         language, metadata, name = self.weave_code_info(match.group("info"))
 
@@ -866,10 +905,15 @@ def weave_file(
                     "",
                 ]
             )
-        for key, value in visible_attributes:
-            details.append(f"- {key}: `{value}`")
         details.extend(["", ""])
         weaved_content.append("\n".join(details))
+        weaved_content.append(expanded_prose)
+        if visible_attributes:
+            attribute_lines = [
+                f"- {key}: `{value}`"
+                for key, value in visible_attributes
+            ]
+            weaved_content.append("\n\n" + "\n".join(attribute_lines) + "\n\n")
         weaved_content.append(
             self.weave_code_html(match.group("code"), language, filename)
         )
@@ -960,7 +1004,10 @@ with tempfile.TemporaryDirectory() as directory:
         tool_ref = ":<tool:>"
         with open("guide.o.md", "w", encoding="utf-8") as output:
             output.write(
-                f"# Guide\n\n$$\\bar K(p)=\\frac{{2\\pi}}{{n}}I(p).$$\n\n"
+                "---\ntitle: Test Guide\n---\n\n"
+                "# Guide\n\nPage introduction.\n\n"
+                "## Hello command\n\n"
+                f"$$\\bar K(p)=\\frac{{2\\pi}}{{n}}I(p).$$\n\n"
                 f"The answer is {answer_ref}.\n"
                 f"This same-file reference is {hello_ref}.\n\n"
                 f"The nested tool is {tool_ref}.\n\n"
@@ -970,20 +1017,31 @@ with tempfile.TemporaryDirectory() as directory:
             )
         with open("nested/tool.o.md", "w", encoding="utf-8") as output:
             output.write(
-                f"# Tool\n\nUses {hello_ref}.\n\n"
+                "# Tool\n\nTool page introduction.\n\n"
+                f"## Tool block\n\nUses {hello_ref}.\n\n"
                 "```bash {name=tool}\necho tool\n```\n\n"
+                "Inline example description.\n\n"
                 "```text\nunnamed\n```\n\n"
+                "## Answer\n\nGenerated answer output.\n\n"
                 "```python {name=answer tangle=generated/answer.py}\n"
                 "answer = 42\n```\n"
             )
+        with open("top.o.md", "w", encoding="utf-8") as output:
+            output.write(
+                "# Page introduction\n\nOutside the card.\n\n"
+                "# Top-level card section\n\nInside the card.\n\n"
+                "```python {name=top}\nprint('top')\n```\n"
+            )
 
-        blocks = CodeBlocks(["guide.o.md", "nested/tool.o.md"])
+        blocks = CodeBlocks(["guide.o.md", "nested/tool.o.md", "top.o.md"])
         blocks.weave("site")
 
         with open("site/guide.html", "r", encoding="utf-8") as source:
             guide = source.read()
         with open("site/nested/tool.html", "r", encoding="utf-8") as source:
             tool = source.read()
+        with open("site/top.html", "r", encoding="utf-8") as source:
+            top = source.read()
 
         omd_assert(True, guide.startswith("<!doctype html>"))
         omd_assert(True, "<title>guide</title>" in guide)
@@ -994,6 +1052,16 @@ with tempfile.TemporaryDirectory() as directory:
         omd_assert(True, "omd-card-command" in guide)
         omd_assert(True, "background: var(--card-bg);" in guide)
         omd_assert(True, "transform: translateY(-50%);" in guide)
+        command_card = guide.index("omd-card-command", guide.index("<main>"))
+        guide_heading = guide.index('<h1 id="guide">Guide</h1>')
+        command_heading = guide.index(
+            '<h2 id="hello-command">Hello command</h2>'
+        )
+        guide_code = guide.index('<pre><code class="language-python">')
+        omd_assert(True, guide_heading < command_card)
+        omd_assert(True, command_card < command_heading < guide_code)
+        omd_assert(True, guide.index("Page introduction.") < command_card)
+        omd_assert(False, "title: Test Guide" in guide)
         omd_assert(
             True,
             'The answer is <a id="omd-ref-1"></a>forty-two.' in guide,
@@ -1064,11 +1132,28 @@ with tempfile.TemporaryDirectory() as directory:
         omd_assert(True, "example</span>" in tool)
         omd_assert(True, "omd-card-code" in tool)
         omd_assert(True, "omd-card-file" in tool)
+        example_card = tool.index("omd-card-example", tool.index("<main>"))
+        example_description = tool.index("Inline example description.")
+        example_code = tool.index(
+            '<pre><code class="language-text">',
+            example_card,
+        )
+        omd_assert(
+            True,
+            example_card < example_description < example_code,
+        )
         omd_assert(
             False,
             '<button type="button" class="omd-run-command"' in tool,
         )
         omd_assert(True, "generated/answer.py" in tool)
+        file_card = tool.index("omd-card-file", tool.index("<main>"))
+        answer_heading = tool.index('<h2 id="answer">Answer</h2>')
+        answer_code = tool.index(
+            '<pre><code class="language-python">',
+            file_card,
+        )
+        omd_assert(True, file_card < answer_heading < answer_code)
         omd_assert(False, "<li>tangle:" in tool)
         omd_assert(False, "<li>Language:" in tool)
         omd_assert(
@@ -1088,6 +1173,19 @@ with tempfile.TemporaryDirectory() as directory:
         omd_assert(False, "No references from other files." in tool)
         omd_assert(1, guide.count("Referenced by"))
         omd_assert(2, tool.count("Referenced by"))
+
+        top_card = top.index("omd-card-code", top.index("<main>"))
+        page_heading = top.index(
+            '<h1 id="page-introduction">Page introduction</h1>'
+        )
+        card_heading = top.index(
+            '<h1 id="top-level-card-section">Top-level card section</h1>'
+        )
+        top_code = top.index('<pre><code class="language-python">')
+        omd_assert(True, page_heading < top_card)
+        omd_assert(True, top_card < card_heading < top_code)
+        omd_assert(True, top.index("Outside the card.") < top_card)
+        omd_assert(True, top_card < top.index("Inside the card.") < top_code)
 
         runner = os.path.join(directory, "fake_omd.py")
         with open(runner, "w", encoding="utf-8") as output:
