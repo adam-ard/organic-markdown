@@ -19,6 +19,17 @@ Prose references link to their exact inline position; references inside fenced
 code link to the generated heading for that referring block so the source code
 itself remains unchanged.
 
+Command cards become runnable when the output is opened through the local
+server:
+
+```text
+omd serve site
+```
+
+This rebuilds `site`, binds only to `127.0.0.1`, and prints the URL to open.
+Clicking **Run** streams combined standard output and errors into a drawer on
+the right. The endpoint accepts only blocks currently parsed with `menu=true`.
+
 For example:
 
 ````markdown
@@ -39,6 +50,110 @@ def weave(self, dest):
     definition_index = self.weave_definition_index()
     for filename in self.file_order:
         self.weave_file(filename, dest, reference_index, definition_index)
+
+def weave_server(self, dest, port=8000):
+    output_root = os.path.abspath(dest)
+    project_root = os.getcwd()
+    omd_executable = os.path.abspath(sys.argv[0])
+    port = int(os.environ.get("OMD_PORT", port))
+    code_blocks = self
+
+    class WeaveRequestHandler(SimpleHTTPRequestHandler):
+        protocol_version = "HTTP/1.1"
+
+        def send_text_error(self, status, message):
+            encoded = message.encode("utf-8")
+            self.send_response(status)
+            self.send_header("Content-Type", "text/plain; charset=utf-8")
+            self.send_header("Content-Length", str(len(encoded)))
+            self.send_header("Cache-Control", "no-store")
+            self.end_headers()
+            self.wfile.write(encoded)
+
+        def do_POST(self):
+            if self.path != "/__omd__/run":
+                self.send_text_error(404, "Unknown endpoint.\n")
+                return
+
+            content_type = self.headers.get("Content-Type", "").split(";", 1)[0]
+            if content_type != "application/json":
+                self.send_text_error(415, "Expected application/json.\n")
+                return
+
+            origin = self.headers.get("Origin")
+            allowed_origins = {
+                f"http://127.0.0.1:{self.server.server_port}",
+                f"http://localhost:{self.server.server_port}",
+            }
+            if origin is not None and origin not in allowed_origins:
+                self.send_text_error(403, "Origin is not allowed.\n")
+                return
+
+            try:
+                content_length = int(self.headers.get("Content-Length", "0"))
+                if content_length < 1 or content_length > 65536:
+                    raise ValueError
+                payload = json.loads(self.rfile.read(content_length))
+                name = payload.get("name")
+            except (ValueError, json.JSONDecodeError, AttributeError):
+                self.send_text_error(400, "Invalid command request.\n")
+                return
+
+            block = code_blocks.get_code_block(name)
+            if block is None or not block.in_menu:
+                self.send_text_error(403, "Command is not available.\n")
+                return
+
+            try:
+                process = subprocess.Popen(
+                    [sys.executable, omd_executable, "run", name],
+                    cwd=project_root,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.STDOUT,
+                )
+            except OSError as error:
+                self.send_text_error(500, f"Unable to start command: {error}\n")
+                return
+
+            self.send_response(200)
+            self.send_header("Content-Type", "text/plain; charset=utf-8")
+            self.send_header("Cache-Control", "no-store")
+            self.send_header("Connection", "close")
+            self.end_headers()
+            self.close_connection = True
+
+            try:
+                while True:
+                    chunk = os.read(process.stdout.fileno(), 4096)
+                    if not chunk:
+                        break
+                    self.wfile.write(chunk)
+                    self.wfile.flush()
+                return_code = process.wait()
+                self.wfile.write(f"\n[exit {return_code}]\n".encode("utf-8"))
+                self.wfile.flush()
+            except (BrokenPipeError, ConnectionResetError):
+                process.terminate()
+                process.wait()
+
+    def handler(*args, **kwargs):
+        return WeaveRequestHandler(*args, directory=output_root, **kwargs)
+
+    server = ThreadingHTTPServer(("127.0.0.1", port), handler)
+    url = f"http://127.0.0.1:{server.server_port}/"
+    return server, url
+
+def serve(self, dest, port=8000):
+    self.weave(dest)
+    server, url = self.weave_server(dest, port)
+    print(f"Serving woven documentation at {url}")
+    print("Press Ctrl-C to stop.")
+    try:
+        server.serve_forever()
+    except KeyboardInterrupt:
+        print("\nStopping server.")
+    finally:
+        server.server_close()
 
 def weave_fence_pattern(self):
     return re.compile(
@@ -202,6 +317,17 @@ def weave_html_document(self, title, body):
     }}
     .omd-code-title.kind-only .omd-card-kind {{ margin-right: 0; }}
     .omd-code-block a {{ color: var(--card-accent); }}
+    .omd-run-command {{
+      margin-left: 0.75rem;
+      padding: 0.2rem 0.62rem;
+      color: white;
+      background: var(--card-accent);
+      border: 0;
+      border-radius: 999px;
+      font: 700 0.78rem/1.3 system-ui, sans-serif;
+      cursor: pointer;
+    }}
+    .omd-run-command:disabled {{ cursor: wait; opacity: 0.6; }}
     a {{ color: var(--accent); text-underline-offset: 0.16em; }}
     pre {{
       overflow-x: auto;
@@ -260,8 +386,65 @@ def weave_html_document(self, title, body):
       margin: 1.5rem auto;
       overflow-x: auto;
     }}
+    .omd-runner {{
+      position: fixed;
+      inset: 0 0 0 auto;
+      z-index: 10;
+      display: grid;
+      grid-template-rows: auto 1fr;
+      width: min(46vw, 44rem);
+      padding: 1rem;
+      color: var(--text);
+      background: var(--panel);
+      border-left: 1px solid var(--line);
+      box-shadow: -18px 0 50px rgb(0 0 0 / 16%);
+    }}
+    .omd-runner[hidden] {{ display: none; }}
+    .omd-runner-header {{
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      min-width: 0;
+      margin-bottom: 0.8rem;
+    }}
+    .omd-runner-title {{
+      flex: 1;
+      overflow: hidden;
+      margin: 0;
+      font: 700 0.95rem/1.3 ui-monospace, SFMono-Regular, Consolas, monospace;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }}
+    .omd-runner-header button {{
+      padding: 0.35rem 0.65rem;
+      color: var(--text);
+      background: var(--code);
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      cursor: pointer;
+    }}
+    .omd-runner-output {{
+      min-height: 0;
+      margin: 0;
+      padding: 1rem;
+      overflow: auto;
+      color: #e9ecef;
+      background: #111;
+      border: 1px solid #333;
+      border-radius: 10px;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }}
+    @media (min-width: 1000px) {{
+      body.omd-runner-open main {{
+        width: min(calc(54vw - 3rem), 980px);
+        margin-left: 2rem;
+        margin-right: auto;
+      }}
+    }}
     @media (max-width: 640px) {{
       main {{ width: 100%; margin: 0; border: 0; border-radius: 0; }}
+      .omd-runner {{ width: 100%; }}
     }}
   </style>
 </head>
@@ -269,6 +452,68 @@ def weave_html_document(self, title, body):
   <main>
 {body}
   </main>
+  <aside class="omd-runner" id="omd-runner" hidden>
+    <header class="omd-runner-header">
+      <h2 class="omd-runner-title" id="omd-runner-title">Command output</h2>
+      <button type="button" id="omd-runner-clear">Clear</button>
+      <button type="button" id="omd-runner-close">Close</button>
+    </header>
+    <pre class="omd-runner-output" id="omd-runner-output"></pre>
+  </aside>
+  <script>
+    (() => {{
+      const runner = document.querySelector("#omd-runner");
+      const output = document.querySelector("#omd-runner-output");
+      const title = document.querySelector("#omd-runner-title");
+
+      document.querySelector("#omd-runner-close").addEventListener("click", () => {{
+        runner.hidden = true;
+        document.body.classList.remove("omd-runner-open");
+      }});
+      document.querySelector("#omd-runner-clear").addEventListener("click", () => {{
+        output.textContent = "";
+      }});
+
+      document.addEventListener("click", async (event) => {{
+        const button = event.target.closest(".omd-run-command");
+        if (!button) return;
+
+        const name = button.dataset.command;
+        runner.hidden = false;
+        document.body.classList.add("omd-runner-open");
+        title.textContent = name;
+        output.textContent = `$ omd run ${{name}}\\n\\n`;
+        button.disabled = true;
+
+        try {{
+          const response = await fetch("/__omd__/run", {{
+            method: "POST",
+            headers: {{ "Content-Type": "application/json" }},
+            body: JSON.stringify({{ name }}),
+          }});
+          if (!response.ok) {{
+            output.textContent += await response.text();
+            return;
+          }}
+
+          const reader = response.body.getReader();
+          const decoder = new TextDecoder();
+          while (true) {{
+            const {{ value, done }} = await reader.read();
+            if (done) break;
+            output.textContent += decoder.decode(value, {{ stream: true }});
+            output.scrollTop = output.scrollHeight;
+          }}
+          output.textContent += decoder.decode();
+        }} catch (error) {{
+          output.textContent +=
+            `Unable to run command. Open this weave with "omd serve <dest>".\\n${{error}}\\n`;
+        }} finally {{
+          button.disabled = false;
+        }}
+      }});
+    }})();
+  </script>
 </body>
 </html>
 """
@@ -603,12 +848,20 @@ def weave_file(
                 ]
             )
         else:
+            run_button = ""
+            if card_kind == "command":
+                command = html.escape(name, quote=True)
+                run_button = (
+                    '<button type="button" class="omd-run-command" '
+                    f'data-command="{command}">▶ Run</button>'
+                )
             details.extend(
                 [
                     (
                         '<h4 class="omd-code-title">'
                         f'<span class="omd-card-kind">{card_kind}</span>'
-                        f"<code>{html.escape(card_title)}</code></h4>"
+                        f"<code>{html.escape(card_title)}</code>"
+                        f"{run_button}</h4>"
                     ),
                     "",
                 ]
@@ -684,6 +937,17 @@ class CodeBlocks:
             .replace(":<hello:>", "hello")
         )
 
+    def get_code_block(self, name):
+        class Block:
+            def __init__(self, in_menu):
+                self.in_menu = in_menu
+
+        if name == "hello":
+            return Block(True)
+        if name == "hidden":
+            return Block(False)
+        return None
+
     @<codeblocks__weave_file@>
 
 with tempfile.TemporaryDirectory() as directory:
@@ -751,6 +1015,15 @@ with tempfile.TemporaryDirectory() as directory:
             and "language-python" in guide,
         )
         omd_assert(True, "omd-card-kind" in guide and "command" in guide)
+        omd_assert(
+            True,
+            (
+                '<button type="button" class="omd-run-command" '
+                'data-command="hello">'
+            ) in guide,
+        )
+        omd_assert(True, 'id="omd-runner-output"' in guide)
+        omd_assert(True, 'fetch("/__omd__/run"' in guide)
         omd_assert(False, "<li>tangle:" in guide)
         omd_assert(False, "<li>menu:" in guide)
         omd_assert(False, "Metadata:" in guide)
@@ -791,6 +1064,10 @@ with tempfile.TemporaryDirectory() as directory:
         omd_assert(True, "example</span>" in tool)
         omd_assert(True, "omd-card-code" in tool)
         omd_assert(True, "omd-card-file" in tool)
+        omd_assert(
+            False,
+            '<button type="button" class="omd-run-command"' in tool,
+        )
         omd_assert(True, "generated/answer.py" in tool)
         omd_assert(False, "<li>tangle:" in tool)
         omd_assert(False, "<li>Language:" in tool)
@@ -811,6 +1088,57 @@ with tempfile.TemporaryDirectory() as directory:
         omd_assert(False, "No references from other files." in tool)
         omd_assert(1, guide.count("Referenced by"))
         omd_assert(2, tool.count("Referenced by"))
+
+        runner = os.path.join(directory, "fake_omd.py")
+        with open(runner, "w", encoding="utf-8") as output:
+            output.write(
+                "import sys\n"
+                "print(f'ran {sys.argv[-1]}', flush=True)\n"
+            )
+
+        original_argv_zero = sys.argv[0]
+        try:
+            sys.argv[0] = runner
+            try:
+                server, url = blocks.weave_server("site", 0)
+            except PermissionError:
+                server = None
+        finally:
+            sys.argv[0] = original_argv_zero
+
+        if server is not None:
+            server_thread = threading.Thread(
+                target=server.serve_forever,
+                daemon=True,
+            )
+            server_thread.start()
+            try:
+                request = urllib.request.Request(
+                    url + "__omd__/run",
+                    data=json.dumps({"name": "hello"}).encode("utf-8"),
+                    headers={"Content-Type": "application/json"},
+                    method="POST",
+                )
+                with urllib.request.urlopen(request, timeout=5) as response:
+                    command_output = response.read().decode("utf-8")
+                omd_assert(True, "ran hello" in command_output)
+                omd_assert(True, "[exit 0]" in command_output)
+
+                forbidden = urllib.request.Request(
+                    url + "__omd__/run",
+                    data=json.dumps({"name": "hidden"}).encode("utf-8"),
+                    headers={"Content-Type": "application/json"},
+                    method="POST",
+                )
+                try:
+                    urllib.request.urlopen(forbidden, timeout=5)
+                    omd_assert(True, False)
+                except urllib.error.HTTPError as error:
+                    omd_assert(403, error.code)
+            finally:
+                server.shutdown()
+                server.server_close()
+                server_thread.join(timeout=5)
     finally:
         os.chdir(original)
 

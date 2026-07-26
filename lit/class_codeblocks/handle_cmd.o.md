@@ -84,6 +84,8 @@ elif words[0] == "expand":
     print(self.expand(f"{o_sym}{rest}{c_sym}"))
 elif words[0] == "weave":
     self.weave(rest)
+elif words[0] == "serve":
+    self.serve(rest)
 else:
     print(f"unknown command: {' '.join(words)}")
 ```
@@ -96,6 +98,7 @@ else:
 * `origin <name>` — Print the source file that block `<name>` came from
 * `expand <name>` — Expand the block and print its fully resolved source
 * `weave <dest>` — Weave all `.o.md` files into standalone HTML below `<dest>`
+* `serve <dest>` — Weave and serve the HTML with runnable command cards
 
 ---
 
@@ -197,6 +200,9 @@ class CodeBlocksDispatcher:
     def weave(self, dest):
         self.weave_dest = dest
 
+    def serve(self, dest):
+        self.serve_dest = dest
+
 dispatcher = CodeBlocksDispatcher()
 dispatcher.handle_cmd(["--help"])
 dispatcher.handle_cmd(["-h"])
@@ -211,6 +217,9 @@ omd_assert("build-omd", dispatcher.run_calls[0])
 
 dispatcher.handle_cmd(["weave", "site"])
 omd_assert("site", dispatcher.weave_dest)
+
+dispatcher.handle_cmd(["serve", "site"])
+omd_assert("site", dispatcher.serve_dest)
 ```
 
 ```python {name=handle_cmd_tests menu=true}
