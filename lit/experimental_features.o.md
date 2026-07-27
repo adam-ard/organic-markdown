@@ -192,7 +192,75 @@ def weave_output_name(self, filename):
         raise ValueError("weave source must end in .o.md")
     return relative_source[:-len(".o.md")] + ".html"
 
-def weave_html_document(self, title, body):
+def weave_navigation(self, current_output):
+    tree = {"directories": {}, "files": []}
+    for source in self.file_order:
+        source = os.path.normpath(source)
+        parts = source.split(os.sep)
+        node = tree
+        for directory in parts[:-1]:
+            node = node["directories"].setdefault(
+                directory,
+                {"directories": {}, "files": []},
+            )
+        node["files"].append(
+            {
+                "source": source,
+                "output": self.weave_output_name(source),
+            }
+        )
+
+    current_output = os.path.normpath(current_output)
+    current_dir = os.path.dirname(current_output) or "."
+    current_directories = os.path.dirname(current_output).split(os.sep)
+    if current_directories == ["."]:
+        current_directories = []
+
+    def render_node(node, directory_parts):
+        output = ["<ul>"]
+        for name in sorted(node["directories"], key=str.casefold):
+            child_parts = directory_parts + [name]
+            is_current_branch = (
+                current_directories[:len(child_parts)] == child_parts
+            )
+            open_attribute = " open" if is_current_branch else ""
+            output.append(
+                f"<li><details{open_attribute}>"
+                f"<summary>{html.escape(name)}</summary>"
+            )
+            output.append(render_node(node["directories"][name], child_parts))
+            output.append("</details></li>")
+
+        for item in sorted(
+            node["files"],
+            key=lambda value: os.path.basename(value["source"]).casefold(),
+        ):
+            target = os.path.relpath(item["output"], current_dir).replace(
+                os.sep,
+                "/",
+            )
+            target = target.replace(" ", "%20").replace("(", "%28").replace(")", "%29")
+            label = html.escape(os.path.basename(item["source"]))
+            if item["output"] == current_output:
+                output.append(
+                    '<li><a class="current" aria-current="page" '
+                    f'href="{html.escape(target, quote=True)}">{label}</a></li>'
+                )
+            else:
+                output.append(
+                    f'<li><a href="{html.escape(target, quote=True)}">'
+                    f"{label}</a></li>"
+                )
+        output.append("</ul>")
+        return "".join(output)
+
+    return (
+        '<nav class="omd-site-nav" aria-label="Literate files">'
+        '<div class="omd-site-nav-title">Project</div>'
+        f"{render_node(tree, [])}</nav>"
+    )
+
+def weave_html_document(self, title, body, navigation):
     escaped_title = html.escape(title)
     return f"""<!doctype html>
 <html lang="en">
@@ -225,6 +293,7 @@ def weave_html_document(self, title, body):
       --example-line: #d7bce2;
       --example-code: #f0e5f4;
       --example-accent: #81519a;
+      --nav-width: 18rem;
     }}
     @media (prefers-color-scheme: dark) {{
       :root {{
@@ -256,9 +325,58 @@ def weave_html_document(self, title, body):
     html {{ scroll-behavior: smooth; }}
     body {{
       margin: 0;
+      padding-left: var(--nav-width);
       background: var(--page);
       color: var(--text);
       font: 17px/1.65 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }}
+    .omd-site-nav {{
+      position: fixed;
+      inset: 0 auto 0 0;
+      z-index: 5;
+      width: var(--nav-width);
+      padding: 1.2rem 0.9rem 2rem;
+      overflow: auto;
+      background: var(--panel);
+      border-right: 1px solid var(--line);
+    }}
+    .omd-site-nav-title {{
+      margin: 0 0.5rem 0.9rem;
+      color: var(--muted);
+      font: 800 0.75rem/1.2 system-ui, sans-serif;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }}
+    .omd-site-nav ul {{
+      margin: 0;
+      padding-left: 0.85rem;
+      list-style: none;
+    }}
+    .omd-site-nav > ul {{ padding-left: 0; }}
+    .omd-site-nav li {{ margin: 0.12rem 0; }}
+    .omd-site-nav summary {{
+      padding: 0.26rem 0.45rem;
+      color: var(--muted);
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 700;
+    }}
+    .omd-site-nav a {{
+      display: block;
+      padding: 0.28rem 0.48rem;
+      overflow: hidden;
+      color: var(--text);
+      border-radius: 6px;
+      font: 0.86rem/1.35 ui-monospace, SFMono-Regular, Consolas, monospace;
+      text-decoration: none;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }}
+    .omd-site-nav a:hover {{ background: var(--code); }}
+    .omd-site-nav a.current {{
+      color: var(--panel);
+      background: var(--accent);
+      font-weight: 800;
     }}
     main {{
       width: min(100% - 2rem, 980px);
@@ -464,6 +582,16 @@ def weave_html_document(self, title, body):
         margin-right: auto;
       }}
     }}
+    @media (max-width: 800px) {{
+      body {{ padding-left: 0; }}
+      .omd-site-nav {{
+        position: static;
+        width: 100%;
+        max-height: 42vh;
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+      }}
+    }}
     @media (max-width: 640px) {{
       main {{ width: 100%; margin: 0; border: 0; border-radius: 0; }}
       .omd-runner {{ width: 100%; }}
@@ -471,6 +599,7 @@ def weave_html_document(self, title, body):
   </style>
 </head>
 <body>
+  {navigation}
   <main>
 {body}
   </main>
@@ -940,7 +1069,8 @@ def weave_file(
         extra_args=["--mathml"],
     )
     title = relative_output[:-len(".html")]
-    document = self.weave_html_document(title, body)
+    navigation = self.weave_navigation(relative_output)
+    document = self.weave_html_document(title, body, navigation)
     with open(weaved_filename, "w", encoding="utf-8") as output:
         output.write(document)
     print(f"Weaved file created: {weaved_filename}")
@@ -1045,6 +1175,28 @@ with tempfile.TemporaryDirectory() as directory:
 
         omd_assert(True, guide.startswith("<!doctype html>"))
         omd_assert(True, "<title>guide</title>" in guide)
+        omd_assert(
+            True,
+            '<nav class="omd-site-nav" aria-label="Literate files">' in guide,
+        )
+        omd_assert(
+            True,
+            '<a class="current" aria-current="page" href="guide.html">'
+            "guide.o.md</a>" in guide,
+        )
+        omd_assert(True, 'href="nested/tool.html">tool.o.md</a>' in guide)
+        omd_assert(True, 'href="top.html">top.o.md</a>' in guide)
+        omd_assert(
+            True,
+            '<details open><summary>nested</summary>' in tool,
+        )
+        omd_assert(True, 'href="../guide.html">guide.o.md</a>' in tool)
+        omd_assert(
+            True,
+            '<a class="current" aria-current="page" href="tool.html">'
+            "tool.o.md</a>" in tool,
+        )
+        omd_assert(True, "padding-left: var(--nav-width);" in guide)
         omd_assert(True, "<math" in guide)
         omd_assert(True, "<mfrac>" in guide)
         omd_assert(True, "--code: #e8f0ec;" in guide)
