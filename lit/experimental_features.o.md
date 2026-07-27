@@ -29,6 +29,8 @@ omd serve site
 This rebuilds `site`, binds only to `127.0.0.1`, and prints the URL to open.
 Clicking **Run** streams combined standard output and errors into a drawer on
 the right. The endpoint accepts only blocks currently parsed with `menu=true`.
+Every named card also has an **Expand** button that runs `omd expand <name>` and
+shows the fully expanded block in a modal code window.
 
 For example:
 
@@ -71,7 +73,12 @@ def weave_server(self, dest, port=8000):
             self.wfile.write(encoded)
 
         def do_POST(self):
-            if self.path != "/__omd__/run":
+            actions = {
+                "/__omd__/run": "run",
+                "/__omd__/expand": "expand",
+            }
+            action = actions.get(self.path)
+            if action is None:
                 self.send_text_error(404, "Unknown endpoint.\n")
                 return
 
@@ -95,18 +102,23 @@ def weave_server(self, dest, port=8000):
                     raise ValueError
                 payload = json.loads(self.rfile.read(content_length))
                 name = payload.get("name")
+                if not isinstance(name, str) or not name:
+                    raise ValueError
             except (ValueError, json.JSONDecodeError, AttributeError):
                 self.send_text_error(400, "Invalid command request.\n")
                 return
 
             block = code_blocks.get_code_block(name)
-            if block is None or not block.in_menu:
+            if block is None:
+                self.send_text_error(403, "Block is not available.\n")
+                return
+            if action == "run" and not block.in_menu:
                 self.send_text_error(403, "Command is not available.\n")
                 return
 
             try:
                 process = subprocess.Popen(
-                    [sys.executable, omd_executable, "run", name],
+                    [sys.executable, omd_executable, action, name],
                     cwd=project_root,
                     stdout=subprocess.PIPE,
                     stderr=subprocess.STDOUT,
@@ -130,7 +142,17 @@ def weave_server(self, dest, port=8000):
                     self.wfile.write(chunk)
                     self.wfile.flush()
                 return_code = process.wait()
-                self.wfile.write(f"\n[exit {return_code}]\n".encode("utf-8"))
+                if action == "run":
+                    self.wfile.write(
+                        f"\n[exit {return_code}]\n".encode("utf-8")
+                    )
+                elif return_code != 0:
+                    self.wfile.write(
+                        (
+                            "\nExpansion failed with exit code "
+                            f"{return_code}.\n"
+                        ).encode("utf-8")
+                    )
                 self.wfile.flush()
             except (BrokenPipeError, ConnectionResetError):
                 process.terminate()
@@ -172,17 +194,83 @@ def weave_split_front_matter(self, text):
         return "", text
     return text[:match.end()], text[match.end():]
 
-def weave_split_card_intro(self, text):
-    headings = list(
-        re.finditer(
-            r"(?m)^[ \t]{0,3}#{1,6}[ \t]+.+$",
-            text,
+def weave_card_sections(self, content, filename):
+    fences = list(self.weave_fence_pattern().finditer(content))
+    headings = []
+    fence_index = 0
+    for match in re.finditer(
+        r"(?m)^[ \t]{0,3}(#{1,6})[ \t]+.+$",
+        content,
+    ):
+        while (
+            fence_index < len(fences)
+            and fences[fence_index].end() <= match.start()
+        ):
+            fence_index += 1
+        if (
+            fence_index < len(fences)
+            and fences[fence_index].start() <= match.start()
+        ):
+            continue
+        line = match.group()
+        title = re.sub(
+            r"[ \t]+#+[ \t]*$",
+            "",
+            line.lstrip().lstrip("#").strip(),
         )
-    )
-    if not headings:
-        return text, ""
-    start = headings[-1].start()
-    return text[:start], text[start:]
+        headings.append(
+            {
+                "start": match.start(),
+                "end": match.end(),
+                "level": len(match.group(1)),
+                "is_card": bool(
+                    re.search(r"(?:^|\s):CARD:[ \t]*$", title, re.I)
+                ),
+            }
+        )
+
+    sections = []
+    for index, heading in enumerate(headings):
+        if not heading["is_card"]:
+            continue
+        end = len(content)
+        for candidate in headings[index + 1:]:
+            if candidate["level"] <= heading["level"]:
+                end = candidate["start"]
+                break
+            if candidate["is_card"]:
+                line = content.count("\n", 0, candidate["start"]) + 1
+                raise ValueError(
+                    f"{filename}:{line}: a card cannot contain another card"
+                )
+
+        section_fences = [
+            (number, fence)
+            for number, fence in enumerate(fences, start=1)
+            if heading["end"] <= fence.start() < end
+        ]
+        metadata_fences = [
+            (number, fence)
+            for number, fence in section_fences
+            if self.weave_code_info(fence.group("info"))[1]
+        ]
+        heading_line = content.count("\n", 0, heading["start"]) + 1
+        if len(metadata_fences) != 1:
+            raise ValueError(
+                f"{filename}:{heading_line}: a :CARD: section must contain "
+                "exactly one code block with metadata "
+                f"(found {len(metadata_fences)})"
+            )
+        number, metadata_fence = metadata_fences[0]
+        sections.append(
+            {
+                **heading,
+                "section_end": end,
+                "metadata_fence": metadata_fence.start(),
+                "metadata_number": number,
+            }
+        )
+    return sections
 
 def weave_output_name(self, filename):
     relative_source = os.path.normpath(os.path.relpath(filename))
@@ -289,10 +377,6 @@ def weave_html_document(self, title, body, navigation):
       --file-line: #dfc38e;
       --file-code: #f3e7d1;
       --file-accent: #986408;
-      --example-block: #f6eef9;
-      --example-line: #d7bce2;
-      --example-code: #f0e5f4;
-      --example-accent: #81519a;
       --nav-width: 18rem;
     }}
     @media (prefers-color-scheme: dark) {{
@@ -315,10 +399,6 @@ def weave_html_document(self, title, body, navigation):
         --file-line: #6c5530;
         --file-code: #332919;
         --file-accent: #f2c46d;
-        --example-block: #291e2e;
-        --example-line: #664775;
-        --example-code: #322339;
-        --example-accent: #d6a6ea;
       }}
     }}
     * {{ box-sizing: border-box; }}
@@ -414,12 +494,6 @@ def weave_html_document(self, title, body, navigation):
       --card-code: var(--file-code);
       --card-accent: var(--file-accent);
     }}
-    .omd-card-example {{
-      --card-bg: var(--example-block);
-      --card-line: var(--example-line);
-      --card-code: var(--example-code);
-      --card-accent: var(--example-accent);
-    }}
     .omd-code-anchor {{
       scroll-margin-top: 1rem;
     }}
@@ -468,6 +542,16 @@ def weave_html_document(self, title, body, navigation):
       cursor: pointer;
     }}
     .omd-run-command:disabled {{ cursor: wait; opacity: 0.6; }}
+    .omd-expand-code {{
+      padding: 0.2rem 0.62rem;
+      color: var(--card-accent);
+      background: var(--card-code);
+      border: 1px solid var(--card-accent);
+      border-radius: 999px;
+      font: 700 0.78rem/1.3 system-ui, sans-serif;
+      cursor: pointer;
+    }}
+    .omd-expand-code:disabled {{ cursor: wait; opacity: 0.6; }}
     a {{ color: var(--accent); text-underline-offset: 0.16em; }}
     pre {{
       overflow-x: auto;
@@ -486,15 +570,20 @@ def weave_html_document(self, title, body, navigation):
       background: var(--card-code);
       border-color: var(--card-line);
     }}
-    .omd-code-panel.has-language pre {{
+    .omd-code-panel.has-controls pre {{
       padding-top: 1.65rem;
     }}
-    .omd-language-label {{
+    .omd-code-controls {{
       position: absolute;
       top: 0;
       left: 1rem;
       z-index: 1;
       transform: translateY(-50%);
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }}
+    .omd-language-label {{
       padding: 0.2rem 0.65rem;
       color: var(--text);
       background: var(--card-code);
@@ -575,6 +664,80 @@ def weave_html_document(self, title, body, navigation):
       white-space: pre-wrap;
       overflow-wrap: anywhere;
     }}
+    .omd-expand-dialog {{
+      width: min(90vw, 68rem);
+      height: min(82vh, 52rem);
+      padding: 0;
+      color: var(--text);
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      box-shadow: 0 24px 80px rgb(0 0 0 / 28%);
+    }}
+    .omd-expand-dialog::backdrop {{
+      background: rgb(0 0 0 / 48%);
+      backdrop-filter: blur(2px);
+    }}
+    .omd-expand-dialog-inner {{
+      display: grid;
+      grid-template-rows: auto 1fr;
+      height: 100%;
+      padding: 1rem;
+    }}
+    .omd-expand-dialog-header {{
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      min-width: 0;
+      margin-bottom: 0.8rem;
+    }}
+    .omd-expand-dialog-title {{
+      flex: 1;
+      overflow: hidden;
+      margin: 0;
+      font: 700 1rem/1.3 ui-monospace, SFMono-Regular, Consolas, monospace;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }}
+    .omd-expand-dialog-close {{
+      padding: 0.35rem 0.7rem;
+      color: var(--text);
+      background: var(--code);
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      cursor: pointer;
+    }}
+    .omd-expand-listing {{
+      min-height: 0;
+      overflow: auto;
+      color: var(--text);
+      background: var(--code);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      box-shadow: inset 0 1px 3px rgb(0 0 0 / 8%);
+    }}
+    .omd-expand-lines {{
+      min-width: max-content;
+      margin: 0;
+      padding: 1rem 1.25rem 1rem 4.2rem;
+      font: 0.9rem/1.55 ui-monospace, SFMono-Regular, Consolas, monospace;
+    }}
+    .omd-expand-lines li {{
+      min-height: 1.55em;
+      padding-left: 0.9rem;
+      color: var(--muted);
+      border-left: 1px solid var(--line);
+    }}
+    .omd-expand-lines li::marker {{
+      color: var(--muted);
+      font-size: 0.78rem;
+    }}
+    .omd-expand-lines code {{
+      padding: 0;
+      color: var(--text);
+      background: transparent;
+      white-space: pre;
+    }}
     @media (min-width: 1000px) {{
       body.omd-runner-open main {{
         width: min(calc(54vw - 3rem), 980px);
@@ -611,11 +774,61 @@ def weave_html_document(self, title, body, navigation):
     </header>
     <pre class="omd-runner-output" id="omd-runner-output"></pre>
   </aside>
+  <dialog class="omd-expand-dialog" id="omd-expand-dialog">
+    <div class="omd-expand-dialog-inner">
+      <header class="omd-expand-dialog-header">
+        <h2 class="omd-expand-dialog-title" id="omd-expand-dialog-title">
+          Expanded block
+        </h2>
+        <button type="button" class="omd-expand-dialog-close"
+                id="omd-expand-copy">Copy</button>
+        <button type="button" class="omd-expand-dialog-close"
+                id="omd-expand-dialog-close">Close</button>
+      </header>
+      <div class="omd-expand-listing" id="omd-expand-listing"></div>
+    </div>
+  </dialog>
   <script>
     (() => {{
       const runner = document.querySelector("#omd-runner");
       const output = document.querySelector("#omd-runner-output");
       const title = document.querySelector("#omd-runner-title");
+      const expandDialog = document.querySelector("#omd-expand-dialog");
+      const expandListing = document.querySelector("#omd-expand-listing");
+      const expandTitle = document.querySelector("#omd-expand-dialog-title");
+      const expandCopy = document.querySelector("#omd-expand-copy");
+      let expandedSource = "";
+
+      function renderExpandedSource(source) {{
+        expandedSource = source;
+        const lines = source.replace(/\\n$/, "").split("\\n");
+        const list = document.createElement("ol");
+        list.className = "omd-expand-lines";
+        for (const line of lines) {{
+          const item = document.createElement("li");
+          const code = document.createElement("code");
+          code.textContent = line || "\\u00a0";
+          item.append(code);
+          list.append(item);
+        }}
+        expandListing.replaceChildren(list);
+      }}
+
+      async function streamResponse(response, target) {{
+        if (!response.ok) {{
+          target.textContent += await response.text();
+          return;
+        }}
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        while (true) {{
+          const {{ value, done }} = await reader.read();
+          if (done) break;
+          target.textContent += decoder.decode(value, {{ stream: true }});
+          target.scrollTop = target.scrollHeight;
+        }}
+        target.textContent += decoder.decode();
+      }}
 
       document.querySelector("#omd-runner-close").addEventListener("click", () => {{
         runner.hidden = true;
@@ -623,6 +836,15 @@ def weave_html_document(self, title, body, navigation):
       }});
       document.querySelector("#omd-runner-clear").addEventListener("click", () => {{
         output.textContent = "";
+      }});
+      document.querySelector("#omd-expand-dialog-close").addEventListener(
+        "click",
+        () => expandDialog.close(),
+      );
+      expandCopy.addEventListener("click", async () => {{
+        await navigator.clipboard.writeText(expandedSource);
+        expandCopy.textContent = "Copied";
+        setTimeout(() => {{ expandCopy.textContent = "Copy"; }}, 1200);
       }});
 
       document.addEventListener("click", async (event) => {{
@@ -642,23 +864,36 @@ def weave_html_document(self, title, body, navigation):
             headers: {{ "Content-Type": "application/json" }},
             body: JSON.stringify({{ name }}),
           }});
-          if (!response.ok) {{
-            output.textContent += await response.text();
-            return;
-          }}
-
-          const reader = response.body.getReader();
-          const decoder = new TextDecoder();
-          while (true) {{
-            const {{ value, done }} = await reader.read();
-            if (done) break;
-            output.textContent += decoder.decode(value, {{ stream: true }});
-            output.scrollTop = output.scrollHeight;
-          }}
-          output.textContent += decoder.decode();
+          await streamResponse(response, output);
         }} catch (error) {{
           output.textContent +=
             `Unable to run command. Open this weave with "omd serve <dest>".\\n${{error}}\\n`;
+        }} finally {{
+          button.disabled = false;
+        }}
+      }});
+
+      document.addEventListener("click", async (event) => {{
+        const button = event.target.closest(".omd-expand-code");
+        if (!button) return;
+
+        const name = button.dataset.block;
+        expandTitle.textContent = `Expanded: ${{name}}`;
+        renderExpandedSource("Loading…");
+        expandDialog.showModal();
+        button.disabled = true;
+
+        try {{
+          const response = await fetch("/__omd__/expand", {{
+            method: "POST",
+            headers: {{ "Content-Type": "application/json" }},
+            body: JSON.stringify({{ name }}),
+          }});
+          renderExpandedSource(await response.text());
+        }} catch (error) {{
+          renderExpandedSource(
+            `Unable to expand block. Open this weave with "omd serve <dest>".\\n${{error}}\\n`
+          );
         }} finally {{
           button.disabled = false;
         }}
@@ -743,10 +978,6 @@ def weave_card_info(self, name, attributes):
         kind = "file"
         title = os.path.abspath(self.expand(tangle))
         hidden_attributes = {"tangle"}
-    elif not name:
-        kind = "example"
-        title = None
-        hidden_attributes = set()
     else:
         kind = "code"
         title = name
@@ -855,7 +1086,7 @@ def weave_definition_target(self, definition, filename):
     target = target.replace(" ", "%20").replace("(", "%28").replace(")", "%29")
     return f"{target}#{definition['anchor']}"
 
-def weave_code_html(self, code, language, filename):
+def weave_code_html(self, code, language, filename, name=None, is_card=True):
     rendered = []
     position = 0
     while True:
@@ -879,20 +1110,40 @@ def weave_code_html(self, code, language, filename):
     rendered.append(html.escape(code[position:]))
 
     language_class = ""
-    panel_class = "omd-code-panel"
-    language_label = ""
     if language:
         language_class = f' class="language-{html.escape(language, quote=True)}"'
-        panel_class += " has-language"
+    listing = (
+        f"<pre><code{language_class}>"
+        + "".join(rendered)
+        + "</code></pre>"
+    )
+    if not is_card:
+        return listing
+
+    panel_class = "omd-code-panel"
+    language_label = ""
+    expand_button = ""
+    if language:
         language_label = (
             '<div class="omd-language-label">'
             f"{html.escape(language)}</div>"
         )
+    if name is not None:
+        block_name = html.escape(name, quote=True)
+        expand_button = (
+            '<button type="button" class="omd-expand-code" '
+            f'data-block="{block_name}">↗ Expand</button>'
+        )
+    controls = ""
+    if language_label or expand_button:
+        panel_class += " has-controls"
+        controls = (
+            '<div class="omd-code-controls">'
+            f"{language_label}{expand_button}</div>"
+        )
     return (
         f'<div class="{panel_class}">'
-        f"{language_label}<pre><code{language_class}>"
-        + "".join(rendered)
-        + "</code></pre></div>"
+        f"{controls}{listing}</div>"
     )
 
 def weave_expand_prose(self, prose, reference_number):
@@ -959,26 +1210,111 @@ def weave_file(
     with open(filename, "r", encoding="utf-8") as source:
         content = source.read()
 
+    fences = list(self.weave_fence_pattern().finditer(content))
+    card_sections = self.weave_card_sections(content, filename)
+    fences_by_start = {match.start(): match for match in fences}
+    sections_by_fence = {
+        match.start(): section
+        for section in card_sections
+        for match in fences
+        if section["start"] <= match.start() < section["section_end"]
+    }
+
+    def append_code(match, section):
+        language, metadata, name = self.weave_code_info(match.group("info"))
+        if section is None or match.start() != section["metadata_fence"]:
+            weaved_content.append(
+                self.weave_code_html(
+                    match.group("code"),
+                    language,
+                    filename,
+                    is_card=False,
+                )
+            )
+            return
+        attributes = self.weave_metadata_attributes(metadata, language)
+        _kind, _title, visible_attributes = self.weave_card_info(
+            name,
+            attributes,
+        )
+        if visible_attributes:
+            attribute_lines = [
+                f"- {key}: `{value}`"
+                for key, value in visible_attributes
+            ]
+            weaved_content.append("\n\n" + "\n".join(attribute_lines) + "\n\n")
+        weaved_content.append(
+            self.weave_code_html(
+                match.group("code"),
+                language,
+                filename,
+                name,
+            )
+        )
+
     weaved_content = []
     position = 0
     reference_number = 0
-    code_block_number = 0
+    open_card = None
+    open_card_backlinks = ""
 
-    for match in self.weave_fence_pattern().finditer(content):
-        code_block_number += 1
+    for match in fences:
         prose = content[position:match.start()]
+        prose_start = position
         if position == 0:
             front_matter, prose = self.weave_split_front_matter(prose)
+            prose_start += len(front_matter)
             expanded_front_matter, reference_number = self.weave_expand_prose(
                 front_matter,
                 reference_number,
             )
             weaved_content.append(expanded_front_matter)
 
-        if code_block_number == 1:
-            page_prose, card_prose = self.weave_split_card_intro(prose)
-        else:
-            page_prose, card_prose = "", prose
+        if open_card:
+            if open_card["section_end"] <= match.start():
+                boundary = open_card["section_end"] - prose_start
+                card_tail, prose = prose[:boundary], prose[boundary:]
+                prose_start = open_card["section_end"]
+                expanded_tail, reference_number = self.weave_expand_prose(
+                    card_tail,
+                    reference_number,
+                )
+                weaved_content.append(expanded_tail)
+                weaved_content.append(open_card_backlinks)
+                weaved_content.append("\n:::\n")
+                open_card = None
+                open_card_backlinks = ""
+            else:
+                expanded_prose, reference_number = self.weave_expand_prose(
+                    prose,
+                    reference_number,
+                )
+                weaved_content.append(expanded_prose)
+                append_code(match, open_card)
+                position = match.end()
+                continue
+
+        section = sections_by_fence.get(match.start())
+        if section is None:
+            expanded_prose, reference_number = self.weave_expand_prose(
+                prose,
+                reference_number,
+            )
+            weaved_content.append(expanded_prose)
+            append_code(match, None)
+            position = match.end()
+            continue
+
+        heading_offset = section["start"] - prose_start
+        page_prose = prose[:heading_offset]
+        card_prose = prose[heading_offset:]
+        card_prose = re.sub(
+            r"(?im)(^[ \t]{0,3}#{1,6}[ \t]+.*?)"
+            r"[ \t]+:CARD:(?=[ \t]*(?:#+[ \t]*)?$)",
+            r"\1",
+            card_prose,
+            count=1,
+        )
         expanded_page_prose, reference_number = self.weave_expand_prose(
             page_prose,
             reference_number,
@@ -988,9 +1324,10 @@ def weave_file(
             card_prose,
             reference_number,
         )
-
-        language, metadata, name = self.weave_code_info(match.group("info"))
-
+        metadata_match = fences_by_start[section["metadata_fence"]]
+        language, metadata, name = self.weave_code_info(
+            metadata_match.group("info")
+        )
         attributes = self.weave_metadata_attributes(metadata, language)
         card_kind, card_title, visible_attributes = self.weave_card_info(
             name,
@@ -1000,7 +1337,7 @@ def weave_file(
             f"::: {{.omd-code-block .omd-card-{card_kind}}}",
             "",
             (
-                f'<div id="omd-code-{code_block_number}" '
+                f'<div id="omd-code-{section["metadata_number"]}" '
                 'class="omd-code-anchor"></div>'
             ),
             "",
@@ -1017,7 +1354,7 @@ def weave_file(
             )
         else:
             run_button = ""
-            if card_kind == "command":
+            if card_kind == "command" and name is not None:
                 command = html.escape(name, quote=True)
                 run_button = (
                     '<button type="button" class="omd-run-command" '
@@ -1037,24 +1374,27 @@ def weave_file(
         details.extend(["", ""])
         weaved_content.append("\n".join(details))
         weaved_content.append(expanded_prose)
-        if visible_attributes:
-            attribute_lines = [
-                f"- {key}: `{value}`"
-                for key, value in visible_attributes
-            ]
-            weaved_content.append("\n\n" + "\n".join(attribute_lines) + "\n\n")
-        weaved_content.append(
-            self.weave_code_html(match.group("code"), language, filename)
-        )
-        weaved_content.append(self.weave_backlinks(name, filename))
-        weaved_content.append("\n:::\n")
+        append_code(match, section)
+        open_card = section
+        open_card_backlinks = self.weave_backlinks(name, filename)
         position = match.end()
 
-    expanded, reference_number = self.weave_expand_prose(
-        content[position:],
+    tail = content[position:]
+    if open_card:
+        boundary = open_card["section_end"] - position
+        card_tail, tail = tail[:boundary], tail[boundary:]
+        expanded_card_tail, reference_number = self.weave_expand_prose(
+            card_tail,
+            reference_number,
+        )
+        weaved_content.append(expanded_card_tail)
+        weaved_content.append(open_card_backlinks)
+        weaved_content.append("\n:::\n")
+    expanded_tail, reference_number = self.weave_expand_prose(
+        tail,
         reference_number,
     )
-    weaved_content.append(expanded)
+    weaved_content.append(expanded_tail)
 
     relative_output = self.weave_output_name(filename)
     weaved_filename = os.path.join(dest, relative_output)
@@ -1136,31 +1476,36 @@ with tempfile.TemporaryDirectory() as directory:
             output.write(
                 "---\ntitle: Test Guide\n---\n\n"
                 "# Guide\n\nPage introduction.\n\n"
-                "## Hello command\n\n"
+                "## Hello command :CARD:\n\n"
                 f"$$\\bar K(p)=\\frac{{2\\pi}}{{n}}I(p).$$\n\n"
                 f"The answer is {answer_ref}.\n"
                 f"This same-file reference is {hello_ref}.\n\n"
                 f"The nested tool is {tool_ref}.\n\n"
                 "```python {name=hello menu=true}\n"
                 f'print("{answer_ref}")\n'
-                "```\n"
+                "```\n\n"
+                "After the command source.\n\n"
+                "# Global notes\n\nGlobal document text.\n"
             )
         with open("nested/tool.o.md", "w", encoding="utf-8") as output:
             output.write(
                 "# Tool\n\nTool page introduction.\n\n"
-                f"## Tool block\n\nUses {hello_ref}.\n\n"
+                f"## Tool block :CARD:\n\nUses {hello_ref}.\n\n"
                 "```bash {name=tool}\necho tool\n```\n\n"
                 "Inline example description.\n\n"
                 "```text\nunnamed\n```\n\n"
-                "## Answer\n\nGenerated answer output.\n\n"
+                "# Generated files\n\nGlobal generated-file introduction.\n\n"
+                "## Answer :CARD:\n\nGenerated answer output.\n\n"
                 "```python {name=answer tangle=generated/answer.py}\n"
                 "answer = 42\n```\n"
             )
         with open("top.o.md", "w", encoding="utf-8") as output:
             output.write(
                 "# Page introduction\n\nOutside the card.\n\n"
-                "# Top-level card section\n\nInside the card.\n\n"
-                "```python {name=top}\nprint('top')\n```\n"
+                "# Top-level card section :CARD:\n\nInside the card.\n\n"
+                "```python {name=top}\nprint('top')\n```\n\n"
+                "After the top card source.\n\n"
+                "# Following section\n\nOutside after the peer heading.\n"
             )
 
         blocks = CodeBlocks(["guide.o.md", "nested/tool.o.md", "top.o.md"])
@@ -1210,8 +1555,24 @@ with tempfile.TemporaryDirectory() as directory:
             '<h2 id="hello-command">Hello command</h2>'
         )
         guide_code = guide.index('<pre><code class="language-python">')
+        command_tail = guide.index("After the command source.")
+        global_heading = guide.index('<h1 id="global-notes">Global notes</h1>')
+        command_card_end = guide.rfind(
+            "</div>",
+            command_card,
+            global_heading,
+        )
+        global_text = guide.index("Global document text.")
         omd_assert(True, guide_heading < command_card)
         omd_assert(True, command_card < command_heading < guide_code)
+        omd_assert(
+            True,
+            guide_code
+            < command_tail
+            < command_card_end
+            < global_heading
+            < global_text,
+        )
         omd_assert(True, guide.index("Page introduction.") < command_card)
         omd_assert(False, "title: Test Guide" in guide)
         omd_assert(
@@ -1242,8 +1603,39 @@ with tempfile.TemporaryDirectory() as directory:
                 'data-command="hello">'
             ) in guide,
         )
+        omd_assert(
+            True,
+            (
+                '<button type="button" class="omd-expand-code" '
+                'data-block="hello">'
+            ) in guide,
+        )
+        code_controls = guide.index('<div class="omd-code-controls">')
+        language_control = guide.index(
+            '<div class="omd-language-label">',
+            code_controls,
+        )
+        expand_control = guide.index(
+            '<button type="button" class="omd-expand-code"',
+            language_control,
+        )
+        source_listing = guide.index("<pre>", expand_control)
+        omd_assert(
+            True,
+            code_controls
+            < language_control
+            < expand_control
+            < source_listing,
+        )
         omd_assert(True, 'id="omd-runner-output"' in guide)
+        omd_assert(True, 'id="omd-expand-dialog"' in guide)
+        omd_assert(True, 'id="omd-expand-listing"' in guide)
+        omd_assert(True, 'id="omd-expand-copy"' in guide)
+        omd_assert(True, "omd-expand-lines" in guide)
+        omd_assert(True, "renderExpandedSource" in guide)
+        omd_assert(False, 'id="omd-expand-output"' in guide)
         omd_assert(True, 'fetch("/__omd__/run"' in guide)
+        omd_assert(True, 'fetch("/__omd__/expand"' in guide)
         omd_assert(False, "<li>tangle:" in guide)
         omd_assert(False, "<li>menu:" in guide)
         omd_assert(False, "Metadata:" in guide)
@@ -1274,38 +1666,65 @@ with tempfile.TemporaryDirectory() as directory:
             True,
             '<div id="omd-code-3" class="omd-code-anchor">' in tool,
         )
-        omd_assert(
-            True,
-            '<h4 class="omd-code-title">' in tool
-            and "omd-card-example" in tool,
-        )
+        omd_assert(False, "omd-card-example" in tool)
         omd_assert(False, "Unnamed code block" in tool)
-        omd_assert(True, "omd-code-title kind-only" in tool)
-        omd_assert(True, "example</span>" in tool)
+        omd_assert(False, "omd-code-title kind-only" in tool)
         omd_assert(True, "omd-card-code" in tool)
         omd_assert(True, "omd-card-file" in tool)
-        example_card = tool.index("omd-card-example", tool.index("<main>"))
         example_description = tool.index("Inline example description.")
         example_code = tool.index(
             '<pre><code class="language-text">',
-            example_card,
+            example_description,
         )
+        answer_card = tool.index("omd-card-file", example_code)
+        tool_card = tool.index(
+            '<div class="omd-code-block omd-card-code">',
+            tool.index("<main>"),
+        )
+        tool_card_end = tool.rfind("</div>", tool_card, answer_card)
         omd_assert(
             True,
-            example_card < example_description < example_code,
+            tool_card
+            < example_description
+            < example_code
+            < tool_card_end
+            < answer_card,
+        )
+        omd_assert(
+            2,
+            tool.count('<div class="omd-code-block omd-card-'),
         )
         omd_assert(
             False,
             '<button type="button" class="omd-run-command"' in tool,
         )
+        omd_assert(
+            2,
+            tool.count(
+                '<button type="button" class="omd-expand-code"'
+            ),
+        )
         omd_assert(True, "generated/answer.py" in tool)
         file_card = tool.index("omd-card-file", tool.index("<main>"))
+        generated_heading = tool.index(
+            '<h1 id="generated-files">Generated files</h1>'
+        )
+        generated_intro = tool.index(
+            "Global generated-file introduction."
+        )
         answer_heading = tool.index('<h2 id="answer">Answer</h2>')
         answer_code = tool.index(
             '<pre><code class="language-python">',
             file_card,
         )
-        omd_assert(True, file_card < answer_heading < answer_code)
+        omd_assert(
+            True,
+            generated_heading
+            < generated_intro
+            < file_card
+            < answer_heading
+            < answer_code,
+        )
         omd_assert(False, "<li>tangle:" in tool)
         omd_assert(False, "<li>Language:" in tool)
         omd_assert(
@@ -1334,16 +1753,72 @@ with tempfile.TemporaryDirectory() as directory:
             '<h1 id="top-level-card-section">Top-level card section</h1>'
         )
         top_code = top.index('<pre><code class="language-python">')
+        trailing_text = top.index("After the top card source.")
+        following_heading = top.index(
+            '<h1 id="following-section">Following section</h1>'
+        )
+        top_card_end = top.rfind("</div>", top_card, following_heading)
+        following_text = top.index("Outside after the peer heading.")
         omd_assert(True, page_heading < top_card)
         omd_assert(True, top_card < card_heading < top_code)
         omd_assert(True, top.index("Outside the card.") < top_card)
         omd_assert(True, top_card < top.index("Inside the card.") < top_code)
+        omd_assert(
+            True,
+            top_code
+            < trailing_text
+            < top_card_end
+            < following_heading
+            < following_text,
+        )
+
+        invalid_cards = {
+            "missing.o.md": (
+                "# Missing implementation :CARD:\n\nNo code here.\n",
+                "exactly one code block with metadata (found 0)",
+            ),
+            "multiple.o.md": (
+                "# Too many :CARD:\n\n"
+                "```python {name=one}\none = 1\n```\n\n"
+                "```python {name=two}\ntwo = 2\n```\n",
+                "exactly one code block with metadata (found 2)",
+            ),
+            "nested.o.md": (
+                "# Outer :CARD:\n\n"
+                "```python {name=outer}\nouter = True\n```\n\n"
+                "## Inner :CARD:\n\n"
+                "```python {name=inner}\ninner = True\n```\n",
+                "a card cannot contain another card",
+            ),
+        }
+        for invalid_filename, (invalid_source, expected_error) in (
+            invalid_cards.items()
+        ):
+            try:
+                blocks.weave_card_sections(
+                    invalid_source,
+                    invalid_filename,
+                )
+            except ValueError as error:
+                omd_assert(True, expected_error in str(error))
+                omd_assert(True, str(error).startswith(f"{invalid_filename}:"))
+            else:
+                omd_assert(True, False)
+        omd_assert(
+            0,
+            len(
+                blocks.weave_card_sections(
+                    "# Plain\n\n```python {name=plain}\npass\n```\n",
+                    "plain.o.md",
+                )
+            ),
+        )
 
         runner = os.path.join(directory, "fake_omd.py")
         with open(runner, "w", encoding="utf-8") as output:
             output.write(
                 "import sys\n"
-                "print(f'ran {sys.argv[-1]}', flush=True)\n"
+                "print('ran ' + ' '.join(sys.argv[1:]), flush=True)\n"
             )
 
         original_argv_zero = sys.argv[0]
@@ -1371,8 +1846,19 @@ with tempfile.TemporaryDirectory() as directory:
                 )
                 with urllib.request.urlopen(request, timeout=5) as response:
                     command_output = response.read().decode("utf-8")
-                omd_assert(True, "ran hello" in command_output)
+                omd_assert(True, "ran run hello" in command_output)
                 omd_assert(True, "[exit 0]" in command_output)
+
+                expand = urllib.request.Request(
+                    url + "__omd__/expand",
+                    data=json.dumps({"name": "hidden"}).encode("utf-8"),
+                    headers={"Content-Type": "application/json"},
+                    method="POST",
+                )
+                with urllib.request.urlopen(expand, timeout=5) as response:
+                    expand_output = response.read().decode("utf-8")
+                omd_assert(True, "ran expand hidden" in expand_output)
+                omd_assert(False, "[exit " in expand_output)
 
                 forbidden = urllib.request.Request(
                     url + "__omd__/run",
