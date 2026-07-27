@@ -1,4 +1,8 @@
-# Build
+# Project Commands
+
+Following are the main commands for the project. Preference using these over typing at the console.
+
+## Build :CARD:
 
 To build a new `omd` script, run the following. Don't run `omd tangle` because that will also tangle the stuff in `e2e-tests/`, which should be tested using the new `lit/omd` file. Here we get around that by just tangling `omd_file` and nothing else.
 
@@ -9,14 +13,14 @@ black lit/omd
 chmod u+x lit/omd
 ```
 
-# Unit Tests
+## Unit Tests
 To test the new `omd` script, run the following:
 
 ```bash
 omd run all_tests
 ```
 
-# e2e tests
+## e2e tests
 
 To e2e test the new `omd` script, run the following:
 
@@ -24,13 +28,15 @@ To e2e test the new `omd` script, run the following:
 omd run e2e-tests
 ```
 
+## Full Release :CARD:
+
 ```bash {name=release-tests menu=true}
 omd run build-omd
 omd run all_tests
 omd run e2e-tests
 ```
 
-# Diff
+## Diff :CARD:
 
 To see the difference between the built script and the system on:
 
@@ -38,7 +44,7 @@ To see the difference between the built script and the system on:
 diff lit/omd `which omd`
 ```
 
-# Release
+## Release
 
 To do an official release.
 
