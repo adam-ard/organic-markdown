@@ -1,4 +1,4 @@
-# Main
+# Main :CARD:
 
 Every good program starts with a `main`—and this one is no exception.
 
@@ -10,8 +10,6 @@ In Python, the special variable `__name__` is set to `"__main__"` when the file 
 This pattern helps keep `omd` both scriptable and import-friendly.
 
 ---
-
-### 🔗 `@<main@>`
 
 ```python {name=main}
 if __name__ == '__main__':

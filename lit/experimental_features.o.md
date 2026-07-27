@@ -57,6 +57,13 @@ def weave_server(self, dest, port=8000):
     output_root = os.path.abspath(dest)
     project_root = os.getcwd()
     omd_executable = os.path.abspath(sys.argv[0])
+    editor_command = (
+        shlex.split(os.environ.get("OMD_EDITOR", "emacs")) or ["emacs"]
+    )
+    editable_sources = {
+        os.path.normpath(os.path.relpath(source)): os.path.abspath(source)
+        for source in self.file_order
+    }
     port = int(os.environ.get("OMD_PORT", port))
     code_blocks = self
 
@@ -76,6 +83,7 @@ def weave_server(self, dest, port=8000):
             actions = {
                 "/__omd__/run": "run",
                 "/__omd__/expand": "expand",
+                "/__omd__/edit": "edit",
             }
             action = actions.get(self.path)
             if action is None:
@@ -101,13 +109,54 @@ def weave_server(self, dest, port=8000):
                 if content_length < 1 or content_length > 65536:
                     raise ValueError
                 payload = json.loads(self.rfile.read(content_length))
-                name = payload.get("name")
-                if not isinstance(name, str) or not name:
-                    raise ValueError
             except (ValueError, json.JSONDecodeError, AttributeError):
                 self.send_text_error(400, "Invalid command request.\n")
                 return
 
+            if action == "edit":
+                source = payload.get("source")
+                line = payload.get("line")
+                if (
+                    not isinstance(source, str)
+                    or not isinstance(line, int)
+                    or isinstance(line, bool)
+                    or line < 1
+                ):
+                    self.send_text_error(400, "Invalid edit request.\n")
+                    return
+                source = os.path.normpath(source)
+                source_path = editable_sources.get(source)
+                if source_path is None:
+                    self.send_text_error(403, "Source file is not available.\n")
+                    return
+                try:
+                    subprocess.Popen(
+                        editor_command + [f"+{line}", source_path],
+                        cwd=project_root,
+                        stdin=subprocess.DEVNULL,
+                        stdout=subprocess.DEVNULL,
+                        stderr=subprocess.DEVNULL,
+                        start_new_session=True,
+                    )
+                except OSError as error:
+                    self.send_text_error(
+                        500,
+                        f"Unable to start editor: {error}\n",
+                    )
+                    return
+                response = f"Opened {source}:{line} in Emacs.\n".encode("utf-8")
+                self.send_response(200)
+                self.send_header("Content-Type", "text/plain; charset=utf-8")
+                self.send_header("Content-Length", str(len(response)))
+                self.send_header("Cache-Control", "no-store")
+                self.end_headers()
+                self.wfile.write(response)
+                return
+
+            name = payload.get("name")
+            if not isinstance(name, str) or not name:
+                self.send_text_error(400, "Invalid command request.\n")
+                return
             block = code_blocks.get_code_block(name)
             if block is None:
                 self.send_text_error(403, "Block is not available.\n")
@@ -284,6 +333,28 @@ def weave_navigation(self, current_output):
     tree = {"directories": {}, "files": []}
     for source in self.file_order:
         source = os.path.normpath(source)
+        commands = []
+        with open(source, "r", encoding="utf-8") as source_file:
+            source_content = source_file.read()
+        for number, match in enumerate(
+            self.weave_fence_pattern().finditer(source_content),
+            start=1,
+        ):
+            language, metadata, name = self.weave_code_info(
+                match.group("info")
+            )
+            attributes = self.weave_metadata_attributes(metadata, language)
+            menu = next(
+                (value for key, value in attributes if key == "menu"),
+                None,
+            )
+            if name and menu is not None and parse_menu_attrib(menu):
+                commands.append(
+                    {
+                        "name": name,
+                        "anchor": f"omd-code-{number}",
+                    }
+                )
         parts = source.split(os.sep)
         node = tree
         for directory in parts[:-1]:
@@ -295,6 +366,7 @@ def weave_navigation(self, current_output):
             {
                 "source": source,
                 "output": self.weave_output_name(source),
+                "commands": commands,
             }
         )
 
@@ -329,16 +401,44 @@ def weave_navigation(self, current_output):
             )
             target = target.replace(" ", "%20").replace("(", "%28").replace(")", "%29")
             label = html.escape(os.path.basename(item["source"]))
+            output.append('<li class="omd-nav-file">')
+            output.append('<div class="omd-nav-file-row">')
             if item["output"] == current_output:
                 output.append(
-                    '<li><a class="current" aria-current="page" '
-                    f'href="{html.escape(target, quote=True)}">{label}</a></li>'
+                    '<a class="current" aria-current="page" '
+                    f'href="{html.escape(target, quote=True)}">{label}</a>'
                 )
             else:
                 output.append(
-                    f'<li><a href="{html.escape(target, quote=True)}">'
-                    f"{label}</a></li>"
+                    f'<a href="{html.escape(target, quote=True)}">'
+                    f"{label}</a>"
                 )
+            source_name = html.escape(item["source"], quote=True)
+            output.append(
+                '<button type="button" '
+                'class="omd-edit-source omd-nav-edit" '
+                f'data-source="{source_name}" data-line="1" '
+                f'aria-label="Edit {label}">✎</button></div>'
+            )
+            if item["commands"]:
+                output.append('<ul class="omd-nav-commands">')
+                for command in item["commands"]:
+                    command_name = html.escape(command["name"])
+                    command_value = html.escape(command["name"], quote=True)
+                    command_target = html.escape(
+                        f'{target}#{command["anchor"]}',
+                        quote=True,
+                    )
+                    output.append(
+                        '<li><a class="omd-nav-command-link" '
+                        f'href="{command_target}">{command_name}</a>'
+                        '<button type="button" '
+                        'class="omd-run-command omd-nav-run" '
+                        f'data-command="{command_value}" '
+                        f'aria-label="Run {command_value}">▶</button></li>'
+                    )
+                output.append("</ul>")
+            output.append("</li>")
         output.append("</ul>")
         return "".join(output)
 
@@ -458,6 +558,51 @@ def weave_html_document(self, title, body, navigation):
       background: var(--accent);
       font-weight: 800;
     }}
+    .omd-nav-file-row {{
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+    }}
+    .omd-nav-file-row > a {{
+      min-width: 0;
+      flex: 1;
+    }}
+    .omd-nav-edit.omd-edit-source {{
+      flex: 0 0 auto;
+      margin: 0;
+      padding: 0.16rem 0.42rem;
+      color: var(--muted);
+      background: transparent;
+      border-color: var(--line);
+      font-size: 0.72rem;
+    }}
+    .omd-nav-edit.omd-edit-source:hover {{
+      color: var(--text);
+      background: var(--code);
+    }}
+    .omd-site-nav .omd-nav-commands {{
+      padding: 0.18rem 0 0.28rem 0.65rem;
+    }}
+    .omd-nav-commands li {{
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+    }}
+    .omd-site-nav .omd-nav-command-link {{
+      min-width: 0;
+      flex: 1;
+      padding-block: 0.18rem;
+      color: var(--muted);
+      font-size: 0.8rem;
+    }}
+    .omd-nav-run.omd-run-command {{
+      flex: 0 0 auto;
+      margin: 0;
+      padding: 0.16rem 0.42rem;
+      color: white;
+      background: var(--command-accent);
+      font-size: 0.68rem;
+    }}
     main {{
       width: min(100% - 2rem, 980px);
       margin: 2rem auto 5rem;
@@ -542,7 +687,8 @@ def weave_html_document(self, title, body, navigation):
       cursor: pointer;
     }}
     .omd-run-command:disabled {{ cursor: wait; opacity: 0.6; }}
-    .omd-expand-code {{
+    .omd-expand-code,
+    .omd-edit-source {{
       padding: 0.2rem 0.62rem;
       color: var(--card-accent);
       background: var(--card-code);
@@ -551,7 +697,8 @@ def weave_html_document(self, title, body, navigation):
       font: 700 0.78rem/1.3 system-ui, sans-serif;
       cursor: pointer;
     }}
-    .omd-expand-code:disabled {{ cursor: wait; opacity: 0.6; }}
+    .omd-expand-code:disabled,
+    .omd-edit-source:disabled {{ cursor: wait; opacity: 0.6; }}
     a {{ color: var(--accent); text-underline-offset: 0.16em; }}
     pre {{
       overflow-x: auto;
@@ -898,6 +1045,33 @@ def weave_html_document(self, title, body, navigation):
           button.disabled = false;
         }}
       }});
+
+      document.addEventListener("click", async (event) => {{
+        const button = event.target.closest(".omd-edit-source");
+        if (!button) return;
+
+        const source = button.dataset.source;
+        const line = Number(button.dataset.line);
+        const originalLabel = button.textContent;
+        button.disabled = true;
+
+        try {{
+          const response = await fetch("/__omd__/edit", {{
+            method: "POST",
+            headers: {{ "Content-Type": "application/json" }},
+            body: JSON.stringify({{ source, line }}),
+          }});
+          if (!response.ok) throw new Error(await response.text());
+          button.textContent = "Opened";
+          setTimeout(() => {{ button.textContent = originalLabel; }}, 1200);
+        }} catch (error) {{
+          window.alert(
+            `Unable to open source. Use "omd serve <dest>" and ensure Emacs is installed.\\n${{error}}`
+          );
+        }} finally {{
+          button.disabled = false;
+        }}
+      }});
     }})();
   </script>
 </body>
@@ -1086,7 +1260,14 @@ def weave_definition_target(self, definition, filename):
     target = target.replace(" ", "%20").replace("(", "%28").replace(")", "%29")
     return f"{target}#{definition['anchor']}"
 
-def weave_code_html(self, code, language, filename, name=None, is_card=True):
+def weave_code_html(
+    self,
+    code,
+    language,
+    filename,
+    name=None,
+    is_card=True,
+):
     rendered = []
     position = 0
     while True:
@@ -1533,6 +1714,28 @@ with tempfile.TemporaryDirectory() as directory:
         omd_assert(True, 'href="top.html">top.o.md</a>' in guide)
         omd_assert(
             True,
+            (
+                '<a class="omd-nav-command-link" '
+                'href="guide.html#omd-code-1">hello</a>'
+            ) in guide,
+        )
+        omd_assert(
+            True,
+            (
+                'class="omd-run-command omd-nav-run" '
+                'data-command="hello" aria-label="Run hello">▶</button>'
+            ) in guide,
+        )
+        omd_assert(
+            True,
+            'href="../guide.html#omd-code-1">hello</a>' in tool,
+        )
+        omd_assert(
+            1,
+            guide.count('<ul class="omd-nav-commands">'),
+        )
+        omd_assert(
+            True,
             '<details open><summary>nested</summary>' in tool,
         )
         omd_assert(True, 'href="../guide.html">guide.o.md</a>' in tool)
@@ -1610,6 +1813,14 @@ with tempfile.TemporaryDirectory() as directory:
                 'data-block="hello">'
             ) in guide,
         )
+        omd_assert(
+            True,
+            (
+                '<button type="button" '
+                'class="omd-edit-source omd-nav-edit" '
+                'data-source="guide.o.md" data-line="1"'
+            ) in guide,
+        )
         code_controls = guide.index('<div class="omd-code-controls">')
         language_control = guide.index(
             '<div class="omd-language-label">',
@@ -1636,6 +1847,7 @@ with tempfile.TemporaryDirectory() as directory:
         omd_assert(False, 'id="omd-expand-output"' in guide)
         omd_assert(True, 'fetch("/__omd__/run"' in guide)
         omd_assert(True, 'fetch("/__omd__/expand"' in guide)
+        omd_assert(True, 'fetch("/__omd__/edit"' in guide)
         omd_assert(False, "<li>tangle:" in guide)
         omd_assert(False, "<li>menu:" in guide)
         omd_assert(False, "Metadata:" in guide)
@@ -1694,15 +1906,27 @@ with tempfile.TemporaryDirectory() as directory:
             2,
             tool.count('<div class="omd-code-block omd-card-'),
         )
+        tool_main = tool[tool.index("<main>"):tool.index("</main>")]
         omd_assert(
             False,
-            '<button type="button" class="omd-run-command"' in tool,
+            '<button type="button" class="omd-run-command"' in tool_main,
         )
+        omd_assert(False, "omd-edit-source" in tool_main)
         omd_assert(
             2,
             tool.count(
                 '<button type="button" class="omd-expand-code"'
             ),
+        )
+        omd_assert(
+            3,
+            tool.count(
+                'class="omd-edit-source omd-nav-edit"'
+            ),
+        )
+        omd_assert(
+            True,
+            'data-source="nested/tool.o.md" data-line="1"' in tool,
         )
         omd_assert(True, "generated/answer.py" in tool)
         file_card = tool.index("omd-card-file", tool.index("<main>"))
@@ -1822,14 +2046,20 @@ with tempfile.TemporaryDirectory() as directory:
             )
 
         original_argv_zero = sys.argv[0]
+        original_editor = os.environ.get("OMD_EDITOR")
         try:
             sys.argv[0] = runner
+            os.environ["OMD_EDITOR"] = "/bin/true"
             try:
                 server, url = blocks.weave_server("site", 0)
             except PermissionError:
                 server = None
         finally:
             sys.argv[0] = original_argv_zero
+            if original_editor is None:
+                os.environ.pop("OMD_EDITOR", None)
+            else:
+                os.environ["OMD_EDITOR"] = original_editor
 
         if server is not None:
             server_thread = threading.Thread(
@@ -1859,6 +2089,32 @@ with tempfile.TemporaryDirectory() as directory:
                     expand_output = response.read().decode("utf-8")
                 omd_assert(True, "ran expand hidden" in expand_output)
                 omd_assert(False, "[exit " in expand_output)
+
+                edit = urllib.request.Request(
+                    url + "__omd__/edit",
+                    data=json.dumps(
+                        {"source": "guide.o.md", "line": 10}
+                    ).encode("utf-8"),
+                    headers={"Content-Type": "application/json"},
+                    method="POST",
+                )
+                with urllib.request.urlopen(edit, timeout=5) as response:
+                    edit_output = response.read().decode("utf-8")
+                omd_assert(True, "Opened guide.o.md:10" in edit_output)
+
+                invalid_edit = urllib.request.Request(
+                    url + "__omd__/edit",
+                    data=json.dumps(
+                        {"source": "../outside.o.md", "line": 1}
+                    ).encode("utf-8"),
+                    headers={"Content-Type": "application/json"},
+                    method="POST",
+                )
+                try:
+                    urllib.request.urlopen(invalid_edit, timeout=5)
+                    omd_assert(True, False)
+                except urllib.error.HTTPError as error:
+                    omd_assert(403, error.code)
 
                 forbidden = urllib.request.Request(
                     url + "__omd__/run",

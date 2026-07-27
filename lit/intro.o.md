@@ -16,4 +16,4 @@ So I used that simple, brute-force bootstrapping script, my original `omd`,  to 
 
 **OMD is now implemented in OMD.**
 
-👉 [View the Code Layout](code.o.md)
+👉 [View the Code Layout](./code.o.md)

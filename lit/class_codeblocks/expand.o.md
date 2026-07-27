@@ -38,7 +38,7 @@ An explicit empty default, `@<name{}@>`, still substitutes an empty string witho
 
 ---
 
-### 🔗 `@<codeblocks__expand@>`
+### codeblocks__expand :CARD:
 
 ```python {name=codeblocks__expand}
 def expand(self, txt, args={}):
@@ -88,7 +88,7 @@ def expand_line(self, txt, args={}):
 
 ---
 
-# 🧪 Testing
+### 🧪 Testing :CARD:
 
 This functionality is tested using a parallel syntax that replaces `@<...@>` with `:<...:>` to prevent substitutions from interfering during the tangle phase.
 
@@ -376,7 +376,7 @@ full_file = {"blocks": [{"t": "",
              }
 ```
 
-### 🧪 Expand Tests
+### Expand Tests :CARD:
 
 ```python {name=expand_tests menu=true}
 @<imports@>

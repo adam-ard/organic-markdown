@@ -1,4 +1,4 @@
-# Run all tests
+# Run all tests :CARD:
 
 This file wires the project-wide literate test suite together in one place. New top-level behavior, such as the CLI help output, gets added here so the standard `all_tests` command keeps covering it.
 

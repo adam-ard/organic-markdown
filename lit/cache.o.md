@@ -1,4 +1,4 @@
-# Parsed project cache
+#### Parsed project cache :CARD:
 
 The parsed project cache is a generated artifact stored in the current project
 directory. It lets ordinary `omd` invocations skip Pandoc work when the `.o.md`

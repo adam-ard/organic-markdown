@@ -6,7 +6,7 @@ the session is open are picked up automatically without a manual reload command.
 After reading input, `exit` leaves the loop and every other command is delegated
 to the normal `CodeBlocks.handle_cmd()` dispatcher.
 
-### @<interactive_mode@>
+### interactive_mode :CARD:
 
 ```python {name=interactive_mode}
 while True:
@@ -17,7 +17,7 @@ while True:
 
 Each iteration of the while loop executes the following code:
 
-### @<handle_cmd@>
+### handle_cmd :CARD:
 
 ```python {name=handle_cmd}
 words = cmd.split(" ")

@@ -1,4 +1,4 @@
-# Main Code
+# Main Code :CARD:
 
 The `main_code` section loads the current `CodeBlocks` collection through the
 parsed project cache before dispatching either command mode or interactive mode.
@@ -14,7 +14,7 @@ invocation.
 
 The way the code determines which mode to invoke is by the number of command-line arguments. If there are zero args, then OMD invokes interactive mode. Otherwise, it executes a single command in command mode.
 
-### @<main_code@>
+### Main Code
 
 ```python {name=main_code}
 code_blocks = omd_load_code_blocks(os.getcwd())
@@ -26,7 +26,7 @@ elif len(sys.argv) == 1:
     @<interactive_mode@>
 ```
 
-# Tests
+# Tests :CARD:
 
 Simple test that check that the right mode is executed at the right time: command mode when there are more than one argument, and interactive mode otherwise. Also assures that the program exits with an error code if it fails.
 
