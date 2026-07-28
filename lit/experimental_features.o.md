@@ -697,6 +697,15 @@ def weave_html_document(self, title, body, navigation):
       font: 700 0.78rem/1.3 system-ui, sans-serif;
       cursor: pointer;
     }}
+    .omd-expand-code {{
+      position: absolute;
+      top: 0;
+      right: 1rem;
+      z-index: 1;
+      transform: translateY(-50%);
+      padding-inline: 0.55rem;
+      font-size: 0.9rem;
+    }}
     .omd-expand-code:disabled,
     .omd-edit-source:disabled {{ cursor: wait; opacity: 0.6; }}
     a {{ color: var(--accent); text-underline-offset: 0.16em; }}
@@ -729,7 +738,10 @@ def weave_html_document(self, title, body, navigation):
       display: flex;
       align-items: center;
       gap: 0.4rem;
+      max-width: calc(100% - 5rem);
+      overflow-x: auto;
     }}
+    .omd-code-name,
     .omd-language-label {{
       padding: 0.2rem 0.65rem;
       color: var(--text);
@@ -737,7 +749,14 @@ def weave_html_document(self, title, body, navigation):
       border: 1px solid var(--card-line);
       border-radius: 999px;
       font: 600 0.82rem/1.2 ui-monospace, SFMono-Regular, Consolas, monospace;
+      white-space: nowrap;
     }}
+    .omd-code-name {{
+      color: var(--card-accent);
+      border-color: var(--card-accent);
+      font-weight: 750;
+    }}
+    .omd-code-controls .omd-run-command {{ margin-left: 0; }}
     code {{ font-family: ui-monospace, SFMono-Regular, Consolas, monospace; }}
     :not(pre) > code {{
       padding: 0.12rem 0.35rem;
@@ -1146,7 +1165,7 @@ def weave_card_info(self, name, attributes):
 
     if menu is not None and parse_menu_attrib(menu):
         kind = "command"
-        title = name if name else "Unnamed command"
+        title = None
         hidden_attributes = {"menu"}
     elif tangle:
         kind = "file"
@@ -1154,7 +1173,7 @@ def weave_card_info(self, name, attributes):
         hidden_attributes = {"tangle"}
     else:
         kind = "code"
-        title = name
+        title = None
         hidden_attributes = set()
 
     visible_attributes = [
@@ -1267,6 +1286,7 @@ def weave_code_html(
     filename,
     name=None,
     is_card=True,
+    card_kind=None,
 ):
     rendered = []
     position = 0
@@ -1302,29 +1322,43 @@ def weave_code_html(
         return listing
 
     panel_class = "omd-code-panel"
+    name_label = ""
     language_label = ""
+    run_button = ""
     expand_button = ""
+    if name is not None:
+        block_name = html.escape(name, quote=True)
+        name_label = (
+            '<div class="omd-code-name">'
+            f"{html.escape(name)}</div>"
+        )
+        if card_kind == "command":
+            run_button = (
+                '<button type="button" class="omd-run-command" '
+                f'data-command="{block_name}">▶ Run</button>'
+            )
+        expand_button = (
+            '<button type="button" class="omd-expand-code" '
+            f'data-block="{block_name}" '
+            f'aria-label="Expand {block_name}" '
+            f'title="Expand {block_name}">&gt;</button>'
+        )
     if language:
         language_label = (
             '<div class="omd-language-label">'
             f"{html.escape(language)}</div>"
         )
-    if name is not None:
-        block_name = html.escape(name, quote=True)
-        expand_button = (
-            '<button type="button" class="omd-expand-code" '
-            f'data-block="{block_name}">↗ Expand</button>'
-        )
     controls = ""
-    if language_label or expand_button:
+    if name_label or language_label or run_button or expand_button:
         panel_class += " has-controls"
+    if name_label or language_label or run_button:
         controls = (
             '<div class="omd-code-controls">'
-            f"{language_label}{expand_button}</div>"
+            f"{name_label}{language_label}{run_button}</div>"
         )
     return (
         f'<div class="{panel_class}">'
-        f"{controls}{listing}</div>"
+        f"{controls}{expand_button}{listing}</div>"
     )
 
 def weave_expand_prose(self, prose, reference_number):
@@ -1414,7 +1448,7 @@ def weave_file(
             )
             return
         attributes = self.weave_metadata_attributes(metadata, language)
-        _kind, _title, visible_attributes = self.weave_card_info(
+        card_kind, _title, visible_attributes = self.weave_card_info(
             name,
             attributes,
         )
@@ -1430,6 +1464,7 @@ def weave_file(
                 language,
                 filename,
                 name,
+                card_kind=card_kind,
             )
         )
 
@@ -1534,20 +1569,12 @@ def weave_file(
                 ]
             )
         else:
-            run_button = ""
-            if card_kind == "command" and name is not None:
-                command = html.escape(name, quote=True)
-                run_button = (
-                    '<button type="button" class="omd-run-command" '
-                    f'data-command="{command}">▶ Run</button>'
-                )
             details.extend(
                 [
                     (
                         '<h4 class="omd-code-title">'
                         f'<span class="omd-card-kind">{card_kind}</span>'
-                        f"<code>{html.escape(card_title)}</code>"
-                        f"{run_button}</h4>"
+                        f"<code>{html.escape(card_title)}</code></h4>"
                     ),
                     "",
                 ]
@@ -1788,9 +1815,10 @@ with tempfile.TemporaryDirectory() as directory:
         )
         omd_assert(
             True,
-            '<h4 class="omd-code-title">' in guide
-            and "<code>hello</code>" in guide,
+            '<h4 class="omd-code-title kind-only">' in guide
+            and "command</span>" in guide,
         )
+        omd_assert(False, "<code>hello</code>" in guide)
         omd_assert(False, "<li>Code block:" in guide)
         omd_assert(False, "<li>Language:" in guide)
         omd_assert(
@@ -1810,9 +1838,15 @@ with tempfile.TemporaryDirectory() as directory:
             True,
             (
                 '<button type="button" class="omd-expand-code" '
-                'data-block="hello">'
+                'data-block="hello" aria-label="Expand hello" '
+                'title="Expand hello">'
             ) in guide,
         )
+        expand_markup = guide.index(
+            '<button type="button" class="omd-expand-code" '
+            'data-block="hello"',
+        )
+        omd_assert(True, "&gt;" in guide[expand_markup:expand_markup + 200])
         omd_assert(
             True,
             (
@@ -1822,22 +1856,33 @@ with tempfile.TemporaryDirectory() as directory:
             ) in guide,
         )
         code_controls = guide.index('<div class="omd-code-controls">')
+        name_control = guide.index(
+            '<div class="omd-code-name">',
+            code_controls,
+        )
         language_control = guide.index(
             '<div class="omd-language-label">',
-            code_controls,
+            name_control,
+        )
+        run_control = guide.index(
+            '<button type="button" class="omd-run-command"',
+            language_control,
         )
         expand_control = guide.index(
             '<button type="button" class="omd-expand-code"',
-            language_control,
+            run_control,
         )
         source_listing = guide.index("<pre>", expand_control)
         omd_assert(
             True,
             code_controls
+            < name_control
             < language_control
+            < run_control
             < expand_control
             < source_listing,
         )
+        omd_assert(True, "hello" in guide[name_control:language_control])
         omd_assert(True, 'id="omd-runner-output"' in guide)
         omd_assert(True, 'id="omd-expand-dialog"' in guide)
         omd_assert(True, 'id="omd-expand-listing"' in guide)
@@ -1880,7 +1925,8 @@ with tempfile.TemporaryDirectory() as directory:
         )
         omd_assert(False, "omd-card-example" in tool)
         omd_assert(False, "Unnamed code block" in tool)
-        omd_assert(False, "omd-code-title kind-only" in tool)
+        omd_assert(True, "omd-code-title kind-only" in tool)
+        omd_assert(2, tool.count('<div class="omd-code-name">'))
         omd_assert(True, "omd-card-code" in tool)
         omd_assert(True, "omd-card-file" in tool)
         example_description = tool.index("Inline example description.")
